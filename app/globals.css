@@ -1,26 +1,324 @@
 @import "tailwindcss";
 
+/* WeeStox Global Theme - Steel Blue & Grayish Color Scheme */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Steel Blue Colors */
+  --primary-blue: #4682B4;
+  --primary-dark: #2C5F8D;
+  --primary-mid: #5B9BD5;
+  --primary-light: #A4C8E1;
+  --primary-lighter: #E8F2F7;
+  --primary-glow: rgba(70, 130, 180, 0.3);
+  
+  /* Grayish Background Scale (StockZee-style) */
+  --black: #0F1419;
+  --dark-gray: #192734;
+  --medium-dark: #1F2937;
+  --card-bg: #1A2332;
+  --medium-gray: #374151;
+  --light-gray: #9CA3AF;
+  --border-gray: #2D3748;
+  --white: #FFFFFF;
+  
+  /* Status Colors - Green & Red for directions */
+  --success-green: #10B981;
+  --success-light: #34D399;
+  --danger-red: #EF4444;
+  --danger-light: #F87171;
+  --warning-yellow: #F59E0B;
+  --info-blue: #3B82F6;
+  
+  /* Metal Accent Colors */
+  --gold: #FFD700;
+  --gold-light: #FFF4CC;
+  --gold-dark: #B8860B;
+  --silver: #C0C0C0;
+  --silver-light: #E8E8E8;
+  --silver-dark: #808080;
+  --platinum: #A8B8D8;
+  --platinum-light: #D5DBEB;
+  --platinum-dark: #7B8FB8;
+  
+  /* Semantic Colors */
+  --background: var(--black);
+  --foreground: var(--white);
+  --card-bg: var(--dark-gray);
+  --border: var(--border-gray);
+  
+  /* Chart Colors */
+  --chart-line: var(--primary-blue);
+  --chart-area: var(--primary-glow);
+  --chart-grid: var(--medium-dark);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base Styles */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--white);
+}
+
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+p, span, div {
+  color: var(--white);
+}
+
+/* Links */
+a {
+  /* color: var(--primary-blue); */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--success-blue);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--medium-gray);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-blue);
+}
+
+/* Custom Utilities */
+.text-primary {
+  color: var(--primary-blue);
+}
+
+.bg-primary {
+  background-color: var(--primary-blue);
+}
+
+.border-primary {
+  border-color: var(--primary-blue);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: var(--primary-blue);
+  box-shadow: 0 4px 20px var(--primary-glow);
+  transform: translateY(-2px);
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background-color: var(--primary-blue);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-mid);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary-blue);
+  color: var(--white);
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-blue {
+  background-color: var(--primary-light);
+  color: var(--primary-blue);
+}
+
+.badge-success {
+  background-color: rgba(0, 136, 255, 0.2);
+  color: var(--success-blue);
+}
+
+.badge-danger {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: var(--danger-red);
+}
+
+/* Price Change Indicators - Green for Up, Red for Down */
+.price-up {
+  color: var(--success-green);
+}
+
+.price-down {
+  color: var(--danger-red);
+}
+
+.price-neutral {
+  color: var(--light-gray);
+}
+
+/* Metal-specific theme classes */
+.metal-gold {
+  --metal-accent: var(--gold);
+  --metal-light: var(--gold-light);
+  --metal-dark: var(--gold-dark);
+}
+
+.metal-silver {
+  --metal-accent: var(--silver);
+  --metal-light: var(--silver-light);
+  --metal-dark: var(--silver-dark);
+}
+
+.metal-platinum {
+  --metal-accent: var(--platinum);
+  --metal-light: var(--platinum-light);
+  --metal-dark: var(--platinum-dark);
+}
+
+/* Metal accent utilities */
+.accent-color {
+  color: var(--metal-accent);
+}
+
+.accent-bg {
+  background-color: var(--metal-accent);
+}
+
+.accent-border {
+  border-color: var(--metal-accent);
+}
+
+.accent-glow {
+  box-shadow: 0 0 20px var(--metal-accent);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--dark-gray) 0%,
+    var(--medium-dark) 50%,
+    var(--dark-gray) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  border-radius: 4px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Container */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.25rem; }
+  
+  .btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
 }
