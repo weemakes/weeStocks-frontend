@@ -4,13 +4,13 @@
  * Route: /gold, /silver, /platinum
  */
 
-import { redirect } from "next/navigation";
-import { notFound } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getPopularCities } from "@/features/metals/api";
 import { METAL_CONFIG, type Metal } from "@/features/metals/types";
 import { MetalSelector } from "@/features/metals/components";
 import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 interface MetalPageProps {
   params: Promise<{
@@ -26,13 +26,13 @@ export async function generateMetadata({
 
   if (!metalConfig) {
     return {
-      title: "Page Not Found | Halal Stock",
+      title: "Page Not Found | WeeStox",
     };
   }
 
   return {
-    title: `${metalConfig.displayName} Price Today in India | Halal Stock`,
-    description: `Check today's ${metalConfig.displayName.toLowerCase()} prices across major Indian cities. Get real-time price updates, historical trends, and market insights.`,
+    title: `${metalConfig.displayName} Price Today in India — Live 24K, 22K, 18K Rates | WeeStox`,
+    description: `Check today's live ${metalConfig.displayName.toLowerCase()} prices across major Indian cities. Real-time spot rates, multi-city comparison, and intraday charts on WeeStox.`,
   };
 }
 
@@ -50,45 +50,43 @@ export default async function MetalPage({ params }: MetalPageProps) {
   // Fetch popular cities
   const popularCities = await getPopularCities();
 
-  // If we have popular cities, redirect to the first one
+  // If we have popular cities, redirect to the capital / top city (e.g. delhi)
   if (popularCities && popularCities.length > 0) {
-    const firstCity = popularCities[0];
-    redirect(`/${metal}/${firstCity.slug}`);
+    const capitalCity = popularCities.find((c) => c.slug === "delhi") || popularCities[0];
+    redirect(`/${metal}/${capitalCity.slug}`);
   }
 
-  // Fallback: show city selection page
+  // Fallback: show city selection page in dark theme
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            {metalConfig.displayName} Price in India
+    <div className="min-h-screen bg-slate-950 py-8 pb-20">
+      <div className="container mx-auto">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 mb-6 shadow-xl">
+          <h1 className="text-3xl font-extrabold text-slate-100 mb-2">
+            {metalConfig.displayName} Price Today in India
           </h1>
-          <p className="text-lg text-gray-600 mb-6">
-            Select a city to view current {metalConfig.displayName.toLowerCase()}{" "}
-            prices
+          <p className="text-sm text-slate-400 mb-6">
+            Select a city to view current live {metalConfig.displayName.toLowerCase()} rates and comparison tables
           </p>
 
           <MetalSelector currentMetal={metal} />
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Select a City
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h2 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-sky-400" />
+            <span>Select a City to View Live Rates</span>
           </h2>
-          
-          <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">
-              Unable to load cities. Please ensure the backend API is running at:
-            </p>
-            <code className="bg-gray-100 px-3 py-1 rounded text-sm">
-              {process.env.BACKEND_API_URL || "http://localhost:3000"}
-            </code>
-            <p className="text-sm text-gray-500 mt-4">
-              Check the terminal logs for more details.
-            </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {popularCities.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/${metal}/${c.slug}`}
+                className="p-3.5 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 hover:border-sky-500/50 rounded-xl text-xs font-semibold text-slate-200 transition-all text-center block"
+              >
+                {c.name}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

@@ -107,6 +107,8 @@ export interface DailyPrice {
 export interface MetalLast10Days {
   metal: Metal;
   cityId: number;
+  cityName?: string;
+  unit?: string;
   data: DailyPrice[];
 }
 

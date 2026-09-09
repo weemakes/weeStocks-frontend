@@ -5,42 +5,47 @@
 
 import type { MetalLast10Days, MetalPurity, Metal } from "../types";
 import { METAL_CONFIG } from "../types";
-import { formatDate, formatPrice } from "../utils";
+import { formatPrice } from "../utils";
+import { Calendar, ArrowUp, ArrowDown } from "lucide-react";
 
 interface Last10DaysTableProps {
   data: MetalLast10Days;
 }
 
+function formatHistoricalDate(dateStr: string) {
+  if (!dateStr) return "–";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
 export function Last10DaysTable({ data }: Last10DaysTableProps) {
-  // Safety check for data
   if (!data || !data.metal) {
-    console.error("Last10DaysTable: Invalid data", data);
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <p className="text-red-600">Unable to display historical data</p>
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <p className="text-rose-400 text-xs">Unable to display historical data</p>
       </div>
     );
   }
-  
-  // Normalize metal name to lowercase to match METAL_CONFIG keys
+
   const metalKey = data.metal.toLowerCase() as Metal;
   const metalConfig = METAL_CONFIG[metalKey];
-  
+
   if (!metalConfig) {
-    console.error("Invalid metal type:", data.metal);
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <p className="text-red-600">Unable to display price table for metal: {data.metal}</p>
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <p className="text-rose-400 text-xs">Unable to display price table for metal: {data.metal}</p>
       </div>
     );
   }
-  
-  // Metal-specific header colors
-  const metalHeaderStyle = {
-    gold: 'text-yellow-500',
-    silver: 'text-gray-300',
-    platinum: 'text-blue-300',
-  }[metalKey] || 'text-white';
 
   const hasGoldPurity = metalConfig.purityOptions.length > 0;
 
@@ -49,80 +54,112 @@ export function Last10DaysTable({ data }: Last10DaysTableProps) {
 
   if (data.data.length > 0) {
     if (hasGoldPurity) {
-      // For gold, show 24K and 22K
       const purities: MetalPurity[] = ["24K", "22K"];
       purities.forEach((purity) => {
         columns.push({
           purity,
-          label: purity,
+          label: `${purity} (1g)`,
         });
       });
     } else {
-      // For silver/platinum, show 1g, 10g, 100g
       const units = ["1g", "10g", "100g"];
       units.forEach((unit) => {
         columns.push({
           unit,
-          label: unit,
+          label: `${unit} Rate`,
         });
       });
     }
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-800">
-        <h2 className={`text-xl font-bold ${metalHeaderStyle}`}>
-          {metalConfig.displayName} Price - Last 10 Days
-        </h2>
+    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-sky-400" />
+          <div>
+            <h2 className="text-base md:text-lg font-bold text-slate-100">
+              {metalConfig.displayName} Price Trend — Last 10 Days
+            </h2>
+            <p className="text-xs text-slate-400">
+              Daily historical movement and price adjustments{data.cityName ? ` in ${data.cityName}` : ""}
+            </p>
+          </div>
+        </div>
+
+        <span className="text-xs text-slate-500 font-semibold uppercase">
+          Unit: {data.unit || "1g"}
+        </span>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-950 border-b border-gray-800">
-              <th className="px-6 py-3 text-left text-sm font-semibold text-white">
-                Date
-              </th>
+        <table className="w-full text-left text-xs border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800">
+          <thead className="bg-slate-950 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <tr>
+              <th className="py-2.5 px-4">Date</th>
               {columns.map((col, idx) => (
-                <th
-                  key={idx}
-                  className="px-6 py-3 text-right text-sm font-semibold text-white"
-                >
+                <th key={idx} className="py-2.5 px-4 text-right">
                   {col.label}
                 </th>
               ))}
+              <th className="py-2.5 px-4 text-center">Daily Movement</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
-            {data.data.map((day: any) => {
+          <tbody className="divide-y divide-slate-800/80">
+            {data.data.map((day: any, idx: number) => {
+              // Extract primary change info from 24K or first available column
+              const mainPurityData = day["24K"] || day["22K"] || day["1g"];
+              const change = mainPurityData?.change;
+              const dir = mainPurityData?.changeDirection;
+              const isUp = dir === "up";
+              const isDown = dir === "down";
+
               return (
-                <tr key={day.date} className="hover:bg-gray-800 transition-colors">
-                  <td className="px-6 py-4 text-sm font-medium text-white">
-                    {day.displayDate || formatDate(day.date)}
+                <tr
+                  key={day.date}
+                  className={idx === 0 ? "bg-slate-950/60 font-semibold" : "hover:bg-slate-800/30"}
+                >
+                  <td className="py-2.5 px-4 font-bold text-slate-200 tabular-nums">
+                    {formatHistoricalDate(day.date)}
                   </td>
-                  {columns.map((col, idx) => {
-                    let price = null;
-                    
-                    if (hasGoldPurity && col.purity) {
-                      // For gold: access day['24K'] or day['22K']
-                      const priceData = day[col.purity];
-                      price = priceData?.price;
-                    } else if (col.unit) {
-                      // For silver/platinum: access day['1g'], day['10g'], day['100g']
-                      const priceData = day[col.unit];
-                      price = priceData?.price;
-                    }
+
+                  {columns.map((col, colIdx) => {
+                    const priceInfo = col.purity ? day[col.purity] : day[col.unit!];
+                    const price = priceInfo?.price !== undefined ? priceInfo.price : priceInfo;
+                    const is24K = col.purity === "24K";
 
                     return (
-                      <td
-                        key={idx}
-                        className="px-6 py-4 text-sm text-right font-medium text-blue-400"
-                      >
-                        {price ? formatPrice(price) : "—"}
+                      <td key={colIdx} className="py-2.5 px-4 text-right tabular-nums">
+                        {price !== undefined ? (
+                          <span className={`font-bold ${is24K ? "text-amber-400" : "text-slate-100"}`}>
+                            {formatPrice(price)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
                       </td>
                     );
                   })}
+
+                  <td className="py-2.5 px-4 text-center tabular-nums">
+                    {change !== undefined && change !== 0 ? (
+                      <span
+                        className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold ${
+                          isUp
+                            ? "text-emerald-400 bg-emerald-500/10"
+                            : isDown
+                            ? "text-rose-400 bg-rose-500/10"
+                            : "text-slate-400 bg-slate-800"
+                        }`}
+                      >
+                        {isUp ? <ArrowUp className="w-3 h-3" /> : isDown ? <ArrowDown className="w-3 h-3" /> : null}
+                        {isUp ? "+" : ""}
+                        {formatPrice(Math.abs(change))}
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 text-xs">— Flat</span>
+                    )}
+                  </td>
                 </tr>
               );
             })}

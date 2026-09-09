@@ -1,8 +1,12 @@
-import type { IPOListResponse, IPODetailResponse, IPOSummaryResponse, IPOQueryParams } from '../types';
+import type { IPOV2ListResponse, IPODetailV2Response, IPOQueryParams } from '../types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
-export async function getIPOList(params: IPOQueryParams = {}): Promise<IPOListResponse> {
+/**
+ * Fetch IPO list using V2 API
+ * GET /v2/ipos
+ */
+export async function getIPOList(params: IPOQueryParams = {}): Promise<IPOV2ListResponse> {
   const queryParams = new URLSearchParams();
   
   if (params.status && params.status !== 'all') queryParams.append('status', params.status);
@@ -11,57 +15,46 @@ export async function getIPOList(params: IPOQueryParams = {}): Promise<IPOListRe
   if (params.search) queryParams.append('search', params.search);
   if (params.sort) queryParams.append('sort', params.sort);
   if (params.snapshot_date) queryParams.append('snapshot_date', params.snapshot_date);
+  if (params.halal) queryParams.append('halal', params.halal);
   if (params.page) queryParams.append('page', params.page.toString());
   if (params.limit) queryParams.append('limit', params.limit.toString());
 
-  const url = `${API_BASE_URL}/ipos/gmp/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  const queryString = queryParams.toString();
+  const url = `${API_BASE_URL}/v2/ipos${queryString ? `?${queryString}` : ''}`;
   
   const response = await fetch(url, {
     cache: 'no-store',
     headers: {
       'User-Agent': 'WeeStox/1.0',
+      'Accept': 'application/json',
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch IPO list: ${response.statusText}`);
+    throw new Error(`Failed to fetch IPO list from ${url}: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
 }
 
-export async function getIPODetail(companyName: string): Promise<IPODetailResponse> {
-  const url = `${API_BASE_URL}/ipos/ipo-detail?company_name=${encodeURIComponent(companyName)}`;
+/**
+ * Fetch IPO detailed profile and analysis using V2 API
+ * GET /v2/ipos/:slug
+ */
+export async function getIPODetail(slug: string): Promise<IPODetailV2Response> {
+  const encodedSlug = encodeURIComponent(slug.trim());
+  const url = `${API_BASE_URL}/v2/ipos/${encodedSlug}`;
   
   const response = await fetch(url, {
     cache: 'no-store',
     headers: {
       'User-Agent': 'WeeStox/1.0',
+      'Accept': 'application/json',
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch IPO detail: ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
-export async function getIPOSummary(snapshot_date?: string): Promise<IPOSummaryResponse> {
-  const queryParams = new URLSearchParams();
-  if (snapshot_date) queryParams.append('snapshot_date', snapshot_date);
-
-  const url = `${API_BASE_URL}/ipos/gmp/summary${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-  
-  const response = await fetch(url, {
-    cache: 'no-store',
-    headers: {
-      'User-Agent': 'WeeStox/1.0',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch IPO summary: ${response.statusText}`);
+    throw new Error(`Failed to fetch IPO detail for ${slug}: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
