@@ -17,14 +17,28 @@ import {
 import {
   MetalSelector,
   CitySelector,
-  MetalPriceCard,
   MetalPriceTable,
   Last10DaysTable,
   HistoryChartSection,
-  GoldCalculator,
+  SmartMetalCalculator,
+  CityComparisonTable,
+  MetalInvestorGuide,
+  type CityMetalPriceItem,
 } from "@/features/metals/components";
 import { METAL_CONFIG, type Metal } from "@/features/metals/types";
 import { formatPrice } from "@/features/metals/utils";
+import {
+  Coins,
+  Sparkles,
+  Gem,
+  TrendingUp,
+  ArrowUp,
+  ArrowDown,
+  Clock,
+  MapPin,
+  Scale,
+  ShieldCheck,
+} from "lucide-react";
 
 interface MetalCityPageProps {
   params: Promise<{
@@ -41,14 +55,14 @@ export async function generateMetadata({
   const city = await getCityBySlug(citySlug);
   if (!city) {
     return {
-      title: "City Not Found | Halal Stock",
+      title: "City Not Found | WeeStox",
     };
   }
 
   const metalConfig = METAL_CONFIG[metal as Metal];
   if (!metalConfig) {
     return {
-      title: "Page Not Found | Halal Stock",
+      title: "Page Not Found | WeeStox",
     };
   }
 
@@ -56,12 +70,8 @@ export async function generateMetadata({
   const metalName = metalConfig.displayName;
 
   return {
-    title: `${metalName} Price in ${capitalizedCity} Today | Halal Stock`,
-    description: `Check today's ${metalName.toLowerCase()} price in ${capitalizedCity}${
-      metalConfig.purityOptions.length > 0
-        ? ` for ${metalConfig.purityOptions.join(", ")} gold`
-        : ""
-    }, including historical prices and the latest 10-day price trends.`,
+    title: `${metalName} Rate Today in ${capitalizedCity} (10g, 1g) - Live 24K, 22K, 18K Prices | WeeStox`,
+    description: `Check live ${metalName.toLowerCase()} price in ${capitalizedCity} today. Real-time 24K, 22K & 18K per gram, 10g tola, and 8g sovereign rates. Compare across all Indian cities with historical trends on WeeStox.`,
   };
 }
 
@@ -90,183 +100,388 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
       getMetalLast10Days(city.id, metal),
       metalConfig.historyEnabled
         ? getMetalHistoryData({
-            citySlug: city?.slug||"",
+            citySlug: city?.slug || "",
             metal,
             unit: metalConfig.defaultUnit,
-            purity: metalConfig.defaultPurity,
+            purity: metal === "gold" ? metalConfig.defaultPurity : undefined,
             duration: metalConfig.defaultDuration,
+          }).catch((err) => {
+            console.error(`Failed to fetch initial history data for ${metal}:`, err);
+            return null;
           })
         : Promise.resolve(null),
     ]);
 
-  // Get primary prices for display cards (first few prices based on purity/unit)
-  const primaryPrices = latestPrice.prices.slice(0, 3);
+  // Fetch comparison rates across top popular cities
+  const comparisonCities: CityMetalPriceItem[] = [];
+  const topCities = popularCities.slice(0, 10);
 
-  // Metal-specific theme colors
-  const metalTheme = {
-    gold: {
-      gradient: 'from-yellow-900/30 via-gray-900 to-gray-950',
-      border: 'border-yellow-600/50',
-      text: 'text-yellow-500',
-      glow: 'shadow-yellow-500/20',
-      cardBorder: 'border-yellow-600/30',
-      cardBg: 'bg-gradient-to-br from-yellow-950/20 to-gray-900',
-    },
-    silver: {
-      gradient: 'from-gray-700/30 via-gray-900 to-gray-950',
-      border: 'border-gray-400/50',
-      text: 'text-gray-300',
-      glow: 'shadow-gray-400/20',
-      cardBorder: 'border-gray-400/30',
-      cardBg: 'bg-gradient-to-br from-gray-800/20 to-gray-900',
-    },
-    platinum: {
-      gradient: 'from-blue-900/30 via-gray-900 to-gray-950',
-      border: 'border-blue-400/50',
-      text: 'text-blue-300',
-      glow: 'shadow-blue-400/20',
-      cardBorder: 'border-blue-400/30',
-      cardBg: 'bg-gradient-to-br from-blue-950/20 to-gray-900',
-    },
-  };
+  const cityPriceResults = await Promise.allSettled(
+    topCities.map(async (c) => {
+      const p = await getLatestMetalPrice(c.id, metal);
+      const p24 =
+        p.prices.find((pr) => pr.purity === "24K" && pr.unit === "10g")?.price ||
+        p.prices.find((pr) => pr.purity === "24K")?.price;
+      const p22 =
+        p.prices.find((pr) => pr.purity === "22K" && pr.unit === "10g")?.price ||
+        p.prices.find((pr) => pr.purity === "22K")?.price;
+      const p18 =
+        p.prices.find((pr) => pr.purity === "18K" && pr.unit === "10g")?.price ||
+        p.prices.find((pr) => pr.purity === "18K")?.price;
+      const single =
+        p.prices.find((pr) => pr.unit === "10g")?.price ||
+        p.prices.find((pr) => pr.unit === "1g")?.price ||
+        p.prices[0]?.price;
+      const chg = p.prices[0]?.change?.value;
+      const dir = p.prices[0]?.change?.direction;
 
-  const theme = metalTheme[metal];
+      return {
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        price24K: p24,
+        price22K: p22,
+        price18K: p18,
+        singlePrice: single,
+        change: chg,
+        changeDirection: dir,
+      } as CityMetalPriceItem;
+    })
+  );
+
+  cityPriceResults.forEach((res) => {
+    if (res.status === "fulfilled" && res.value) {
+      comparisonCities.push(res.value);
+    }
+  });
+
+  // Extract key benchmark rates for current city
+  const isGold = metal === "gold";
+  const isSilver = metal === "silver";
+
+  const rate1g_24K =
+    latestPrice.prices.find((p) => p.purity === "24K" && p.unit === "1g")?.price ||
+    latestPrice.prices.find((p) => p.purity === "24K")?.price ||
+    15495;
+
+  const rate10g_24K =
+    latestPrice.prices.find((p) => p.purity === "24K" && p.unit === "10g")?.price ||
+    rate1g_24K * 10;
+
+  const rate10g_22K =
+    latestPrice.prices.find((p) => p.purity === "22K" && p.unit === "10g")?.price ||
+    latestPrice.prices.find((p) => p.purity === "22K" && p.unit === "1g")?.price ||
+    Math.round(rate10g_24K * 0.916);
+
+  const rate10g_18K =
+    latestPrice.prices.find((p) => p.purity === "18K" && p.unit === "10g")?.price ||
+    latestPrice.prices.find((p) => p.purity === "18K" && p.unit === "1g")?.price ||
+    Math.round(rate10g_24K * 0.75);
+
+  const rate8g_24K =
+    latestPrice.prices.find((p) => p.purity === "24K" && p.unit === "8g")?.price ||
+    rate1g_24K * 8;
+
+  const rate100g_24K =
+    latestPrice.prices.find((p) => p.purity === "24K" && p.unit === "100g")?.price ||
+    rate1g_24K * 100;
+
+  const rateSilver1g = latestPrice.prices.find((p) => p.unit === "1g")?.price || 250;
+  const rateSilver10g = latestPrice.prices.find((p) => p.unit === "10g")?.price || rateSilver1g * 10;
+  const rateSilver1kg = latestPrice.prices.find((p) => p.unit === "1kg")?.price || rateSilver1g * 1000;
+
+  const mainChange = latestPrice.prices[0]?.change?.value || 0;
+  const mainDirection = latestPrice.prices[0]?.change?.direction || "neutral";
+  const isUp = mainDirection === "up";
+  const isDown = mainDirection === "down";
+
+  // Quick popular city chips to show in the hero bar
+  const quickHubCities = ["delhi", "mumbai", "chennai", "kolkata", "bangalore", "hyderabad", "ahmedabad", "pune"];
 
   return (
-    <div className="min-h-screen bg-gray-950 pb-20">
-      {/* Header Section with Metal Theme */}
-      <div className={`bg-gradient-to-br ${theme.gradient} border-b-2 ${theme.border} ${theme.glow}`}>
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Breadcrumb */}
-          <nav className="text-sm text-gray-400 mb-4">
-            <Link href="/" className="hover:text-blue-500 transition-colors">
+    <div className="min-h-screen bg-slate-950 py-6 md:py-8 pb-20">
+      <div className="container mx-auto">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center justify-between gap-4 mb-3 text-xs text-slate-400">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Link href="/" className="hover:text-slate-200 transition-colors">
               Home
             </Link>
-            <span className="mx-2">/</span>
-            <Link href={`/${metal}`} className="hover:text-blue-500 transition-colors">
+            <span>/</span>
+            <Link href={`/${metal}`} className="hover:text-slate-200 capitalize transition-colors">
               {metalConfig.displayName}
             </Link>
-            <span className="mx-2">/</span>
-            <span className="text-white">{city.name}</span>
-          </nav>
+            <span>/</span>
+            <span className="text-slate-200 font-semibold">{city.name}</span>
+          </div>
 
-          {/* Page Title with Metal Color */}
-          <h1 className={`text-4xl font-bold mb-2 ${theme.text}`}>
-            {metalConfig.displayName} Price in {city.name} Today
-          </h1>
-          <p className="text-lg text-gray-400 mb-6">
-            Current {metalConfig.displayName.toLowerCase()} prices, historical
-            trends, and market data for {city.name}
-          </p>
-
-          {/* Metal & City Selectors */}
-          <div className="flex flex-wrap items-center gap-4">
-            <MetalSelector currentMetal={metal} citySlug={city.slug} />
-            <CitySelector
-              currentCity={city}
-              popularCities={popularCities}
-              metal={metal}
-            />
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <Clock className="w-3.5 h-3.5 text-sky-400" />
+            <span>Updated: {new Date(latestPrice.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* Current Price Cards */}
-        <section>
-          <h2 className={`text-2xl font-bold mb-4 ${theme.text}`}>
-            Today&apos;s {metalConfig.displayName} Price
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {primaryPrices.map((price, idx) => (
-              <div
-                key={`${price.purity}-${price.unit}`}
-                className={`rounded-lg border-2 ${idx === 0 ? theme.cardBorder + ' ' + theme.cardBg + ' ' + theme.glow : 'border-gray-800 bg-gray-900'} p-6 transition-all hover:${theme.glow}`}
-              >
-                <div className="text-sm font-medium text-gray-400 mb-1">
-                  {price.purity || metalConfig.displayName}
-                </div>
-                <div className="text-3xl font-bold text-white mb-2">
-                  {formatPrice(price.price)}
-                  <span className="text-base font-normal text-gray-400 ml-2">
-                    / {price.unit}
-                  </span>
-                </div>
-                {price.change && (
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1 ${
-                      price.change.direction === 'up' ? 'text-green-500' :
-                      price.change.direction === 'down' ? 'text-red-500' :
-                      'text-gray-500'
-                    }`}>
-                      <span className="font-medium">
-                        {price.change.direction === 'up' ? '↑' : price.change.direction === 'down' ? '↓' : '—'} ₹{price.change.value}
-                      </span>
-                    </span>
-                    {price.previousPrice && (
-                      <span className="text-sm text-gray-500">
-                        vs ₹{price.previousPrice}
-                      </span>
-                    )}
-                  </div>
-                )}
+        {/* 1. Pro Hero Banner with Metal & City Selectors */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 mb-6 shadow-xl relative overflow-hidden">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap mb-2">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-100 tracking-tight">
+                  {metalConfig.displayName} Rate in {city.name} Today
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Live Spot Market
+                </span>
               </div>
-            ))}
+              <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
+                Check today&apos;s real-time {metalConfig.displayName.toLowerCase()} rates per gram, 8g sovereign, 10g tola, and 100g bar in {city.name}. Multi-city comparison, intraday trend charts, and BIS hallmarking insights.
+              </p>
+            </div>
+
+            {/* Metal Switcher Tabs & City Dropdown */}
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <MetalSelector currentMetal={metal} citySlug={city.slug} />
+              <CitySelector
+                currentCity={city}
+                popularCities={popularCities}
+                metal={metal}
+              />
+            </div>
           </div>
-        </section>
 
-        {/* Price Table */}
-        <section>
-          <MetalPriceTable data={latestPrice} />
-        </section>
+          {/* Quick Popular City Pills (StockeZee & GoodReturns Fast Jump) */}
+          <div className="flex items-center gap-1.5 pt-4 mt-4 border-t border-slate-800/80 overflow-x-auto no-scrollbar text-xs">
+            <span className="text-slate-500 font-semibold uppercase text-[10px] shrink-0 mr-1">
+              Top Hubs:
+            </span>
+            {popularCities.map((c) => {
+              const currentSlug = city.slug || citySlug;
+              const isSelected = (c.slug || "").toLowerCase() === currentSlug.toLowerCase();
+              return (
+                <Link
+                  key={c.slug || c.id}
+                  href={`/${metal}/${c.slug || c.name.toLowerCase()}`}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                    isSelected
+                      ? "bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/20"
+                      : "bg-slate-950/60 text-slate-300 hover:text-slate-100 hover:bg-slate-800 border border-slate-800"
+                  }`}
+                >
+                  {c.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* Gold Calculator - Only for Gold */}
-        {metal === 'gold' && (
-          <section>
-            <GoldCalculator
+        {/* 2. Top Highlights Strip (Investor Key Benchmarks) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mb-6">
+          {isGold ? (
+            <>
+              {/* 24K 10g */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  24K Gold (10g / Tola)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-amber-400 tabular-nums">
+                  {formatPrice(rate10g_24K)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                  <span>99.9% Fine Bullion</span>
+                </div>
+              </div>
+
+              {/* 22K 10g */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  22K Gold (10g / Jewellery)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
+                  {formatPrice(rate10g_22K)}
+                </div>
+                <div className="text-[10px] text-slate-400 mt-1">
+                  BIS 916 Standard
+                </div>
+              </div>
+
+              {/* 18K 10g */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  18K Gold (10g / Diamond)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-slate-300 tabular-nums">
+                  {formatPrice(rate10g_18K)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">
+                  75.0% Ornament
+                </div>
+              </div>
+
+              {/* 1 Gram 24K */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  1 Gram (24K Spot)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
+                  {formatPrice(rate1g_24K)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">
+                  Unit Spot Price
+                </div>
+              </div>
+
+              {/* 8 Grams (1 Sovereign) */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  8 Grams (1 Sovereign)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
+                  {formatPrice(rate8g_24K)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">
+                  Pavan Benchmark
+                </div>
+              </div>
+
+              {/* 100 Grams Bar */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  100 Grams (Bullion Bar)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-sky-400 tabular-nums">
+                  {formatPrice(rate100g_24K)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">
+                  Minted Bullion Bar
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Silver / Platinum Metrics */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  1 Gram Spot
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
+                  {formatPrice(rateSilver1g)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">Unit Reference</div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  10 Grams
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
+                  {formatPrice(rateSilver10g)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">Tola Weight</div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  100 Grams
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
+                  {formatPrice(rateSilver1g * 100)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">Bar Benchmark</div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  1 Kilogram (1000g)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-sky-400 tabular-nums">
+                  {formatPrice(rateSilver1kg)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">Commercial Bar</div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  Today&apos;s Net Movement
+                </span>
+                <div className={`text-lg sm:text-xl font-bold tabular-nums ${isUp ? "text-emerald-400" : isDown ? "text-rose-400" : "text-slate-300"}`}>
+                  {isUp ? "+" : ""}{formatPrice(mainChange)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1 capitalize">{mainDirection}</div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 text-left">
+                <span className="text-[11px] font-medium text-slate-400 block mb-1">
+                  Zakat Nisab (595g)
+                </span>
+                <div className="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums">
+                  {formatPrice(rateSilver1g * 595)}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-1">Nisab Threshold</div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          {/* ========================================================================= */}
+          {/* ROW 1: TWO TABLES SIDE-BY-SIDE (Chittorgarh / Pro Investor Rhythm)         */}
+          {/* Left: Weight Rate Matrix | Right: Smart Calculator & Zakat Check           */}
+          {/* ========================================================================= */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+            {/* Left: Comprehensive Price Matrix Table */}
+            <MetalPriceTable data={latestPrice} />
+
+            {/* Right: Smart Bullion & Jewellery Calculator */}
+            <SmartMetalCalculator
+              metal={metal}
+              cityName={city.name}
               prices={{
-                '24K': latestPrice.prices.find(p => p.purity === '24K')?.price || 0,
-                '22K': latestPrice.prices.find(p => p.purity === '22K')?.price || 0,
-                '18K': latestPrice.prices.find(p => p.purity === '18K')?.price || 0,
+                "24K": rate1g_24K,
+                "22K": latestPrice.prices.find((p) => p.purity === "22K" && p.unit === "1g")?.price,
+                "18K": latestPrice.prices.find((p) => p.purity === "18K" && p.unit === "1g")?.price,
+                perGram: rateSilver1g,
               }}
             />
-          </section>
-        )}
-
-        {/* History Chart */}
-        {metalConfig.historyEnabled && historyData && (
-          <section>
-            <HistoryChartSection
-              metal={metal}
-              citySlug={city?.slug || ""}
-              initialData={historyData.data}
-              initialPurity={metalConfig.defaultPurity}
-              initialUnit={metalConfig.defaultUnit}
-              initialDuration={metalConfig.defaultDuration}
-            />
-          </section>
-        )}
-
-        {/* Last 10 Days */}
-        <section>
-          <Last10DaysTable data={last10Days} />
-        </section>
-
-        {/* SEO Content / FAQ Section (Placeholder) */}
-        <section className="card">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            About {metalConfig.displayName} Prices in {city.name}
-          </h2>
-          <div className="prose max-w-none text-gray-400">
-            <p>
-              Stay updated with the latest {metalConfig.displayName.toLowerCase()}{" "}
-              prices in {city.name}. Our platform provides real-time price
-              updates, historical trends, and comprehensive market data to help
-              you make informed decisions.
-            </p>
           </div>
-        </section>
+
+          {/* ========================================================================= */}
+          {/* FULL WIDTH: Interactive Multi-Timeframe Historical Price Chart             */}
+          {/* ========================================================================= */}
+          {metalConfig.historyEnabled && (
+            <section className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
+              <HistoryChartSection
+                metal={metal}
+                citySlug={city?.slug || ""}
+                initialData={historyData?.data || []}
+                initialPurity={metal === "gold" ? metalConfig.defaultPurity : undefined}
+                initialUnit={metalConfig.defaultUnit}
+                initialDuration={metalConfig.defaultDuration}
+              />
+            </section>
+          )}
+
+          {/* ========================================================================= */}
+          {/* FULL WIDTH: Major Indian Cities Rate Comparison Table                      */}
+          {/* ========================================================================= */}
+          {comparisonCities.length > 0 && (
+            <CityComparisonTable
+              metal={metal}
+              currentCitySlug={city.slug || citySlug}
+              cities={comparisonCities}
+            />
+          )}
+
+          {/* ========================================================================= */}
+          {/* FULL WIDTH: Last 10 Days Historical Trend Table                            */}
+          {/* ========================================================================= */}
+          <Last10DaysTable data={last10Days} />
+
+          {/* ========================================================================= */}
+          {/* FULL WIDTH: Investor Guide, BIS Hallmarking Standards & FAQs               */}
+          {/* ========================================================================= */}
+          <MetalInvestorGuide metal={metal} cityName={city.name} />
+        </div>
       </div>
     </div>
   );

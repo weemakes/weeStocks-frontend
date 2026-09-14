@@ -1,146 +1,339 @@
 import Link from 'next/link';
-import { TrendingUp, DollarSign, Rocket, Calculator, Shield, Clock, Users, BarChart3, CheckCircle2, ArrowRight } from 'lucide-react';
+import {
+  TrendingUp,
+  ShieldCheck,
+  Rocket,
+  Calculator,
+  Coins,
+  ArrowRight,
+  Sparkles,
+  CheckCircle2,
+  Search,
+  ArrowUpRight,
+  Flame,
+  Scale,
+  Building2,
+} from 'lucide-react';
+import HeroScannerPreview from '@/components/home/HeroScannerPreview';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-blue-950/20 to-gray-950 py-20 md:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent"></div>
-        
+    <div className="min-h-screen bg-slate-950">
+      {/* 1. Hero Section - Tight, High-Impact Financial Terminal Hero */}
+      <section className="relative overflow-hidden border-b border-slate-800/80 bg-gradient-to-b from-slate-900/60 via-slate-950 to-slate-950 py-10 md:py-16">
+        {/* Subtle background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-sky-500/10 blur-[120px] pointer-events-none" />
+
         <div className="container mx-auto relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Trust Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
-              <Shield className="w-4 h-4 text-blue-500" />
-              <span className="text-sm text-blue-400 font-medium">100% Shariah-Compliant Platform</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Left Column: Value Prop & CTAs */}
+            <div className="lg:col-span-7 text-center lg:text-left">
+              {/* Shariah + Ethical Compliance Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 mb-4 text-xs font-semibold text-sky-400">
+                <ShieldCheck className="w-4 h-4 text-sky-400" />
+                <span>AAOIFI Shariah Standard 21 &bull; Balance Sheet Quality Screening</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-100 mb-4 tracking-tight leading-tight">
+                Institutional Intelligence for{' '}
+                <span className="bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
+                  Halal &amp; Ethical Investors
+                </span>
+              </h1>
+
+              <p className="text-sm md:text-base text-slate-400 mb-6 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                Screen NSE &amp; BSE equities for Shariah compliance, debt-to-market-cap leverage, and dividend purification. Monitor real-time Gold rates, IPO Grey Market Premiums, and Zakat.
+              </p>
+
+              {/* Direct Screener Quick Search / CTA */}
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-8">
+                <Link
+                  href="/stocks"
+                  className="w-full sm:w-auto px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-lg shadow-sky-600/25 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Launch Stock Screener
+                </Link>
+                <Link
+                  href="/ipo"
+                  className="w-full sm:w-auto px-6 py-3 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:border-slate-700 active:scale-95"
+                >
+                  <Rocket className="w-4 h-4 text-rose-400" />
+                  Track Live IPO GMP
+                </Link>
+              </div>
+
+              {/* Quick Metrics Bar */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-2xl mx-auto lg:mx-0 text-left">
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Equities Screened</span>
+                  <span className="text-sm font-bold text-slate-100 tabular-nums">10,000+ NSE/BSE</span>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Max Debt Threshold</span>
+                  <span className="text-sm font-bold text-emerald-400 tabular-nums">&le; 33% Cap</span>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Metals Tracked</span>
+                  <span className="text-sm font-bold text-amber-400 tabular-nums">24K / 22K Gold</span>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Purification Rate</span>
+                  <span className="text-sm font-bold text-sky-400 tabular-nums">Automated %</span>
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-              Your Guide to <span className="text-blue-500">Halal Investing</span> & Financial Intelligence
-            </h1>
-            
-            <p className="text-xl text-gray-400 mb-8 leading-relaxed">
-              Know where to invest, what to avoid, and how to grow your wealth the right way. One platform for Halal stocks, metals, IPOs & Zakat.
+            {/* Right Column: Interactive Live Shariah Scanner Preview */}
+            <div className="lg:col-span-5 w-full mt-4 lg:mt-0">
+              <HeroScannerPreview />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Market Pulse Cards - Instant Situational Awareness */}
+      <section className="py-8 bg-slate-950 border-b border-slate-900">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                Live Market Pulse
+              </h2>
+            </div>
+            <Link
+              href="/stocks"
+              className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 transition-colors"
+            >
+              View Full Screener &rarr;
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Widget 1: Top Halal Giant */}
+            <Link
+              href="/stocks"
+              className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl transition-all group"
+            >
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className="text-slate-400">Featured Halal Bluechip</span>
+                <span className="px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">
+                  Score: 98%
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="font-bold text-slate-100 group-hover:text-sky-400 transition-colors">
+                    TCS (Tata Consultancy)
+                  </div>
+                  <div className="text-[11px] text-slate-500">Debt: 0.0% &bull; Net Cash</div>
+                </div>
+                <div className="text-right tabular-nums">
+                  <div className="font-bold text-slate-100">₹4,124.50</div>
+                  <div className="text-[11px] font-semibold text-emerald-400">+1.18%</div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Widget 2: Live Gold Today */}
+            <Link
+              href="/gold/agra"
+              className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl transition-all group"
+            >
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className="text-slate-400">Gold Rate (24 Karat)</span>
+                <span className="px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 text-[10px] font-bold">
+                  Live
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="font-bold text-slate-100 group-hover:text-amber-400 transition-colors">
+                    Pure Gold (10g)
+                  </div>
+                  <div className="text-[11px] text-slate-500">Benchmark Reference Rate</div>
+                </div>
+                <div className="text-right tabular-nums">
+                  <div className="font-bold text-slate-100">₹75,420</div>
+                  <div className="text-[11px] font-semibold text-emerald-400">+₹280 (Today)</div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Widget 3: Hot IPO GMP */}
+            <Link
+              href="/ipo"
+              className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl transition-all group"
+            >
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className="text-slate-400">Grey Market Premium</span>
+                <span className="px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 text-[10px] font-bold flex items-center gap-0.5">
+                  <Flame className="w-2.5 h-2.5" /> Hot
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="font-bold text-slate-100 group-hover:text-rose-400 transition-colors">
+                    Premier IPO Listings
+                  </div>
+                  <div className="text-[11px] text-slate-500">Track est. profit & listing date</div>
+                </div>
+                <div className="text-right tabular-nums">
+                  <div className="font-bold text-slate-100">+45% ~ 80%</div>
+                  <div className="text-[11px] font-semibold text-slate-400">GMP Trend &uarr;</div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Widget 4: Zakat Nisab */}
+            <Link
+              href="/zakat"
+              className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl transition-all group"
+            >
+              <div className="flex items-center justify-between text-xs mb-2">
+                <span className="text-slate-400">Zakat & Nisab Threshold</span>
+                <span className="px-1.5 py-0.2 rounded bg-sky-500/15 text-sky-400 text-[10px] font-bold">
+                  Silver Nisab
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="font-bold text-slate-100 group-hover:text-sky-400 transition-colors">
+                    Nisab Value (595g Silver)
+                  </div>
+                  <div className="text-[11px] text-slate-500">Based on live silver rates</div>
+                </div>
+                <div className="text-right tabular-nums">
+                  <div className="font-bold text-slate-100">₹52,598</div>
+                  <div className="text-[11px] font-semibold text-emerald-400">Calculator &rarr;</div>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Core Platforms Grid (StockeZee-style high density) */}
+      <section className="py-12 bg-slate-950">
+        <div className="container mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-100 mb-2">
+              Four Specialized Intelligence Suites
+            </h2>
+            <p className="text-xs md:text-sm text-slate-400">
+              Cleanly structured data tools designed for speed, accuracy, and compliance verification.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link href="/stocks" className="btn btn-primary text-lg px-8 py-4 justify-center">
-                <TrendingUp className="w-5 h-5" />
-                Explore Investments
-              </Link>
-              <Link href="/about" className="btn btn-outline text-lg px-8 py-4 justify-center">
-                Learn More
-              </Link>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-blue-500" />
-                <span>10,000+ Stocks Screened</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-blue-500" />
-                <span>Real-time Metal Prices</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-blue-500" />
-                <span>Daily IPO Updates</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Cards */}
-      <section className="py-20 bg-gray-950">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Our Core Offerings</h2>
-            <p className="text-gray-400 text-lg">Everything you need to make informed, Shariah-compliant investment decisions</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Halal Stocks Card */}
-            <Link href="/stocks" className="card group">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
-                  <TrendingUp className="w-6 h-6 text-blue-500" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Suite 1: Stocks */}
+            <Link
+              href="/stocks"
+              className="bg-slate-900/80 border border-slate-800 hover:border-sky-500/50 rounded-xl p-5 transition-all group shadow-sm"
+            >
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shrink-0 group-hover:bg-sky-500/20 transition-colors">
+                  <TrendingUp className="w-5 h-5 text-sky-400" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-white">Halal Stock Screener</h3>
-                    <span className="badge badge-blue">Updated Daily</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-base font-bold text-slate-100 group-hover:text-sky-400 transition-colors">
+                      Halal Equities Screener
+                    </h3>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400">
+                      AAOIFI 21
+                    </span>
                   </div>
-                  <p className="text-gray-400 mb-4">
-                    Identify Shariah-compliant stocks with our intelligent screening tool. Know which companies align with Islamic principles.
+                  <p className="text-xs text-slate-400 leading-relaxed mb-3">
+                    Automated Shariah screening across NSE & BSE stocks. Review debt-to-market-cap ratios (&le;33%), non-halal revenue filters (&le;5%), and exact dividend purification rates.
                   </p>
-                  <div className="flex items-center text-blue-500 font-medium">
-                    Explore Stocks <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center text-xs font-semibold text-sky-400 group-hover:translate-x-1 transition-transform">
+                    Explore Equities Screener &rarr;
                   </div>
                 </div>
               </div>
             </Link>
 
-            {/* Metal Rates Card */}
-            <Link href="/gold/agra" className="card group">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-yellow-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-yellow-500/20 transition-colors">
-                  <DollarSign className="w-6 h-6 text-yellow-500" />
+            {/* Suite 2: IPOs */}
+            <Link
+              href="/ipo"
+              className="bg-slate-900/80 border border-slate-800 hover:border-rose-500/50 rounded-xl p-5 transition-all group shadow-sm"
+            >
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 group-hover:bg-rose-500/20 transition-colors">
+                  <Rocket className="w-5 h-5 text-rose-400" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-white">Live Metal Prices</h3>
-                    <span className="badge badge-success">Live Updates</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-base font-bold text-slate-100 group-hover:text-rose-400 transition-colors">
+                      IPO Intelligence & GMP Tracker
+                    </h3>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400">
+                      Live Premium
+                    </span>
                   </div>
-                  <p className="text-gray-400 mb-4">
-                    Real-time Gold, Silver, and Platinum rates. Track prices by purity, city, and international markets.
+                  <p className="text-xs text-slate-400 leading-relaxed mb-3">
+                    Track upcoming, open, and listed Mainboard and SME IPOs with Grey Market Premium (GMP), subscription demand ratios, lot sizes, and listing date forecasts.
                   </p>
-                  <div className="flex items-center text-blue-500 font-medium">
-                    View Metals <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center text-xs font-semibold text-rose-400 group-hover:translate-x-1 transition-transform">
+                    View Live IPOs &rarr;
                   </div>
                 </div>
               </div>
             </Link>
 
-            {/* IPO Card */}
-            <Link href="/ipo" className="card group">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/20 transition-colors">
-                  <Rocket className="w-6 h-6 text-purple-500" />
+            {/* Suite 3: Metals */}
+            <Link
+              href="/gold/agra"
+              className="bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 rounded-xl p-5 transition-all group shadow-sm"
+            >
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 group-hover:bg-amber-500/20 transition-colors">
+                  <Coins className="w-5 h-5 text-amber-400" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-white">IPO Analysis Hub</h3>
-                    <span className="badge badge-blue">New Listings</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-base font-bold text-slate-100 group-hover:text-amber-400 transition-colors">
+                      Precious Metals Tracker
+                    </h3>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400">
+                      24K / 22K / 18K
+                    </span>
                   </div>
-                  <p className="text-gray-400 mb-4">
-                    Complete IPO details, subscription status, GMP, company fundamentals - everything to decide if you should invest.
+                  <p className="text-xs text-slate-400 leading-relaxed mb-3">
+                    City-wise Gold, Silver, and Platinum prices across India. Track price changes per gram, 10 grams, and 100 grams with historical trend charts.
                   </p>
-                  <div className="flex items-center text-blue-500 font-medium">
-                    Check IPOs <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center text-xs font-semibold text-amber-400 group-hover:translate-x-1 transition-transform">
+                    Check Gold & Silver Rates &rarr;
                   </div>
                 </div>
               </div>
             </Link>
 
-            {/* Zakat Card */}
-            <Link href="/zakat" className="card group">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/20 transition-colors">
-                  <Calculator className="w-6 h-6 text-green-500" />
+            {/* Suite 4: Zakat & Ethical Wealth */}
+            <Link
+              href="/zakat"
+              className="bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 rounded-xl p-5 transition-all group shadow-sm"
+            >
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                  <Calculator className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-white">Zakat & Investment Guide</h3>
-                    <span className="badge badge-success">Ethical Investing</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-base font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
+                      Zakat & Purification Calculator
+                    </h3>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">
+                      Ethical Wealth
+                    </span>
                   </div>
-                  <p className="text-gray-400 mb-4">
-                    Calculate your Zakat and understand how to manage your money, what to donate, and how to avoid interest.
+                  <p className="text-xs text-slate-400 leading-relaxed mb-3">
+                    Calculate your exact Zakat liability across cash, stocks, gold, and trade assets with live Nisab valuation. Purify interest dividend fractions with clear breakdowns.
                   </p>
-                  <div className="flex items-center text-blue-500 font-medium">
-                    Learn More <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center text-xs font-semibold text-emerald-400 group-hover:translate-x-1 transition-transform">
+                    Calculate Zakat &rarr;
                   </div>
                 </div>
               </div>
@@ -149,128 +342,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Who We Serve */}
-      <section className="py-20 bg-gradient-to-b from-gray-950 to-gray-900">
+      {/* 4. The "Universal Value & Safety Filter" Section */}
+      <section className="py-12 bg-slate-900/40 border-t border-slate-900">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Empowering Every Type of Investor</h2>
-            <p className="text-gray-400 text-lg">Trusted by thousands of conscious investors worldwide</p>
-          </div>
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 md:p-8">
+            <div className="max-w-2xl mb-6">
+              <span className="text-xs font-semibold text-sky-400 uppercase tracking-wider block mb-1">
+                A Universal Investment Framework
+              </span>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-100">
+                Why Shariah Screening Delivers Better Financial Health For All Investors
+              </h2>
+              <p className="text-xs md:text-sm text-slate-400 mt-2 leading-relaxed">
+                Whether you are a Muslim investor seeking strict religious compliance or a value investor seeking fundamental safety, Shariah criteria systematically filter out high-leverage traps, predatory balance sheets, and opaque accounting models.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="card text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-blue-500" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div className="font-bold text-slate-200 text-sm mb-1 text-emerald-400">
+                  &lt; 33% Debt-to-Market-Cap
+                </div>
+                <p className="text-slate-400 leading-relaxed">
+                  Prevents over-leveraged companies from suffering liquidity crunches during rising interest rate cycles, insulating your portfolio from insolvency events.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Halal Investors</h3>
-              <p className="text-gray-400 text-sm">Find Shariah-compliant opportunities with confidence</p>
-            </div>
 
-            <div className="card text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-blue-500" />
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div className="font-bold text-slate-200 text-sm mb-1 text-sky-400">
+                  Cash Flow & Asset Backing
+                </div>
+                <p className="text-slate-400 leading-relaxed">
+                  Requires underlying tangible business operations and cash generation, filtering out speculative financial engineering, excessive derivatives, and Ponzi-like structures.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">New Investors</h3>
-              <p className="text-gray-400 text-sm">Learn where to start and what to avoid</p>
-            </div>
 
-            <div className="card text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="w-8 h-8 text-blue-500" />
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <div className="font-bold text-slate-200 text-sm mb-1 text-amber-400">
+                  Pure Business Hygiene
+                </div>
+                <p className="text-slate-400 leading-relaxed">
+                  Companies engaged in predatory lending, gambling, or addictive substances are eliminated, aligning your capital with sustainable, socially responsible businesses.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Ethical Investors</h3>
-              <p className="text-gray-400 text-sm">Invest with conscience and clarity</p>
-            </div>
-
-            <div className="card text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                <Calculator className="w-8 h-8 text-blue-500" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Donors</h3>
-              <p className="text-gray-400 text-sm">Calculate and allocate your Zakat correctly</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 bg-gray-900">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-blue-500 mb-2">10,000+</div>
-              <div className="text-gray-400">Stocks Screened</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-blue-500 mb-2">24/7</div>
-              <div className="text-gray-400">Daily Price Updates</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-blue-500 mb-2">5,000+</div>
-              <div className="text-gray-400">IPO Data Points</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-blue-500 mb-2">50,000+</div>
-              <div className="text-gray-400">Happy Users</div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-20 bg-gray-950">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">How It Works</h2>
-            <p className="text-gray-400 text-lg">Start your Halal investment journey in three simple steps</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-4">
-                1
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Explore</h3>
-              <p className="text-gray-400">Browse our sections - Stocks, Metals, and IPOs</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-4">
-                2
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Analyze</h3>
-              <p className="text-gray-400">Get comprehensive data and insights on investments</p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-blue-500 text-white font-bold text-2xl flex items-center justify-center mx-auto mb-4">
-                3
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Invest</h3>
-              <p className="text-gray-400">Make informed, Shariah-compliant decisions</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-950 to-gray-950">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Stay Ahead of the Market</h2>
-          <p className="text-gray-400 text-lg mb-8">Get daily updates on Halal stocks, metal rates, and IPOs</p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-            />
-            <button className="btn btn-primary whitespace-nowrap">
-              Subscribe Now
-            </button>
-          </div>
-          
-          <p className="text-gray-500 text-sm mt-4">Join 50,000+ investors. Unsubscribe anytime.</p>
         </div>
       </section>
     </div>

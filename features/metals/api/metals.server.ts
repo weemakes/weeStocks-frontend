@@ -91,12 +91,17 @@ export async function getMetalHistoryData(params: {
   duration: ChartDuration;
 }): Promise<MetalHistoryData> {
   try {
+    const effectiveDuration =
+      params.metal === "platinum" && params.duration !== "1y"
+        ? "9m"
+        : params.duration;
+
     const query = buildQueryString({
       city_slug: params.citySlug,
       metal: params.metal,
       unit: params.unit,
-      purity: params.purity,
-      duration: params.duration,
+      purity: params.metal === "gold" ? params.purity : undefined,
+      duration: effectiveDuration,
     });
 
     const response = await apiRequest<HistoryDataResponse>(

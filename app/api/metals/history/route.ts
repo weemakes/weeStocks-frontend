@@ -13,9 +13,22 @@ export async function GET(request: NextRequest) {
 
     const metal = searchParams.get("metal") as Metal;
     const citySlug = searchParams.get("citySlug");
-    const unit = searchParams.get("unit") as MetalUnit;
+    const requestedUnit = searchParams.get("unit") as MetalUnit | null;
     const purity = searchParams.get("purity") as MetalPurity | null;
-    const duration = searchParams.get("duration") as ChartDuration;
+    const requestedDuration = searchParams.get("duration") as ChartDuration | null;
+
+    // For platinum: default is 9m; even if 1w, 1m, 3m, 6m are requested, use 9m; 1y is 1y
+    const duration: ChartDuration =
+      metal === "platinum"
+        ? requestedDuration === "1y"
+          ? "1y"
+          : "9m"
+        : requestedDuration || "1w";
+
+    // Determine unit defaults based on metal
+    const unit: MetalUnit =
+      requestedUnit ||
+      (metal === "silver" ? "10g" : metal === "platinum" ? "1g" : "1g");
 
     if (!metal || !citySlug || !unit || !duration) {
       return NextResponse.json(
@@ -28,7 +41,7 @@ export async function GET(request: NextRequest) {
       citySlug,
       metal,
       unit,
-      purity: purity || undefined,
+      purity: metal === "gold" && purity ? purity : undefined,
       duration,
     });
 

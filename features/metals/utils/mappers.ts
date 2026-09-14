@@ -144,22 +144,35 @@ export function mapLast10Days(
 export function mapHistoryData(
   response: HistoryDataResponse
 ): MetalHistoryData {
-  // Handle nested data structure: response.data.data contains the array
-  const historyData = (response as any).data?.data || response.data || [];
-  
-  const chartData: ChartPoint[] = Array.isArray(historyData) 
-    ? historyData.map((point: any) => ({
-        date: point.date,
-        value: point.price,
-      }))
+  // Handle nested data structures: response.data.data, response.data, or response.result
+  const rawData = (response as any).data;
+  const historyData = Array.isArray(rawData?.data)
+    ? rawData.data
+    : Array.isArray(rawData)
+    ? rawData
+    : Array.isArray((response as any).result)
+    ? (response as any).result
     : [];
+
+  const chartData: ChartPoint[] = historyData
+    .map((point: any) => ({
+      date: point.date || point.timestamp || point.time || point.created_at || "",
+      value: Number(point.price ?? point.value ?? point.rate ?? point.close ?? 0),
+    }))
+    .filter((p: ChartPoint) => p.date && !isNaN(p.value));
 
   return {
     metal: (response as any).data?.metal || response.metal,
-    citySlug: (response as any).data?.cityName || response.city_slug,
+    citySlug:
+      (response as any).data?.cityName ||
+      (response as any).data?.city_slug ||
+      response.city_slug,
     unit: (response as any).data?.unit || response.unit,
     purity: (response as any).data?.purity || response.purity,
-    duration: (response as any).data?.range || response.duration,
+    duration:
+      (response as any).data?.range ||
+      (response as any).data?.duration ||
+      response.duration,
     data: chartData,
   };
 }

@@ -16,6 +16,7 @@ export interface MetalConfig {
   displayName: string;
   purityOptions: MetalPurity[];
   units: MetalUnit[];
+  historyUnits?: MetalUnit[];
   historyEnabled: boolean;
   defaultPurity?: MetalPurity;
   defaultUnit: MetalUnit;
@@ -28,6 +29,7 @@ export const METAL_CONFIG: Record<Metal, MetalConfig> = {
     displayName: "Gold",
     purityOptions: ["24K", "22K", "18K"],
     units: ["1g", "8g", "10g", "100g"],
+    historyUnits: ["1g", "8g", "10g", "100g"],
     historyEnabled: true,
     defaultPurity: "24K",
     defaultUnit: "1g",
@@ -38,8 +40,9 @@ export const METAL_CONFIG: Record<Metal, MetalConfig> = {
     displayName: "Silver",
     purityOptions: [],
     units: ["1g", "8g", "10g", "100g", "1kg"],
-    historyEnabled: false,
-    defaultUnit: "1g",
+    historyUnits: ["10g"],
+    historyEnabled: true,
+    defaultUnit: "10g",
     defaultDuration: "1w",
   },
   platinum: {
@@ -47,9 +50,10 @@ export const METAL_CONFIG: Record<Metal, MetalConfig> = {
     displayName: "Platinum",
     purityOptions: [],
     units: ["1g", "8g", "10g", "100g", "1kg"],
-    historyEnabled: false,
+    historyUnits: ["1g"],
+    historyEnabled: true,
     defaultUnit: "1g",
-    defaultDuration: "1w",
+    defaultDuration: "9m",
   },
 };
 

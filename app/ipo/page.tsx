@@ -1,495 +1,547 @@
 import Link from 'next/link';
-import { Rocket, TrendingUp, ArrowUp, ArrowDown, Clock } from 'lucide-react';
-import { getIPOList, getIPOSummary } from '@/features/ipo/api';
+import {
+  Rocket,
+  Clock,
+  ArrowUp,
+  ArrowDown,
+  ShieldCheck,
+  AlertTriangle,
+  XCircle,
+  ChevronRight,
+  Flame,
+  ArrowUpDown,
+  ChevronLeft,
+  ExternalLink,
+} from 'lucide-react';
+import { getIPOList } from '@/features/ipo/api';
+import { IPOQueryParams, IPOV2ListItem } from '@/features/ipo/types';
+import { GMPDisclaimer } from '@/features/ipo/components';
 import IPOFilters from './components/IPOFilters';
 
 export const metadata = {
-  title: 'IPO GMP & Subscription Status | WeeStox',
-  description: 'Complete IPO details with Grey Market Premium (GMP), live subscription status, and detailed analysis',
+  title: 'Live IPO GMP Today & Subscription Status (NSE & BSE) | WeeStox',
+  description: 'Complete Indian IPO intelligence: Real-time Grey Market Premium (GMP), subscription demand status, allotment dates, and Shariah compliance screening.',
 };
 
 interface IPOPageProps {
-  searchParams: Promise<{
-    status?: string;
-    type?: string;
-    category?: string;
-    search?: string;
-    sort?: string;
-    page?: string;
-  }>;
+  searchParams: Promise<IPOQueryParams>;
 }
 
 function getStatusBadge(status: string) {
-  const styles = {
-    Upcoming: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-    Open: 'bg-green-500/20 text-green-400 border border-green-500/30',
-    Closed: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
-    Listed: 'bg-gray-500/20 text-gray-400 border border-gray-500/30',
+  switch (status?.toLowerCase()) {
+    case 'open':
+      return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+    case 'upcoming':
+      return 'bg-sky-500/15 text-sky-400 border border-sky-500/30';
+    case 'closed':
+      return 'bg-amber-500/15 text-amber-400 border border-amber-500/30';
+    case 'listed':
+      return 'bg-slate-700/40 text-slate-400 border border-slate-700/60';
+    default:
+      return 'bg-slate-800 text-slate-300 border border-slate-700';
+  }
+}
+
+function getHalalBadge(status: string | null) {
+  switch (status?.toLowerCase()) {
+    case 'halal':
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+          <ShieldCheck className="w-2.5 h-2.5" /> Halal
+        </span>
+      );
+    case 'doubtful':
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-400 text-[10px] font-bold border border-amber-500/30">
+          <AlertTriangle className="w-2.5 h-2.5" /> Review
+        </span>
+      );
+    case 'not_halal':
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 text-[10px] font-bold border border-rose-500/30">
+          <XCircle className="w-2.5 h-2.5" /> Non-Halal
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
+function formatGmpRange(subDisplay?: string, gmpValue?: number): string | null {
+  if (subDisplay && subDisplay.includes('/')) {
+    const parts = subDisplay.split('/').map((p) => p.trim());
+    if (parts.length === 2) {
+      const lowNum = parseFloat(parts[0]);
+      const highNum = parseFloat(parts[1]);
+      if (!isNaN(lowNum) && !isNaN(highNum) && (lowNum > 0 || highNum > 0)) {
+        const lowStr = lowNum % 1 === 0 ? lowNum.toFixed(0) : lowNum.toString();
+        const highStr = highNum % 1 === 0 ? highNum.toFixed(0) : highNum.toString();
+        return `${lowStr} ↓ / ${highStr} ↑`;
+      }
+    }
+  }
+  if (gmpValue && gmpValue > 0) {
+    return `${gmpValue} ↓ / ${gmpValue} ↑`;
+  }
+  return null;
+}
+
+function getGmpDisplay(gmp: IPOV2ListItem['gmp']) {
+  if (!gmp || gmp.value === 0 || gmp.value === null || !gmp.value) {
+    return {
+      hasGmp: false,
+      text: '—',
+      range: null,
+      color: 'text-slate-500',
+      isHot: false,
+    };
+  }
+
+  const isPositive = gmp.value > 0;
+  const isHot = (gmp.percentage ?? 0) >= 40;
+  const range = formatGmpRange(gmp.sub_display, gmp.value);
+
+  return {
+    hasGmp: true,
+    text: gmp.display || `₹${gmp.value}${gmp.percentage !== null && gmp.percentage !== undefined ? ` (${Number(gmp.percentage).toFixed(2)}%)` : ''}`,
+    range,
+    color: isPositive ? 'text-emerald-400' : 'text-rose-400',
+    isHot,
   };
-  return styles[status as keyof typeof styles] || styles.Upcoming;
-}
-
-function getTrendArrow(gmpTrend: string | null, gmpValue: number | null, gmpPrevious: number | null) {
-  // First check explicit trend
-  if (gmpTrend === 'up') {
-    return { icon: <ArrowUp className="w-3 h-3" />, color: 'text-green-500' };
-  }
-  if (gmpTrend === 'down') {
-    return { icon: <ArrowDown className="w-3 h-3" />, color: 'text-red-500' };
-  }
-  
-  // Fall back to comparing values
-  if (gmpValue && gmpPrevious) {
-    if (gmpValue > gmpPrevious) {
-      return { icon: <ArrowUp className="w-3 h-3" />, color: 'text-green-500' };
-    }
-    if (gmpValue < gmpPrevious) {
-      return { icon: <ArrowDown className="w-3 h-3" />, color: 'text-red-500' };
-    }
-  }
-  
-  return { icon: <span className="w-3 h-3">–</span>, color: 'text-gray-400' };
-}
-
-function formatDate(dateStr: string) {
-  // API already provides date in "dd-MMM" format, return as-is
-  return dateStr;
 }
 
 export default async function IPOPage({ searchParams }: IPOPageProps) {
   const params = await searchParams;
-  
+
   try {
     const ipoListData = await getIPOList({
-      status: params.status as any || 'all',
-      type: params.type as any,
-      category: params.category as any,
+      status: params.status || 'all',
+      type: params.type,
+      category: params.category,
       search: params.search,
-      sort: params.sort as any,
-      page: params.page ? parseInt(params.page) : 1,
-      limit: 20,
+      sort: params.sort || 'newest',
+      snapshot_date: params.snapshot_date,
+      halal: params.halal,
+      page: params.page ? parseInt(String(params.page)) : 1,
+      limit: params.limit ? parseInt(String(params.limit)) : 20,
     });
 
-    const { ipos, summary, total, page, totalPages, snapshot_date } = ipoListData.data;
+    const { ipos, summary, total, page, total_pages, snapshot_date } = ipoListData.data;
+
+    const getSortUrl = (sortKey: string) => {
+      const p = new URLSearchParams();
+      if (params.status && params.status !== 'all') p.set('status', params.status);
+      if (params.type && params.type !== 'all') p.set('type', params.type);
+      if (params.category && params.category !== 'all') p.set('category', params.category);
+      if (params.search) p.set('search', params.search);
+      if (params.halal) p.set('halal', params.halal);
+      p.set('sort', sortKey);
+      return `/ipo?${p.toString()}`;
+    };
 
     return (
-      <div className="min-h-screen bg-gray-950 py-8 pb-20">
-        <div className="container mx-auto px-4">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
+      <div className="bg-slate-950 py-6 md:py-8 pb-8">
+        <div className="container mx-auto">
+          {/* Breadcrumb & Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
+                <Link href="/" className="hover:text-slate-200 transition-colors">
+                  Home
+                </Link>
+                <ChevronRight className="w-3 h-3 text-slate-600" />
+                <span className="text-slate-200 font-medium">IPO Intelligence</span>
+              </div>
+
               <div className="flex items-center gap-3">
-                <Rocket className="w-8 h-8 text-blue-500" />
-                <h1 className="text-3xl font-bold text-white">
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-100 tracking-tight flex items-center gap-2.5">
+                  <Rocket className="w-7 h-7 text-rose-400 shrink-0" />
                   IPO Grey Market Premium (GMP)
                 </h1>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                  Live Snapshot
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Clock className="w-4 h-4" />
-                <span>Last Updated: {formatDate(snapshot_date)}</span>
-              </div>
+
+              <p className="text-xs md:text-sm text-slate-400 mt-1 max-w-2xl">
+                Track latest GMP, expected listing price, and subscription status for upcoming and live IPOs.
+              </p>
             </div>
-            <p className="text-gray-400">
-              Live IPO subscription status, GMP data, and detailed analysis
-            </p>
+
+            <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg shrink-0">
+              <Clock className="w-3.5 h-3.5 text-sky-400" />
+              <span>Snapshot: <strong className="text-slate-200">{snapshot_date || 'Today'}</strong></span>
+            </div>
           </div>
 
-          {/* Clickable Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-            <Link 
+          {/* SEBI Compliance / Educational Disclaimer */}
+          <GMPDisclaimer className="mb-6" />
+
+          {/* 1. Clickable Summary Cards (StockeZee-style KPI Strip) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 mb-6">
+            {/* Total */}
+            <Link
               href="/ipo"
-              className={`bg-gray-900 border rounded-lg p-3 text-center transition-all hover:border-blue-500 hover:shadow-lg ${
-                !params.status || params.status === 'all' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-800'
+              className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 ${
+                !params.status || params.status === 'all'
+                  ? 'border-sky-500 ring-2 ring-sky-500/20 bg-sky-950/20'
+                  : 'border-slate-800'
               }`}
             >
-              <div className="text-2xl font-bold text-white">{summary.total}</div>
-              <div className="text-xs text-gray-400">Total</div>
-            </Link>
-            
-            <Link 
-              href="/ipo?status=open"
-              className={`bg-gray-900 border rounded-lg p-3 text-center transition-all hover:border-green-500 hover:shadow-lg ${
-                params.status === 'open' ? 'border-green-500 ring-2 ring-green-500/20' : 'border-gray-800'
-              }`}
-            >
-              <div className="text-2xl font-bold text-green-400">{summary.open}</div>
-              <div className="text-xs text-gray-400">Open</div>
-            </Link>
-            
-            <Link 
-              href="/ipo?status=upcoming"
-              className={`bg-gray-900 border rounded-lg p-3 text-center transition-all hover:border-blue-500 hover:shadow-lg ${
-                params.status === 'upcoming' ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-800'
-              }`}
-            >
-              <div className="text-2xl font-bold text-blue-400">{summary.upcoming}</div>
-              <div className="text-xs text-gray-400">Upcoming</div>
-            </Link>
-            
-            <Link 
-              href="/ipo?status=closed"
-              className={`bg-gray-900 border rounded-lg p-3 text-center transition-all hover:border-orange-500 hover:shadow-lg ${
-                params.status === 'closed' ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-gray-800'
-              }`}
-            >
-              <div className="text-2xl font-bold text-orange-400">{summary.closed}</div>
-              <div className="text-xs text-gray-400">Closed</div>
-            </Link>
-            
-            <Link 
-              href="/ipo?status=listed"
-              className={`bg-gray-900 border rounded-lg p-3 text-center transition-all hover:border-gray-500 hover:shadow-lg ${
-                params.status === 'listed' ? 'border-gray-500 ring-2 ring-gray-500/20' : 'border-gray-800'
-              }`}
-            >
-              <div className="text-2xl font-bold text-gray-400">{summary.listed}</div>
-              <div className="text-xs text-gray-400">Listed</div>
+              <span className="text-xs font-medium text-slate-400 block mb-1">Total IPOs</span>
+              <div className="text-xl font-bold text-slate-100 tabular-nums">{summary?.total ?? total}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">Tracked this cycle</div>
             </Link>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-center">
-              <div className="text-sm text-gray-400 mb-1">MB/SME</div>
-              <div className="flex items-center justify-center gap-2 text-xs">
-                <span className="text-blue-400 font-semibold">{summary.mainboard}</span>
-                <span className="text-gray-600">/</span>
-                <span className="text-purple-400 font-semibold">{summary.sme}</span>
+            {/* Open */}
+            <Link
+              href="/ipo?status=open"
+              className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 ${
+                params.status === 'open'
+                  ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-950/20'
+                  : 'border-slate-800'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-slate-400">Open Now</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               </div>
-            </div>
+              <div className="text-xl font-bold text-emerald-400 tabular-nums">{summary?.open ?? 0}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">Accepting bids</div>
+            </Link>
+
+            {/* Upcoming */}
+            <Link
+              href="/ipo?status=upcoming"
+              className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 ${
+                params.status === 'upcoming'
+                  ? 'border-sky-500 ring-2 ring-sky-500/20 bg-sky-950/20'
+                  : 'border-slate-800'
+              }`}
+            >
+              <span className="text-xs font-medium text-slate-400 block mb-1">Upcoming</span>
+              <div className="text-xl font-bold text-sky-400 tabular-nums">{summary?.upcoming ?? 0}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">Launching soon</div>
+            </Link>
+
+            {/* Closed */}
+            <Link
+              href="/ipo?status=closed"
+              className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 ${
+                params.status === 'closed'
+                  ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-950/20'
+                  : 'border-slate-800'
+              }`}
+            >
+              <span className="text-xs font-medium text-slate-400 block mb-1">Closed</span>
+              <div className="text-xl font-bold text-amber-400 tabular-nums">{summary?.closed ?? 0}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">Awaiting allotment</div>
+            </Link>
+
+            {/* Listed */}
+            <Link
+              href="/ipo?status=listed"
+              className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 ${
+                params.status === 'listed'
+                  ? 'border-slate-600 ring-2 ring-slate-600/20 bg-slate-850'
+                  : 'border-slate-800'
+              }`}
+            >
+              <span className="text-xs font-medium text-slate-400 block mb-1">Listed</span>
+              <div className="text-xl font-bold text-slate-300 tabular-nums">{summary?.listed ?? 0}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">Trading on exchange</div>
+            </Link>
+
+            {/* Mainboard */}
+            <Link
+              href="/ipo?category=mainboard"
+              className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 ${
+                params.category === 'mainboard'
+                  ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-950/20'
+                  : 'border-slate-800'
+              }`}
+            >
+              <span className="text-xs font-medium text-slate-400 block mb-1">Mainboard</span>
+              <div className="text-xl font-bold text-blue-400 tabular-nums">{summary?.mainboard ?? 0}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">NSE / BSE Main</div>
+            </Link>
+
+            {/* SME */}
+            <Link
+              href="/ipo?category=sme"
+              className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 ${
+                params.category === 'sme'
+                  ? 'border-purple-500 ring-2 ring-purple-500/20 bg-purple-950/20'
+                  : 'border-slate-800'
+              }`}
+            >
+              <span className="text-xs font-medium text-slate-400 block mb-1">SME Board</span>
+              <div className="text-xl font-bold text-purple-400 tabular-nums">{summary?.sme ?? 0}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">NSE Emerge / BSE SME</div>
+            </Link>
           </div>
 
-          {/* Filters */}
-          <IPOFilters currentParams={params} />
+          {/* 2. Filters & Presets Bar */}
+          <IPOFilters currentParams={params} totalResults={total} />
 
-          {/* IPO Table */}
-          {ipos.length > 0 ? (
-            <>
-              <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden mb-6">
-                {/* Desktop Table */}
-                <div className="hidden lg:block overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="sticky top-0 bg-gray-800/90 backdrop-blur-sm z-10">
-                      <tr className="border-b border-gray-700">
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                          Company
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                          Type
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          Open / Close
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          IPO Size
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          Issue Price
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          Min. Investment
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                          GMP
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          Est. Profit
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          Est. Listing
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                          Subscription
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          Lot Size
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                          Listing Date
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                          Anchor
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800">
-                      {ipos.map(ipo => {
-                        const trendArrow = getTrendArrow(ipo.gmp_trend, ipo.gmp_value, ipo.gmp_previous);
-                        const isHighGMP = ipo.parsed.gmp_percentage >= 50;
-                        
-                        return (
-                          <tr key={ipo.id} className={`hover:bg-gray-800/30 transition-colors ${isHighGMP ? 'bg-green-950/10' : ''}`}>
-                            {/* Company Name + Status Badge */}
-                            <td className="px-4 py-3">
-                              <Link 
-                                href={`/ipo/${encodeURIComponent(ipo.company_name)}`}
-                                className="text-blue-400 hover:text-blue-300 font-medium text-sm flex items-center gap-2"
-                              >
-                                {ipo.company_name}
-                                {isHighGMP && (
-                                  <span className="inline-block px-1.5 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-bold rounded uppercase">
-                                    Hot
-                                  </span>
-                                )}
-                              </Link>
-                              <div className={`mt-1 inline-block px-2 py-0.5 rounded text-xs font-medium ${getStatusBadge(ipo.status)}`}>
-                                {ipo.status}
+          {/* 3. High-Density Pro Table (StockeZee-style) */}
+          {ipos && ipos.length > 0 ? (
+            <div className="bg-slate-900/90 border border-slate-800 rounded-xl overflow-hidden shadow-xl mb-6">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="sticky top-0 bg-slate-950/95 backdrop-blur-md z-20 border-b border-slate-800">
+                    <tr className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                      <th className="px-4 py-3">Company & Type</th>
+                      <th className="px-3 py-3 text-center whitespace-nowrap">Bidding Dates</th>
+                      <th className="px-3 py-3 text-right whitespace-nowrap">Issue Price</th>
+                      <th className="px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">Lot & Min Inv.</th>
+                      <th className="px-4 py-3 text-left whitespace-nowrap">
+                        <Link
+                          href={getSortUrl(params.sort === 'gmp_desc' ? 'gmp_asc' : 'gmp_desc')}
+                          className="inline-flex items-center gap-1 hover:text-slate-200 transition-colors group cursor-pointer"
+                          title="Sort by GMP"
+                        >
+                          <span>GMP</span>
+                          <ArrowUpDown className="w-3 h-3 text-slate-500 group-hover:text-slate-300" />
+                        </Link>
+                      </th>
+                      <th className="px-4 py-3 text-right whitespace-nowrap hidden md:table-cell">Est. Listing / Profit</th>
+                      <th className="px-3 py-3 text-center whitespace-nowrap hidden lg:table-cell">Sub. Demand</th>
+                      <th className="px-3 py-3 text-center whitespace-nowrap hidden xl:table-cell">Listing Date</th>
+                      <th className="px-4 py-3 text-right">Details</th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-800/60 text-xs">
+                    {ipos.map((ipo) => {
+                      const gmpInfo = getGmpDisplay(ipo.gmp);
+                      const isSme = ipo.type?.toLowerCase().includes('sme');
+
+                      return (
+                        <tr
+                          key={ipo.id}
+                          className="hover:bg-slate-800/40 transition-colors group cursor-pointer"
+                        >
+                          {/* Company Name, Type, Halal Status */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700/80 flex items-center justify-center font-bold text-xs text-sky-400 group-hover:border-sky-500/50 transition-all shrink-0">
+                                {ipo.company_name.slice(0, 2).toUpperCase()}
                               </div>
-                            </td>
-
-                            {/* Type */}
-                            <td className="px-4 py-3 text-center">
-                              <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                                ipo.parsed.is_sme 
-                                  ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                              }`}>
-                                {ipo.parsed.is_sme ? 'SME' : 'Mainboard'}
-                              </span>
-                            </td>
-
-                            {/* Open / Close Dates */}
-                            <td className="px-4 py-3 text-center text-sm text-white whitespace-nowrap">
-                              {formatDate(ipo.open_date)} → {formatDate(ipo.close_date)}
-                            </td>
-
-                            {/* IPO Size */}
-                            <td className="px-4 py-3 text-right text-white font-medium text-sm whitespace-nowrap">
-                              {ipo.ipo_size}
-                            </td>
-
-                            {/* Issue Price */}
-                            <td className="px-4 py-3 text-right text-white font-medium text-sm whitespace-nowrap">
-                              ₹{ipo.price}
-                            </td>
-
-                            {/* Min Investment */}
-                            <td className="px-4 py-3 text-right text-white text-sm whitespace-nowrap">
-                              ₹{ipo.parsed.min_investment.toLocaleString('en-IN')}
-                            </td>
-
-                            {/* GMP */}
-                            <td className="px-4 py-3 text-right">
-                              {ipo.parsed.gmp_value > 0 ? (
-                                <div>
-                                  <div className="text-white font-semibold text-sm">
-                                    ₹{ipo.parsed.gmp_value}
-                                  </div>
-                                  <div className={`flex items-center justify-end gap-0.5 text-xs font-medium ${trendArrow.color}`}>
-                                    {trendArrow.icon}
-                                    {ipo.parsed.gmp_percentage.toFixed(1)}%
-                                  </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <Link
+                                    href={`/ipo/${ipo.slug}`}
+                                    className="font-bold text-slate-100 text-sm tracking-wide hover:text-sky-400 transition-colors"
+                                  >
+                                    {ipo.company_name}
+                                  </Link>
+                                  {gmpInfo.isHot && (
+                                    <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-rose-500/15 text-rose-400 text-[9px] font-bold rounded">
+                                      <Flame className="w-2.5 h-2.5" /> Hot
+                                    </span>
+                                  )}
+                                  {getHalalBadge(ipo.halal_status)}
                                 </div>
-                              ) : (
-                                <span className="text-gray-500 text-sm">—</span>
-                              )}
-                            </td>
-
-                            {/* Est. Profit */}
-                            <td className="px-4 py-3 text-right whitespace-nowrap">
-                              {ipo.parsed.est_profit_per_lot ? (
-                                <span className={`font-semibold text-sm ${
-                                  ipo.parsed.est_profit_per_lot > 0 ? 'text-green-400' : 'text-red-400'
-                                }`}>
-                                  {ipo.parsed.est_profit_per_lot > 0 ? '+' : ''}₹{ipo.parsed.est_profit_per_lot.toLocaleString('en-IN')}
-                                </span>
-                              ) : (
-                                <span className="text-gray-500 text-sm">—</span>
-                              )}
-                            </td>
-
-                            {/* Est. Listing */}
-                            <td className="px-4 py-3 text-right text-white font-medium text-sm whitespace-nowrap">
-                              {ipo.parsed.est_listing ? `₹${ipo.parsed.est_listing}` : '—'}
-                            </td>
-
-                            {/* Subscription */}
-                            <td className="px-4 py-3 text-center whitespace-nowrap">
-                              {ipo.parsed.subscription_times !== null && ipo.parsed.subscription_times > 0 ? (
-                                <span className={`font-semibold text-sm ${
-                                  ipo.parsed.subscription_times >= 1 ? 'text-green-400' : 'text-yellow-400'
-                                }`}>
-                                  {ipo.parsed.subscription_times}x
-                                </span>
-                              ) : (
-                                <span className="text-gray-500 text-sm">—</span>
-                              )}
-                            </td>
-
-                            {/* Lot Size */}
-                            <td className="px-4 py-3 text-center text-white text-sm whitespace-nowrap">
-                              {ipo.parsed.lot_size.toLocaleString('en-IN')} shares
-                            </td>
-
-                            {/* Listing Date */}
-                            <td className="px-4 py-3 text-center text-white text-xs whitespace-nowrap">
-                              {formatDate(ipo.listing_date)}
-                            </td>
-
-                            {/* Anchor */}
-                            <td className="px-4 py-3 text-center">
-                              <span className={`text-xs font-medium ${
-                                ipo.anchor === 'Yes' ? 'text-green-400' : 'text-gray-500'
-                              }`}>
-                                {ipo.anchor || '—'}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Cards */}
-                <div className="lg:hidden divide-y divide-gray-800">
-                  {ipos.map(ipo => {
-                    const trendArrow = getTrendArrow(ipo.gmp_trend, ipo.gmp_value, ipo.gmp_previous);
-                    const isHighGMP = ipo.parsed.gmp_percentage >= 50;
-                    
-                    return (
-                      <div key={ipo.id} className={`p-4 ${isHighGMP ? 'bg-green-950/10' : ''}`}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <Link 
-                              href={`/ipo/${encodeURIComponent(ipo.company_name)}`}
-                              className="text-blue-400 hover:text-blue-300 font-semibold text-base block mb-1"
-                            >
-                              {ipo.company_name}
-                              {isHighGMP && (
-                                <span className="ml-2 inline-block px-1.5 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-bold rounded uppercase">
-                                  Hot
-                                </span>
-                              )}
-                            </Link>
-                            <div className="flex items-center gap-2">
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                                ipo.parsed.is_sme 
-                                  ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                              }`}>
-                                {ipo.parsed.is_sme ? 'SME' : 'Mainboard'}
-                              </span>
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${getStatusBadge(ipo.status)}`}>
-                                {ipo.status}
-                              </span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${getStatusBadge(ipo.status)}`}>
+                                    {ipo.status}
+                                  </span>
+                                  <span
+                                    className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                                      isSme
+                                        ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                                        : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                                    }`}
+                                  >
+                                    {ipo.type || (isSme ? 'SME' : 'Mainboard')}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
+                          </td>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div>
-                            <div className="text-gray-400 text-xs mb-1">Price</div>
-                            <div className="text-white font-semibold">₹{ipo.price}</div>
-                          </div>
-                          <div>
-                            <div className="text-gray-400 text-xs mb-1">GMP</div>
-                            {ipo.parsed.gmp_value > 0 ? (
-                              <div className="flex items-center gap-1">
-                                <span className="text-white font-semibold">₹{ipo.parsed.gmp_value}</span>
-                                <span className={`flex items-center gap-0.5 text-xs ${trendArrow.color}`}>
-                                  {trendArrow.icon}
-                                  {ipo.parsed.gmp_percentage.toFixed(1)}%
-                                </span>
+                          {/* Bidding Dates */}
+                          <td className="px-3 py-3 text-center whitespace-nowrap">
+                            <div className="text-slate-200 font-medium tabular-nums">
+                              {ipo.open_close || `${ipo.open_date} → ${ipo.close_date}`}
+                            </div>
+                            <div className="text-[10px] text-slate-500">Updated: {ipo.updated_on}</div>
+                          </td>
+
+                          {/* Issue Price */}
+                          <td className="px-3 py-3 text-right whitespace-nowrap">
+                            <div className="font-bold text-slate-100 tabular-nums">
+                              {ipo.issue_price_display || (ipo.issue_price ? `₹${ipo.issue_price}` : '–')}
+                            </div>
+                            {ipo.ipo_size_display && (
+                              <div className="text-[10px] text-slate-500 tabular-nums">
+                                Size: {ipo.ipo_size_display}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Lot Size & Min Investment */}
+                          <td className="px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">
+                            <div className="text-slate-200 font-medium tabular-nums">
+                              {ipo.min_investment_display || (ipo.min_investment ? `₹${ipo.min_investment.toLocaleString('en-IN')}` : '–')}
+                            </div>
+                            <div className="text-[10px] text-slate-500 tabular-nums">
+                              {ipo.lot_size_display || (ipo.lot_size ? `${ipo.lot_size} Shares` : '–')}
+                            </div>
+                          </td>
+
+                          {/* Live GMP */}
+                          <td className="px-4 py-3 text-left whitespace-nowrap">
+                            {gmpInfo.hasGmp ? (
+                              <div className="flex flex-col items-start">
+                                <div className={`font-bold tabular-nums text-sm ${gmpInfo.color}`}>
+                                  {gmpInfo.text}
+                                </div>
+                                {gmpInfo.range && (
+                                  <div className="text-[11px] text-slate-400 tabular-nums font-medium mt-0.5">
+                                    {gmpInfo.range}
+                                  </div>
+                                )}
                               </div>
                             ) : (
-                              <span className="text-gray-500">—</span>
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-gray-400 text-xs mb-1">Subscription</div>
-                            {ipo.parsed.subscription_times !== null && ipo.parsed.subscription_times > 0 ? (
-                              <span className={`font-semibold ${
-                                ipo.parsed.subscription_times >= 1 
-                                  ? 'text-green-400' 
-                                  : 'text-yellow-400'
-                              }`}>
-                                {ipo.parsed.subscription_times}x
-                              </span>
-                            ) : (
-                              <span className="text-gray-500">—</span>
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-gray-400 text-xs mb-1">Est. Profit</div>
-                            {ipo.parsed.est_profit_per_lot ? (
-                              <div className={`font-semibold ${
-                                ipo.parsed.est_profit_per_lot > 0 ? 'text-green-400' : 'text-red-400'
-                              }`}>
-                                {ipo.parsed.est_profit_per_lot > 0 ? '+' : ''}
-                                ₹{ipo.parsed.est_profit_per_lot.toLocaleString('en-IN')}
+                              <div className="text-slate-500 font-medium text-sm tabular-nums">
+                                —
                               </div>
-                            ) : (
-                              <span className="text-gray-500">—</span>
                             )}
-                          </div>
-                        </div>
+                          </td>
 
-                        <div className="mt-3 pt-3 border-t border-gray-800 flex items-center justify-between text-xs">
-                          <div>
-                            <span className="text-gray-400">Open: </span>
-                            <span className="text-white">{formatDate(ipo.open_date)}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400">Close: </span>
-                            <span className="text-white">{formatDate(ipo.close_date)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                          {/* Est Listing & Profit */}
+                          <td className="px-4 py-3 text-right whitespace-nowrap hidden md:table-cell">
+                            <div className="text-slate-200 font-medium tabular-nums">
+                              {ipo.est_listing_display || (ipo.est_listing ? `₹${ipo.est_listing}` : '–')}
+                            </div>
+                            <div className="text-[10px] text-emerald-400 font-semibold tabular-nums">
+                              {ipo.est_profit_display ? `+${ipo.est_profit_display}/lot` : '–'}
+                            </div>
+                          </td>
+
+                          {/* Subscription Demand */}
+                          <td className="px-3 py-3 text-center whitespace-nowrap hidden lg:table-cell">
+                            <div className="text-slate-200 font-bold tabular-nums">
+                              {ipo.subscription_display || (ipo.subscription_times ? `${ipo.subscription_times}x` : '–')}
+                            </div>
+                            <div className="text-[10px] text-slate-500">
+                              {ipo.has_anchor ? 'Anchor In' : 'No Anchor'}
+                            </div>
+                          </td>
+
+                          {/* Listing Date */}
+                          <td className="px-3 py-3 text-center whitespace-nowrap hidden xl:table-cell">
+                            <div className="text-slate-200 font-medium">
+                              {ipo.listing_date_display || ipo.listing_date || '–'}
+                            </div>
+                            <div className="text-[10px] text-slate-500">Tentative</div>
+                          </td>
+
+                          {/* Action Button */}
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <Link
+                              href={`/ipo/${ipo.slug}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 rounded-lg transition-all"
+                            >
+                              <span>Audit</span>
+                              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center gap-2">
-                  {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
-                    // Show first 3, last 3, and pages around current
-                    const pageNum = i + 1;
-                    if (
-                      pageNum <= 3 ||
-                      pageNum > totalPages - 3 ||
-                      (pageNum >= page - 1 && pageNum <= page + 1)
-                    ) {
-                      return (
-                        <Link
-                          key={pageNum}
-                          href={`/ipo?page=${pageNum}${params.status ? `&status=${params.status}` : ''}${params.type ? `&type=${params.type}` : ''}`}
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
-                            pageNum === page
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                          }`}
-                        >
-                          {pageNum}
-                        </Link>
-                      );
-                    } else if (pageNum === 4 || pageNum === totalPages - 3) {
-                      return <span key={pageNum} className="px-2 text-gray-500">...</span>;
-                    }
-                    return null;
-                  })}
+              {/* Pagination Bar */}
+              {total_pages > 1 && (
+                <div className="px-4 py-3 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                  <div>
+                    Page <strong className="text-slate-200">{page}</strong> of{' '}
+                    <strong className="text-slate-200">{total_pages}</strong>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {page > 1 && (
+                      <Link
+                        href={`/ipo?page=${page - 1}${params.status ? `&status=${params.status}` : ''}${params.category ? `&category=${params.category}` : ''}`}
+                        className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 rounded border border-slate-800 text-slate-300 flex items-center gap-1"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                      </Link>
+                    )}
+                    {page < total_pages && (
+                      <Link
+                        href={`/ipo?page=${page + 1}${params.status ? `&status=${params.status}` : ''}${params.category ? `&category=${params.category}` : ''}`}
+                        className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 rounded border border-slate-800 text-slate-300 flex items-center gap-1"
+                      >
+                        Next <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
+                  </div>
                 </div>
               )}
-            </>
+            </div>
           ) : (
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-12 text-center">
-              <TrendingUp className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-400">No IPOs found matching your criteria</p>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center">
+              <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto mb-3 opacity-80" />
+              <h3 className="text-base font-semibold text-slate-200 mb-1">No IPOs found for selected filters</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
+                Try clearing your search keyword or switching between Mainboard and SME tabs.
+              </p>
+              <Link
+                href="/ipo"
+                className="btn btn-primary text-xs"
+              >
+                Reset All Filters
+              </Link>
             </div>
           )}
+
+          {/* Educational Information Footer */}
+          <div className="mt-8 bg-slate-900/60 border border-slate-800 rounded-xl p-5">
+            <h3 className="text-sm font-bold text-slate-200 mb-2 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-sky-400" />
+              Understanding IPO GMP & Shariah Compliance
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mt-3">
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="font-semibold text-slate-200 block mb-0.5">What is Grey Market Premium (GMP)?</span>
+                <span className="text-slate-400 leading-relaxed">
+                  GMP is the unofficial premium at which an IPO share is traded prior to listing, indicating market demand and retail sentiment.
+                </span>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="font-semibold text-slate-200 block mb-0.5">Why Screen IPOs for Halal?</span>
+                <span className="text-slate-400 leading-relaxed">
+                  Companies must be screened for non-halal revenue sources and excessive interest debt before applying to ensure Shariah compliance.
+                </span>
+              </div>
+              <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                <span className="font-semibold text-slate-200 block mb-0.5">Estimated Listing Calculation</span>
+                <span className="text-slate-400 leading-relaxed">
+                  Estimated listing price equals the upper price band plus current GMP. This provides an expected listing gain benchmark.
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
-  } catch (error) {
-    console.error('Error fetching IPO data:', error);
+  } catch (error: any) {
     return (
-      <div className="min-h-screen bg-gray-950 py-12">
-        <div className="container mx-auto px-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-12 text-center">
-            <Rocket className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Unable to Load IPO Data</h2>
-            <p className="text-gray-400 mb-6">Please make sure the backend server is running on port 3000</p>
-            <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
-              Go to Home
+      <div className="min-h-screen bg-slate-950 py-12">
+        <div className="container mx-auto px-4 max-w-2xl text-center">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
+            <AlertTriangle className="w-12 h-12 text-rose-400 mx-auto mb-3" />
+            <h2 className="text-lg font-bold text-slate-100 mb-2">Unable to Load IPO Data</h2>
+            <p className="text-xs text-slate-400 mb-4">
+              Could not retrieve IPO listings from the backend server. Error: {error?.message || 'Connection refused'}
+            </p>
+            <Link href="/ipo" className="btn btn-primary text-xs">
+              Retry Connection
             </Link>
           </div>
         </div>
