@@ -5,11 +5,11 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-slate-950 border-t border-slate-800/80 mt-16 text-xs text-slate-400">
-      <div className="container mx-auto py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
+    <footer className="bg-slate-950 border-t border-slate-800/80 py-6 md:py-7 text-xs text-slate-400">
+      <div className="container mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8 mb-5">
           {/* Brand Col (2 cols wide on desktop) */}
-          <div className="lg:col-span-2 space-y-3">
+          <div className="lg:col-span-2 space-y-3 pr-2 lg:pr-6">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-7 h-7 bg-gradient-to-br from-sky-500 to-sky-700 rounded-lg flex items-center justify-center font-bold text-xs text-white">
                 W
@@ -116,7 +116,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Disclaimers & Legal */}
-        <div className="pt-6 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+        <div className="pt-3.5 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
           <p>
             &copy; {currentYear} WeeStox Intelligence. All rights reserved. Data updated in real-time.
           </p>
@@ -132,10 +132,10 @@ export default function Footer() {
             </Link>
           </div>
         </div>
-
-        <p className="text-[10px] text-slate-600 mt-4 leading-relaxed text-center md:text-left">
-          Regulatory Disclaimer: WeeStox provides automated financial and Shariah screening based on publicly available audited filings and standard AAOIFI guidelines for informational purposes. WeeStox is not a SEBI registered investment advisor. Nothing on this website constitutes personal financial advice. Investors must conduct independent due diligence.
-        </p>
+{/* 
+        <p className="text-[11px] text-slate-500 mt-2.5 leading-relaxed text-center md:text-left">
+          Regulatory Disclaimer: WeeStox provides automated financial and Shariah screening based on publicly available audited filings and standard AAOIFI guidelines strictly for informational and educational purposes. WeeStox is not a SEBI registered investment advisor or research analyst. Grey Market Premium (GMP) data is unofficial, dynamic, and should not be considered investment advice or a guarantee of listing gains. Nothing on this website constitutes personal financial advice or a recommendation to buy or sell securities. Investors must conduct independent due diligence.
+        </p> */}
       </div>
     </footer>
   );

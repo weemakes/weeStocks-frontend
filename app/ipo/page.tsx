@@ -9,12 +9,13 @@ import {
   XCircle,
   ChevronRight,
   Flame,
-  Star,
+  ArrowUpDown,
   ChevronLeft,
   ExternalLink,
 } from 'lucide-react';
 import { getIPOList } from '@/features/ipo/api';
 import { IPOQueryParams, IPOV2ListItem } from '@/features/ipo/types';
+import { GMPDisclaimer } from '@/features/ipo/components';
 import IPOFilters from './components/IPOFilters';
 
 export const metadata = {
@@ -66,20 +67,44 @@ function getHalalBadge(status: string | null) {
   }
 }
 
+function formatGmpRange(subDisplay?: string, gmpValue?: number): string | null {
+  if (subDisplay && subDisplay.includes('/')) {
+    const parts = subDisplay.split('/').map((p) => p.trim());
+    if (parts.length === 2) {
+      const lowNum = parseFloat(parts[0]);
+      const highNum = parseFloat(parts[1]);
+      if (!isNaN(lowNum) && !isNaN(highNum) && (lowNum > 0 || highNum > 0)) {
+        const lowStr = lowNum % 1 === 0 ? lowNum.toFixed(0) : lowNum.toString();
+        const highStr = highNum % 1 === 0 ? highNum.toFixed(0) : highNum.toString();
+        return `${lowStr} ↓ / ${highStr} ↑`;
+      }
+    }
+  }
+  if (gmpValue && gmpValue > 0) {
+    return `${gmpValue} ↓ / ${gmpValue} ↑`;
+  }
+  return null;
+}
+
 function getGmpDisplay(gmp: IPOV2ListItem['gmp']) {
-  if (!gmp || gmp.value === 0 || gmp.value === null) {
+  if (!gmp || gmp.value === 0 || gmp.value === null || !gmp.value) {
     return {
-      text: '₹0 (0%)',
-      color: 'text-slate-400',
+      hasGmp: false,
+      text: '—',
+      range: null,
+      color: 'text-slate-500',
       isHot: false,
     };
   }
 
   const isPositive = gmp.value > 0;
   const isHot = (gmp.percentage ?? 0) >= 40;
+  const range = formatGmpRange(gmp.sub_display, gmp.value);
 
   return {
-    text: gmp.display || `₹${gmp.value} (${gmp.percentage ? `${gmp.percentage.toFixed(1)}%` : ''})`,
+    hasGmp: true,
+    text: gmp.display || `₹${gmp.value}${gmp.percentage !== null && gmp.percentage !== undefined ? ` (${Number(gmp.percentage).toFixed(2)}%)` : ''}`,
+    range,
     color: isPositive ? 'text-emerald-400' : 'text-rose-400',
     isHot,
   };
@@ -103,8 +128,19 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
 
     const { ipos, summary, total, page, total_pages, snapshot_date } = ipoListData.data;
 
+    const getSortUrl = (sortKey: string) => {
+      const p = new URLSearchParams();
+      if (params.status && params.status !== 'all') p.set('status', params.status);
+      if (params.type && params.type !== 'all') p.set('type', params.type);
+      if (params.category && params.category !== 'all') p.set('category', params.category);
+      if (params.search) p.set('search', params.search);
+      if (params.halal) p.set('halal', params.halal);
+      p.set('sort', sortKey);
+      return `/ipo?${p.toString()}`;
+    };
+
     return (
-      <div className="min-h-screen bg-slate-950 py-6 md:py-8 pb-20">
+      <div className="bg-slate-950 py-6 md:py-8 pb-8">
         <div className="container mx-auto">
           {/* Breadcrumb & Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
@@ -128,7 +164,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
               </div>
 
               <p className="text-xs md:text-sm text-slate-400 mt-1 max-w-2xl">
-                Track live Mainboard and SME Grey Market Premiums, estimated listing prices, subscription demand times, and Shariah compliance.
+                Track latest GMP, expected listing price, and subscription status for upcoming and live IPOs.
               </p>
             </div>
 
@@ -137,6 +173,9 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
               <span>Snapshot: <strong className="text-slate-200">{snapshot_date || 'Today'}</strong></span>
             </div>
           </div>
+
+          {/* SEBI Compliance / Educational Disclaimer */}
+          <GMPDisclaimer className="mb-6" />
 
           {/* 1. Clickable Summary Cards (StockeZee-style KPI Strip) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 mb-6">
@@ -256,7 +295,16 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                       <th className="px-3 py-3 text-center whitespace-nowrap">Bidding Dates</th>
                       <th className="px-3 py-3 text-right whitespace-nowrap">Issue Price</th>
                       <th className="px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">Lot & Min Inv.</th>
-                      <th className="px-4 py-3 text-right whitespace-nowrap">Live GMP</th>
+                      <th className="px-4 py-3 text-left whitespace-nowrap">
+                        <Link
+                          href={getSortUrl(params.sort === 'gmp_desc' ? 'gmp_asc' : 'gmp_desc')}
+                          className="inline-flex items-center gap-1 hover:text-slate-200 transition-colors group cursor-pointer"
+                          title="Sort by GMP"
+                        >
+                          <span>GMP</span>
+                          <ArrowUpDown className="w-3 h-3 text-slate-500 group-hover:text-slate-300" />
+                        </Link>
+                      </th>
                       <th className="px-4 py-3 text-right whitespace-nowrap hidden md:table-cell">Est. Listing / Profit</th>
                       <th className="px-3 py-3 text-center whitespace-nowrap hidden lg:table-cell">Sub. Demand</th>
                       <th className="px-3 py-3 text-center whitespace-nowrap hidden xl:table-cell">Listing Date</th>
@@ -344,22 +392,23 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                           </td>
 
                           {/* Live GMP */}
-                          <td className="px-4 py-3 text-right whitespace-nowrap">
-                            <div className={`font-bold tabular-nums text-sm ${gmpInfo.color}`}>
-                              {gmpInfo.text}
-                            </div>
-                            <div className="flex items-center justify-end gap-0.5 mt-0.5">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-2.5 h-2.5 ${
-                                    i < (ipo.gmp?.rating ?? 1)
-                                      ? 'text-amber-400 fill-amber-400'
-                                      : 'text-slate-700'
-                                  }`}
-                                />
-                              ))}
-                            </div>
+                          <td className="px-4 py-3 text-left whitespace-nowrap">
+                            {gmpInfo.hasGmp ? (
+                              <div className="flex flex-col items-start">
+                                <div className={`font-bold tabular-nums text-sm ${gmpInfo.color}`}>
+                                  {gmpInfo.text}
+                                </div>
+                                {gmpInfo.range && (
+                                  <div className="text-[11px] text-slate-400 tabular-nums font-medium mt-0.5">
+                                    {gmpInfo.range}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-slate-500 font-medium text-sm tabular-nums">
+                                —
+                              </div>
+                            )}
                           </td>
 
                           {/* Est Listing & Profit */}

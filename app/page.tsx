@@ -14,6 +14,7 @@ import {
   Scale,
   Building2,
 } from 'lucide-react';
+import HeroScannerPreview from '@/components/home/HeroScannerPreview';
 
 export default function HomePage() {
   return (
@@ -24,60 +25,68 @@ export default function HomePage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-sky-500/10 blur-[120px] pointer-events-none" />
 
         <div className="container mx-auto relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            {/* Shariah + Ethical Compliance Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 mb-4 text-xs font-semibold text-sky-400">
-              <ShieldCheck className="w-4 h-4 text-sky-400" />
-              <span>AAOIFI Shariah Standard 21 &bull; Balance Sheet Quality Screening</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            {/* Left Column: Value Prop & CTAs */}
+            <div className="lg:col-span-7 text-center lg:text-left">
+              {/* Shariah + Ethical Compliance Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 mb-4 text-xs font-semibold text-sky-400">
+                <ShieldCheck className="w-4 h-4 text-sky-400" />
+                <span>AAOIFI Shariah Standard 21 &bull; Balance Sheet Quality Screening</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-100 mb-4 tracking-tight leading-tight">
+                Institutional Intelligence for{' '}
+                <span className="bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
+                  Halal &amp; Ethical Investors
+                </span>
+              </h1>
+
+              <p className="text-sm md:text-base text-slate-400 mb-6 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                Screen NSE &amp; BSE equities for Shariah compliance, debt-to-market-cap leverage, and dividend purification. Monitor real-time Gold rates, IPO Grey Market Premiums, and Zakat.
+              </p>
+
+              {/* Direct Screener Quick Search / CTA */}
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-8">
+                <Link
+                  href="/stocks"
+                  className="w-full sm:w-auto px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-lg shadow-sky-600/25 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Launch Stock Screener
+                </Link>
+                <Link
+                  href="/ipo"
+                  className="w-full sm:w-auto px-6 py-3 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:border-slate-700 active:scale-95"
+                >
+                  <Rocket className="w-4 h-4 text-rose-400" />
+                  Track Live IPO GMP
+                </Link>
+              </div>
+
+              {/* Quick Metrics Bar */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-2xl mx-auto lg:mx-0 text-left">
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Equities Screened</span>
+                  <span className="text-sm font-bold text-slate-100 tabular-nums">10,000+ NSE/BSE</span>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Max Debt Threshold</span>
+                  <span className="text-sm font-bold text-emerald-400 tabular-nums">&le; 33% Cap</span>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Metals Tracked</span>
+                  <span className="text-sm font-bold text-amber-400 tabular-nums">24K / 22K Gold</span>
+                </div>
+                <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
+                  <span className="text-[11px] text-slate-500 block">Purification Rate</span>
+                  <span className="text-sm font-bold text-sky-400 tabular-nums">Automated %</span>
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-100 mb-4 tracking-tight leading-tight">
-              Institutional Intelligence for{' '}
-              <span className="bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
-                Halal & Ethical Investors
-              </span>
-            </h1>
-
-            <p className="text-sm md:text-base text-slate-400 mb-6 leading-relaxed max-w-2xl mx-auto">
-              Screen NSE & BSE equities for Shariah compliance, debt-to-market-cap leverage, and dividend purification. Monitor real-time Gold rates, IPO Grey Market Premiums, and Zakat.
-            </p>
-
-            {/* Direct Screener Quick Search / CTA */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
-              <Link
-                href="/stocks"
-                className="w-full sm:w-auto px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-lg shadow-sky-600/25 flex items-center justify-center gap-2 transition-all"
-              >
-                <TrendingUp className="w-4 h-4" />
-                Launch Stock Screener
-              </Link>
-              <Link
-                href="/ipo"
-                className="w-full sm:w-auto px-6 py-3 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-200 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-              >
-                <Rocket className="w-4 h-4 text-rose-400" />
-                Track Live IPO GMP
-              </Link>
-            </div>
-
-            {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-2xl mx-auto text-left">
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
-                <span className="text-[11px] text-slate-500 block">Equities Screened</span>
-                <span className="text-sm font-bold text-slate-100 tabular-nums">10,000+ NSE/BSE</span>
-              </div>
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
-                <span className="text-[11px] text-slate-500 block">Max Debt Threshold</span>
-                <span className="text-sm font-bold text-emerald-400 tabular-nums">&le; 33% Cap</span>
-              </div>
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
-                <span className="text-[11px] text-slate-500 block">Metals Tracked</span>
-                <span className="text-sm font-bold text-amber-400 tabular-nums">24K / 22K Gold</span>
-              </div>
-              <div className="bg-slate-900/60 border border-slate-800/80 rounded-lg p-2.5">
-                <span className="text-[11px] text-slate-500 block">Purification Rate</span>
-                <span className="text-sm font-bold text-sky-400 tabular-nums">Automated %</span>
-              </div>
+            {/* Right Column: Interactive Live Shariah Scanner Preview */}
+            <div className="lg:col-span-5 w-full mt-4 lg:mt-0">
+              <HeroScannerPreview />
             </div>
           </div>
         </div>

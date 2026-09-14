@@ -5,7 +5,8 @@
  * Complete history chart section with controls
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { TrendingUp } from "lucide-react";
 import { HistoryChart } from "./HistoryChart";
 import { HistoryControls } from "./HistoryControls";
 import type {
@@ -35,76 +36,92 @@ export function HistoryChartSection({
   initialDuration,
 }: HistoryChartSectionProps) {
   const metalConfig = METAL_CONFIG[metal];
+  const historyUnits = metalConfig.historyUnits || metalConfig.units;
 
-  const [purity, setPurity] = useState<MetalPurity | undefined>(initialPurity);
+  const [purity, setPurity] = useState<MetalPurity | undefined>(
+    metal === "gold" ? initialPurity : undefined
+  );
   const [unit, setUnit] = useState<MetalUnit>(initialUnit);
   const [duration, setDuration] = useState<ChartDuration>(initialDuration);
   const [chartData, setChartData] = useState<ChartPoint[]>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchChartData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // In case of platinum, show 9m data by default; even if user selects 1w, 1m, 3m, 6m, query 9m data; 1y will be 1y
+      const effectiveDuration: ChartDuration =
+        metal === "platinum" && duration !== "1y" ? "9m" : duration;
+
+      const params = new URLSearchParams({
+        metal,
+        citySlug,
+        unit,
+        duration: effectiveDuration,
+      });
+
+      // Strictly only append purity for gold
+      if (metal === "gold" && purity) {
+        params.append("purity", purity);
+      }
+
+      const response = await fetch(`/api/metals/history?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch chart data");
+      }
+
+      const result = await response.json();
+      setChartData(result.data || []);
+    } catch (err) {
+      console.error("Failed to fetch chart data:", err);
+      setError("Historical price data is currently unavailable for this timeframe.");
+      setChartData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [metal, citySlug, unit, duration, purity]);
+
   // Fetch new data when controls change
   useEffect(() => {
-    const fetchChartData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const params = new URLSearchParams({
-          metal,
-          citySlug,
-          unit,
-          duration,
-        });
-
-        if (purity) {
-          params.append("purity", purity);
-        }
-
-        const response = await fetch(`/api/metals/history?${params.toString()}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch chart data");
-        }
-
-        const result = await response.json();
-        setChartData(result.data);
-      } catch (err) {
-        console.error("Failed to fetch chart data:", err);
-        setError("Unable to load historical prices.");
-        setChartData([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Only fetch if not using initial values
     const isInitialState =
       unit === initialUnit &&
       duration === initialDuration &&
-      purity === initialPurity;
+      purity === initialPurity &&
+      chartData.length > 0;
 
     if (!isInitialState) {
       fetchChartData();
     }
-  }, [metal, citySlug, purity, unit, duration, initialPurity, initialUnit, initialDuration]);
+  }, [unit, duration, purity, fetchChartData, initialUnit, initialDuration, initialPurity]);
 
   return (
-    <div className="card">
-      <h2 className="text-xl font-bold text-white mb-6">
-        Weekly & Monthly Graph of {metalConfig.displayName} Price in India
-      </h2>
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div>
+          <h2 className="text-lg md:text-xl font-bold text-slate-100 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-sky-400" />
+            Historical Price Trend of {metalConfig.displayName} ({unit})
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Interactive multi-timeframe price chart with live spot movements
+          </p>
+        </div>
+      </div>
 
       {/* Controls */}
       <HistoryControls
         purities={
-          metalConfig.purityOptions.length > 0
+          metal === "gold" && metalConfig.purityOptions.length > 0
             ? metalConfig.purityOptions
             : undefined
         }
-        selectedPurity={purity}
-        onPurityChange={setPurity}
-        units={metalConfig.units}
+        selectedPurity={metal === "gold" ? purity : undefined}
+        onPurityChange={metal === "gold" ? setPurity : undefined}
+        units={historyUnits}
         selectedUnit={unit}
         onUnitChange={setUnit}
         durations={CHART_DURATIONS}
@@ -114,15 +131,15 @@ export function HistoryChartSection({
 
       {/* Chart */}
       <div className="mt-6">
-        {error ? (
-          <div className="h-80 flex items-center justify-center bg-gray-950 rounded-lg">
-            <div className="text-center">
-              <p className="text-red-500 mb-2">{error}</p>
+        {error && chartData.length === 0 ? (
+          <div className="h-80 flex items-center justify-center bg-slate-950/80 border border-slate-800 rounded-xl">
+            <div className="text-center px-4">
+              <p className="text-slate-400 text-sm mb-3">{error}</p>
               <button
-                onClick={() => setDuration(initialDuration)}
-                className="text-sm text-blue-400 underline hover:text-blue-300"
+                onClick={fetchChartData}
+                className="px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-xs font-semibold text-sky-400 transition-colors"
               >
-                Retry
+                Retry Loading
               </button>
             </div>
           </div>

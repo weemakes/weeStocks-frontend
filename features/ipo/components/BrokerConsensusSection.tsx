@@ -50,7 +50,7 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
   const avoidPct = counts.total > 0 ? Math.round((counts.avoid / counts.total) * 100) : 0;
 
   return (
-    <section id="broker-reviews" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+    <section id="broker-reviews" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div className="flex items-center gap-2">
           <Award className="w-5 h-5 text-emerald-400" />

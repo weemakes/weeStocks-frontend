@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full dark`}>
+    <html lang="en" className={`${inter.variable} h-full dark scroll-smooth`}>
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-300 antialiased selection:bg-sky-500/20 selection:text-sky-300">
         <Navigation />
         <main className="flex-1 pt-[84px] md:pt-[88px]">

@@ -40,6 +40,7 @@ import {
   BrokerConsensusSection,
   SubscriptionTabsSection,
   StrengthsRisksSection,
+  GMPDisclaimer,
 } from '@/features/ipo/components';
 
 interface IPODetailPageProps {
@@ -224,7 +225,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
     ];
 
     return (
-      <div className="min-h-screen bg-slate-950 py-6 md:py-8 pb-20">
+      <div className="bg-slate-950 py-6 md:py-8 pb-8">
         <div className="container mx-auto">
           {/* Breadcrumb Navigation */}
           <div className="flex items-center justify-between gap-4 mb-3 text-xs text-slate-400">
@@ -321,7 +322,13 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
               <a href="#market-data" className="px-2.5 py-1 rounded bg-amber-500/15 text-amber-300 hover:text-amber-200 border border-amber-500/30 whitespace-nowrap font-semibold">Market Data (GMP)</a>
               <a href="#subscription" className="px-2.5 py-1 rounded bg-slate-800/80 text-slate-300 hover:text-sky-400 whitespace-nowrap">Subscription &amp; Funding</a>
               {Boolean(strengths?.length || risks?.length) && (
-                <a href="#strengths-risks" className="px-2.5 py-1 rounded bg-slate-800/80 text-slate-300 hover:text-sky-400 whitespace-nowrap">Strengths &amp; Risks</a>
+                <a href="#strengths-risks" className="px-2.5 py-1 rounded bg-slate-800/80 text-slate-300 hover:text-sky-400 whitespace-nowrap">
+                  {strengths?.length && risks?.length
+                    ? 'Strengths & Risks'
+                    : strengths?.length
+                    ? 'Strengths & Positives'
+                    : 'Key Risks & Concerns'}
+                </a>
               )}
               <a href="#financials" className="px-2.5 py-1 rounded bg-slate-800/80 text-slate-300 hover:text-sky-400 whitespace-nowrap">Financials</a>
               <a href="#kpi" className="px-2.5 py-1 rounded bg-slate-800/80 text-slate-300 hover:text-sky-400 whitespace-nowrap">KPIs</a>
@@ -331,6 +338,9 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
               <a href="#contact" className="px-2.5 py-1 rounded bg-slate-800/80 text-slate-300 hover:text-sky-400 whitespace-nowrap">Registrar &amp; Leads</a>
             </div>
           </div>
+
+          {/* SEBI Compliance / Educational Disclaimer */}
+          <GMPDisclaimer className="mb-5" />
 
           {/* 2. Top Highlights Strip (Chittorgarh Metrics) */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mb-6">
@@ -405,7 +415,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* ========================================================================= */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Left: IPO Details Table */}
-              <section id="issue-details" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+              <section id="issue-details" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <Layers className="w-5 h-5 text-sky-400" />
@@ -485,7 +495,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
               </section>
 
               {/* Right: IPO Timetable Table */}
-              <section id="timetable" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+              <section id="timetable" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <Calendar className="w-5 h-5 text-sky-400" />
@@ -556,7 +566,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* ========================================================================= */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Left: Reservation Table */}
-              <section id="reservation" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+              <section id="reservation" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <PieChart className="w-5 h-5 text-sky-400" />
@@ -656,7 +666,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
               </section>
 
               {/* Right: Anchor Investors Details */}
-              <section id="anchor" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+              <section id="anchor" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2">
@@ -733,7 +743,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* ========================================================================= */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Left: Lot Size Table */}
-              <section id="lotsize" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+              <section id="lotsize" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <Coins className="w-5 h-5 text-sky-400" />
@@ -818,7 +828,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
               </section>
 
               {/* Right: Promoter Holding Table */}
-              <section id="promoter" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+              <section id="promoter" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <Users className="w-5 h-5 text-sky-400" />
@@ -873,7 +883,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* ========================================================================= */}
             {/* FULL WIDTH: Day-wise Market Data & GMP Trend (With Year - User Requested) */}
             {/* ========================================================================= */}
-            <section id="market-data" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+            <section id="market-data" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
               <div className="flex items-center justify-between gap-4 mb-4">
                 <div className="flex items-center gap-2">
                   <Flame className="w-5 h-5 text-amber-400" />
@@ -895,6 +905,8 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                   </span>
                 </div>
               </div>
+
+              <GMPDisclaimer className="mb-4 bg-slate-950/60 border-slate-800" />
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800">
@@ -960,7 +972,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* FULL WIDTH: Company Financial Information (Restated Consolidated in ₹ Cr) */}
             {/* ========================================================================= */}
             {financials && financials.length > 0 && (
-              <section id="financials" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+              <section id="financials" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart3 className="w-5 h-5 text-sky-400" />
                   <h2 className="text-lg font-bold text-slate-100">
@@ -1017,7 +1029,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* FULL WIDTH: Key Valuation & Performance Indicators (KPIs)                 */}
             {/* ========================================================================= */}
             {kpi && (
-              <section id="kpi" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+              <section id="kpi" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                   <Scale className="w-5 h-5 text-sky-400" />
                   <h2 className="text-lg font-bold text-slate-100">{profile.company_name} Key Valuation &amp; Financial KPIs</h2>
@@ -1076,7 +1088,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* ========================================================================= */}
             {/* FULL WIDTH: About Company & Business Summary                              */}
             {/* ========================================================================= */}
-            <section id="about" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+            <section id="about" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
               <div className="flex items-center gap-2 mb-3">
                 <Building2 className="w-5 h-5 text-sky-400" />
                 <h2 className="text-lg font-bold text-slate-100">About {profile.company_name} Limited</h2>
@@ -1099,7 +1111,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* FULL WIDTH: Shariah Compliance Screening (AAOIFI Standard 21)             */}
             {/* ========================================================================= */}
             {halal_screening && (
-              <section id="halal" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+              <section id="halal" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-emerald-400" />
@@ -1158,7 +1170,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* ========================================================================= */}
             {/* FULL WIDTH: ALL Official Documents & Filings Repository                   */}
             {/* ========================================================================= */}
-            <section id="documents" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+            <section id="documents" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
               <div className="flex items-center gap-2 mb-4">
                 <BookOpen className="w-5 h-5 text-sky-400" />
                 <div>
@@ -1334,7 +1346,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             {/* ========================================================================= */}
             {/* FULL WIDTH: Registrar, Lead Managers & Contact Details                    */}
             {/* ========================================================================= */}
-            <section id="contact" className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+            <section id="contact" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
               <h2 className="text-lg font-bold text-slate-100 mb-4">{profile.company_name} IPO Registrar &amp; Lead Managers</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 {/* Registrar Card */}

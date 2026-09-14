@@ -103,8 +103,11 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
             citySlug: city?.slug || "",
             metal,
             unit: metalConfig.defaultUnit,
-            purity: metalConfig.defaultPurity,
+            purity: metal === "gold" ? metalConfig.defaultPurity : undefined,
             duration: metalConfig.defaultDuration,
+          }).catch((err) => {
+            console.error(`Failed to fetch initial history data for ${metal}:`, err);
+            return null;
           })
         : Promise.resolve(null),
     ]);
@@ -445,13 +448,13 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
           {/* ========================================================================= */}
           {/* FULL WIDTH: Interactive Multi-Timeframe Historical Price Chart             */}
           {/* ========================================================================= */}
-          {metalConfig.historyEnabled && historyData && (
+          {metalConfig.historyEnabled && (
             <section className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
               <HistoryChartSection
                 metal={metal}
                 citySlug={city?.slug || ""}
-                initialData={historyData.data}
-                initialPurity={metalConfig.defaultPurity}
+                initialData={historyData?.data || []}
+                initialPurity={metal === "gold" ? metalConfig.defaultPurity : undefined}
                 initialUnit={metalConfig.defaultUnit}
                 initialDuration={metalConfig.defaultDuration}
               />

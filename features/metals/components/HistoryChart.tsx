@@ -21,27 +21,27 @@ function getMetalColor(metal?: Metal) {
   switch (metal) {
     case 'gold':
       return {
-        stroke: '#FFD700',
-        fill: '#FFD700',
-        tooltip: '#FFD700',
+        stroke: '#f59f0bff',
+        fill: '#F59E0B',
+        tooltip: '#FBBF24',
       };
     case 'silver':
       return {
-        stroke: '#C0C0C0',
-        fill: '#C0C0C0',
-        tooltip: '#C0C0C0',
+        stroke: '#CBD5E1',
+        fill: '#94A3B8',
+        tooltip: '#E2E8F0',
       };
     case 'platinum':
       return {
-        stroke: '#A8B8D8',
-        fill: '#A8B8D8',
-        tooltip: '#A8B8D8',
+        stroke: '#00BCFF',
+        fill: '#008abdff',
+        tooltip: '#92e2ffff',
       };
     default:
       return {
-        stroke: '#4682B4',
-        fill: '#4682B4',
-        tooltip: '#4682B4',
+        stroke: '#38BDF8',
+        fill: '#0284C7',
+        tooltip: '#38BDF8',
       };
   }
 }
