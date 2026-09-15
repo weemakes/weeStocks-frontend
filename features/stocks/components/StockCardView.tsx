@@ -3,6 +3,7 @@
 import React from 'react';
 import { ShieldCheck, AlertTriangle, XCircle, ArrowUpRight, ArrowDownRight, Sparkles, Check, X } from 'lucide-react';
 import { StockItem } from '../types';
+import { formatMarketCap } from '../utils/mappers';
 
 interface StockCardViewProps {
   stocks: StockItem[];
@@ -97,7 +98,7 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
                 <div>
                   <span className="text-[10px] font-medium text-slate-500 block uppercase">Current Price</span>
                   <span className="text-lg font-bold text-slate-100 tabular-nums">
-                    ₹{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    {stock.currencySymbol || '₹'}{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div className="text-right">
@@ -167,7 +168,7 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
             {/* Bottom: Market Cap & Action */}
             <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between">
               <div className="text-[11px] text-slate-500">
-                Mkt Cap: <span className="text-slate-300 font-semibold tabular-nums">₹{(stock.marketCapCr / 1000).toFixed(1)}k Cr</span>
+                Mkt Cap: <span className="text-slate-300 font-semibold tabular-nums">{formatMarketCap(stock.marketCapCr * 10000000, stock.country)}</span>
               </div>
 
               <button

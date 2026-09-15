@@ -3,6 +3,7 @@
 import React from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, ShieldCheck, AlertTriangle, XCircle, ChevronRight, Sparkles } from 'lucide-react';
 import { StockItem, StockSortField, SortDirection } from '../types';
+import { formatMarketCap } from '../utils/mappers';
 
 interface StockTableViewProps {
   stocks: StockItem[];
@@ -95,7 +96,7 @@ export default function StockTableView({
                 className="px-4 py-3 text-right cursor-pointer hover:text-slate-200 transition-colors"
               >
                 <div className="flex items-center justify-end gap-1.5">
-                  <span>Price (₹)</span>
+                  <span>Price</span>
                   {getSortIcon('price')}
                 </div>
               </th>
@@ -212,10 +213,10 @@ export default function StockTableView({
                   {/* Price */}
                   <td className="px-4 py-3 text-right">
                     <div className="font-bold text-slate-100 text-sm tabular-nums">
-                      ₹{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      {stock.currencySymbol || '₹'}{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
                     <div className="text-[10px] text-slate-500 tabular-nums">
-                      P/E: {stock.fundamentals.peRatio.toFixed(1)}
+                      P/E: {stock.fundamentals.peRatio ? stock.fundamentals.peRatio.toFixed(1) : '–'}
                     </div>
                   </td>
 
@@ -230,14 +231,14 @@ export default function StockTableView({
                       {stock.changePercent.toFixed(2)}%
                     </div>
                     <div className="text-[10px] text-slate-500 tabular-nums">
-                      {isPositive ? '+' : ''}₹{stock.change.toFixed(2)}
+                      {isPositive ? '+' : ''}{stock.currencySymbol || '₹'}{stock.change.toFixed(2)}
                     </div>
                   </td>
 
                   {/* Market Cap */}
                   <td className="px-4 py-3 text-right hidden sm:table-cell">
                     <div className="text-slate-200 font-medium tabular-nums">
-                      ₹{(stock.marketCapCr / 1000).toFixed(1)}k Cr
+                      {formatMarketCap(stock.marketCapCr * 10000000, stock.country)}
                     </div>
                     <div className="text-[10px] text-slate-500">{stock.marketCapCategory}</div>
                   </td>
