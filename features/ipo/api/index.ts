@@ -1,3 +1,4 @@
+import 'server-only';
 import type { IPOV2ListResponse, IPODetailV2Response, IPOQueryParams } from '../types';
 
 const API_BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
@@ -24,6 +25,7 @@ export async function getIPOList(params: IPOQueryParams = {}): Promise<IPOV2List
   
   const response = await fetch(url, {
     cache: 'no-store',
+    signal: AbortSignal.timeout(12000),
     headers: {
       'User-Agent': 'WeeStox/1.0',
       'Accept': 'application/json',
@@ -31,7 +33,7 @@ export async function getIPOList(params: IPOQueryParams = {}): Promise<IPOV2List
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch IPO list from ${url}: ${response.status} ${response.statusText}`);
+    throw new Error('IPO listings are temporarily unavailable');
   }
 
   return response.json();
@@ -47,6 +49,7 @@ export async function getIPODetail(slug: string): Promise<IPODetailV2Response> {
   
   const response = await fetch(url, {
     cache: 'no-store',
+    signal: AbortSignal.timeout(12000),
     headers: {
       'User-Agent': 'WeeStox/1.0',
       'Accept': 'application/json',

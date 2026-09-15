@@ -61,7 +61,7 @@ export async function getMetalLast10Days(
       metal,
     });
 
-    const response = await apiRequest<any>(
+    const response = await apiRequest<unknown>(
       `/metals/last-10days-data${query}`,
       {
         revalidate: 3600, // Cache for 1 hour (historical data doesn't change often)
@@ -111,7 +111,7 @@ export async function getMetalHistoryData(params: {
       }
     );
 
-    return mapHistoryData(response);
+    return mapHistoryData({ ...response, metal: params.metal, city_slug: params.citySlug, unit: params.unit, duration: effectiveDuration, purity: params.purity });
   } catch (error) {
     console.error(
       `Failed to fetch history data for ${params.metal} in ${params.citySlug}:`,

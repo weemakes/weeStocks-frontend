@@ -58,22 +58,22 @@ export default async function MetalPage({ params }: MetalPageProps) {
 
   // Fallback: show city selection page in dark theme
   return (
-    <div className="min-h-screen bg-slate-950 py-8 pb-20">
+    <div className="min-h-screen bg-canvas py-8 pb-20">
       <div className="container mx-auto">
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 mb-6 shadow-xl">
-          <h1 className="text-3xl font-extrabold text-slate-100 mb-2">
+        <div className="bg-panel/90 border border-line rounded-2xl p-6 mb-6 shadow-xl">
+          <h1 className="text-3xl font-extrabold text-ink mb-2">
             {metalConfig.displayName} Price Today in India
           </h1>
-          <p className="text-sm text-slate-400 mb-6">
+          <p className="text-sm text-muted mb-6">
             Select a city to view current live {metalConfig.displayName.toLowerCase()} rates and comparison tables
           </p>
 
           <MetalSelector currentMetal={metal} />
         </div>
 
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-sky-400" />
+        <div className="bg-panel/90 border border-line rounded-2xl p-6 shadow-xl">
+          <h2 className="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-accent" />
             <span>Select a City to View Live Rates</span>
           </h2>
 
@@ -82,7 +82,7 @@ export default async function MetalPage({ params }: MetalPageProps) {
               <Link
                 key={c.slug}
                 href={`/${metal}/${c.slug}`}
-                className="p-3.5 bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 hover:border-sky-500/50 rounded-xl text-xs font-semibold text-slate-200 transition-all text-center block"
+                className="p-3.5 bg-canvas/60 hover:bg-well/80 border border-line hover:border-sky-500/50 rounded-xl text-xs font-semibold text-ink transition-all text-center block"
               >
                 {c.name}
               </Link>

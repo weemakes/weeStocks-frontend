@@ -11,9 +11,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("query");
 
-    if (!query) {
+    if (!query || query.trim().length < 2) {
       return NextResponse.json({ data: { cities: [] } });
     }
+    if (query.length > 100) return NextResponse.json({error:'Query too long'}, {status:400});
 
     const cities = await searchCities({
       search: query,

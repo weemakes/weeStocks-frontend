@@ -24,17 +24,17 @@ export function MetalPriceCard({
       rounded-lg border p-6 transition-all hover:shadow-lg
       ${
         isHighlighted
-          ? "border-blue-500 bg-gradient-to-br from-blue-950/30 to-gray-900 shadow-blue-500/20"
-          : "border-gray-800 bg-gray-900 hover:border-blue-500/50"
+          ? "border-blue-500 bg-gradient-to-br from-blue-950/30 to-panel shadow-blue-500/20"
+          : "border-line bg-panel hover:border-blue-500/50"
       }
     `}
     >
-      <div className="text-sm font-medium text-gray-400 mb-1">
+      <div className="text-sm font-medium text-muted mb-1">
         {price.purity || metalName}
       </div>
-      <div className="text-3xl font-bold text-white mb-2">
+      <div className="text-3xl font-bold text-ink mb-2">
         {formatPrice(price.price)}
-        <span className="text-base font-normal text-gray-400 ml-2">
+        <span className="text-base font-normal text-muted ml-2">
           / {price.unit}
         </span>
       </div>
@@ -42,7 +42,7 @@ export function MetalPriceCard({
         <div className="flex items-center gap-2">
           <PriceChange change={price.change} />
           {price.previousPrice && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-quiet">
               vs {formatPrice(price.previousPrice)}
             </span>
           )}

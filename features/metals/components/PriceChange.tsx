@@ -22,10 +22,10 @@ export function PriceChange({
 
   const colorClass =
     direction === "up"
-      ? "text-green-500"
+      ? "text-positive"
       : direction === "down"
         ? "text-red-500"
-        : "text-gray-500";
+        : "text-quiet";
 
   const Icon =
     direction === "up"

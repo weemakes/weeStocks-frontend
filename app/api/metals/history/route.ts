@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetalHistoryData } from "@/features/metals/api";
 import type { Metal, MetalPurity, MetalUnit, ChartDuration } from "@/features/metals/types";
+import { METAL_CONFIG, CHART_DURATIONS } from "@/features/metals/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,6 +17,13 @@ export async function GET(request: NextRequest) {
     const requestedUnit = searchParams.get("unit") as MetalUnit | null;
     const purity = searchParams.get("purity") as MetalPurity | null;
     const requestedDuration = searchParams.get("duration") as ChartDuration | null;
+
+    if (!Object.hasOwn(METAL_CONFIG, metal) || !citySlug || !/^[a-z0-9-]{1,100}$/.test(citySlug)
+      || (requestedDuration && !CHART_DURATIONS.includes(requestedDuration))
+      || (requestedUnit && !METAL_CONFIG[metal].units.includes(requestedUnit))
+      || (purity && (metal !== 'gold' || !METAL_CONFIG.gold.purityOptions.includes(purity)))) {
+      return NextResponse.json({ error: 'Invalid history parameters' }, { status: 400 });
+    }
 
     // For platinum: default is 9m; even if 1w, 1m, 3m, 6m are requested, use 9m; 1y is 1y
     const duration: ChartDuration =

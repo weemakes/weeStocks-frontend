@@ -45,7 +45,7 @@ export function CitySelector({
 
   // Compute display cities based on search query
   const displayCities = useMemo(() => {
-    return searchQuery ? searchResults : popularCities;
+    return searchQuery.length >= 2 ? searchResults : popularCities;
   }, [searchQuery, searchResults, popularCities]);
 
   // Search cities
@@ -54,23 +54,26 @@ export function CitySelector({
       return;
     }
 
+    const controller = new AbortController();
     const timeoutId = setTimeout(async () => {
       setIsSearching(true);
       try {
         const response = await fetch(
-          `/api/cities/search?query=${encodeURIComponent(searchQuery)}`
+          `/api/cities/search?query=${encodeURIComponent(searchQuery)}`, { signal: controller.signal }
         );
+        if (!response.ok) throw new Error("Search unavailable");
         const result = await response.json();
+        if (controller.signal.aborted) return;
         setSearchResults(result.data?.cities || []);
       } catch (error) {
         console.error("Failed to search cities:", error);
-        setSearchResults([]);
+        if (!controller.signal.aborted) setSearchResults([]);
       } finally {
-        setIsSearching(false);
+        if (!controller.signal.aborted) setIsSearching(false);
       }
     }, 300);
 
-    return () => clearTimeout(timeoutId);
+    return () => { clearTimeout(timeoutId); controller.abort(); };
   }, [searchQuery]);
 
   const handleCitySelect = (city: City) => {
@@ -80,17 +83,18 @@ export function CitySelector({
   };
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative" onKeyDown={e=>{if(e.key==="Escape")setIsOpen(false)}}>
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3.5 py-2 border border-slate-700/80 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-100 transition-colors shadow-sm"
+        aria-expanded={isOpen}
+        onClick={() => {setIsSearching(false);setIsOpen(!isOpen)}}
+        className="flex items-center gap-2 px-3.5 py-2 border border-line-strong/80 rounded-xl bg-panel/90 hover:bg-well text-xs sm:text-sm font-semibold text-ink transition-colors shadow-sm"
       >
-        <MapPin className="h-4 w-4 text-sky-400 shrink-0" />
+        <MapPin className="h-4 w-4 text-accent shrink-0" />
         <span>{currentCity.name}</span>
         <ChevronDown
-          className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
+          className={`h-3.5 w-3.5 text-muted transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -98,34 +102,35 @@ export function CitySelector({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl shadow-black/50 z-50 overflow-hidden">
+        <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-72 sm:w-80 bg-panel border border-line-strong/90 rounded-2xl shadow-2xl shadow-black/50 z-50 overflow-hidden">
           {/* Search Input */}
-          <div className="p-3 border-b border-slate-800 bg-slate-950/60">
+          <div className="p-3 border-b border-line bg-canvas/60">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
               <input
                 type="text"
+                aria-label="Search cities"
                 placeholder="Search any Indian city..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 border border-slate-700/80 rounded-xl bg-slate-900 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                onChange={(e) => {setSearchQuery(e.target.value);setSearchResults([]);setIsSearching(e.target.value.length>=2)}}
+                className="w-full pl-9 pr-3 py-2 border border-line-strong/80 rounded-xl bg-panel text-xs text-ink placeholder-quiet focus:outline-none focus:border-sky-500"
                 autoFocus
               />
             </div>
           </div>
 
           {/* City List */}
-          <div className="max-h-72 overflow-y-auto divide-y divide-slate-800/60">
+          <div className="max-h-72 overflow-y-auto divide-y divide-line/60">
             {!searchQuery && (
-              <div className="px-3.5 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-950/40">
+              <div className="px-3.5 py-2 text-[10px] font-bold text-muted uppercase tracking-wider bg-canvas/40">
                 Major Business Hubs
               </div>
             )}
 
             {isSearching ? (
-              <div className="p-4 text-center text-xs text-slate-400">Searching...</div>
+              <div className="p-4 text-center text-xs text-muted">Searching...</div>
             ) : displayCities.length === 0 ? (
-              <div className="p-4 text-center text-xs text-slate-400">
+              <div className="p-4 text-center text-xs text-muted">
                 {searchQuery ? "No cities found matching query" : "No popular cities"}
               </div>
             ) : (
@@ -137,20 +142,20 @@ export function CitySelector({
                       <button
                         type="button"
                         onClick={() => handleCitySelect(city)}
-                        className={`w-full px-3.5 py-2.5 text-left hover:bg-slate-800/60 transition-colors flex items-center justify-between ${
-                          isSelected ? "bg-sky-500/10 text-sky-300 font-bold" : "text-slate-200"
+                        className={`w-full px-3.5 py-2.5 text-left hover:bg-well/60 transition-colors flex items-center justify-between ${
+                          isSelected ? "bg-sky-500/10 text-accent font-bold" : "text-ink"
                         }`}
                       >
                         <div>
                           <div className="text-xs font-semibold">{city.name}</div>
                           {city.state && (
-                            <div className="text-[10px] text-slate-400">
+                            <div className="text-[10px] text-muted">
                               {typeof city.state === "string" ? city.state : city.state.name}
                             </div>
                           )}
                         </div>
                         {isSelected && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-accent">
                             Selected
                           </span>
                         )}

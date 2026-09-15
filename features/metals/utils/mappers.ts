@@ -1,178 +1,37 @@
-/**
- * Data Mappers
- * Transform backend API responses to frontend models
- */
-
-import type {
-  LatestPriceResponse,
-  GoldPriceTableRow,
-  SimplePriceTableRow,
-  LatestMetalPrice,
-  MetalPrice,
-  PriceChange,
-  PriceDirection,
-  Last10DaysResponse,
-  MetalLast10Days,
-  HistoryDataResponse,
-  MetalHistoryData,
-  ChartPoint,
-} from "../types";
-
-/**
- * Map price direction from backend to frontend
- */
-function mapPriceDirection(
-  direction?: "up" | "down" | null
-): PriceDirection {
-  if (!direction) return "neutral";
-  return direction;
+import type { LatestMetalPrice, MetalPrice, MetalLast10Days, MetalHistoryData, Metal, MetalUnit, MetalPurity } from '../types';
+import { UNIT_GRAMS } from './prices';
+type Obj=Record<string,unknown>;
+const obj=(value:unknown):Obj=>value!==null&&typeof value==='object'&&!Array.isArray(value)?value as Obj:{};
+const number=(value:unknown):number|undefined=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value))?Number(value):undefined;
+const unit=(value:unknown):MetalUnit|undefined=>typeof value==='string'&&Object.hasOwn(UNIT_GRAMS,value)?value as MetalUnit:undefined;
+const purities:MetalPurity[]=['24K','22K','18K'];
+const metalName=(value:unknown):Metal=>{const key=String(value).toLowerCase();if(!['gold','silver','platinum'].includes(key))throw new Error('Invalid metal');return key as Metal};
+function extractPrice(value:unknown,weight:MetalUnit,purity?:MetalPurity):MetalPrice|undefined {
+  const record=obj(value);const price=number(record.price??value);if(price===undefined||price<=0)return;
+  const change=number(record.change);const direction=record.changeDirection;
+  return {unit:weight,purity,price,change:change===undefined?undefined:{value:direction==='down'?-Math.abs(change):change,direction:direction==='down'||change<0?'down':direction==='up'||change>0?'up':'neutral'}};
 }
-
-/**
- * Convert gram to unit string
- */
-function gramToUnit(gram: number): string {
-  if (gram === 1000) return "1kg";
-  return `${gram}g`;
+export function mapLatestPrice(response:unknown):LatestMetalPrice {
+  const data=obj(obj(response).data);if(!Array.isArray(data.priceTable))throw new Error('Invalid price table');
+  const metal=metalName(data.metal);const prices:MetalPrice[]=[];
+  for(const value of data.priceTable){const row=obj(value);const weight=unit(Number(row.gram)===1000?'1kg':String(row.gram)+'g');if(!weight)continue;
+    if(metal==='gold'){for(const purity of purities){const p=extractPrice(row[purity],weight,purity);if(p)prices.push(p)}}
+    else{const p=extractPrice({price:row.today,change:row.change},weight);if(p)prices.push({...p,previousPrice:number(row.yesterday)})}
+  }
+  return {metal,cityId:Number(data.cityId),cityName:String(data.cityName||''),date:String(data.lastUpdatedAt||''),prices};
 }
-
-/**
- * Check if price table is for gold (has purity keys)
- */
-function isGoldPriceTable(row: any): row is GoldPriceTableRow {
-  return "24K" in row && "22K" in row && "18K" in row;
+export function mapLast10Days(response:unknown,metal:Metal,cityId:number):MetalLast10Days {
+  const envelope=obj(response);const nested=obj(envelope.data);const raw=Array.isArray(nested.data)?nested.data:Array.isArray(envelope.data)?envelope.data:[];
+  const data=raw.flatMap(value=>{const day=obj(value);if(typeof day.date!=='string'||!Number.isFinite(Date.parse(day.date)))return [];const prices:MetalPrice[]=[];
+    if(Array.isArray(day.prices)){for(const value of day.prices){const p=obj(value);const weight=unit(p.unit);const purity=purities.includes(p.purity as MetalPurity)?p.purity as MetalPurity:undefined;if(weight){const result=extractPrice(p,weight,purity);if(result)prices.push(result)}}}
+    else if(metal==='gold'){for(const purity of purities){const p=extractPrice(day[purity],unit(nested.unit)||'1g',purity);if(p)prices.push(p)}}
+    else{for(const weight of Object.keys(UNIT_GRAMS) as MetalUnit[]){const p=extractPrice(day[weight],weight);if(p)prices.push(p)}}
+    return [{date:day.date,prices}];
+  }).sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)).slice(0,10);
+  return {metal,cityId,data};
 }
-
-/**
- * Map latest price response to frontend model
- */
-export function mapLatestPrice(
-  response: LatestPriceResponse
-): LatestMetalPrice {
-  const prices: MetalPrice[] = [];
-  const { data } = response;
-
-  data.priceTable.forEach((row) => {
-    if (isGoldPriceTable(row)) {
-      // Gold: has purities (24K, 22K, 18K)
-      const unit = gramToUnit(row.gram) as any;
-      
-      // 24K
-      prices.push({
-        purity: "24K",
-        unit,
-        price: row["24K"].price,
-        change: row["24K"].change !== 0 ? {
-          value: row["24K"].change,
-          direction: mapPriceDirection(row["24K"].changeDirection),
-        } : undefined,
-      });
-
-      // 22K
-      prices.push({
-        purity: "22K",
-        unit,
-        price: row["22K"].price,
-        change: row["22K"].change !== 0 ? {
-          value: row["22K"].change,
-          direction: mapPriceDirection(row["22K"].changeDirection),
-        } : undefined,
-      });
-
-      // 18K
-      prices.push({
-        purity: "18K",
-        unit,
-        price: row["18K"].price,
-        change: row["18K"].change !== 0 ? {
-          value: row["18K"].change,
-          direction: mapPriceDirection(row["18K"].changeDirection),
-        } : undefined,
-      });
-    } else {
-      // Silver/Platinum: no purities
-      const simpleRow = row as SimplePriceTableRow;
-      const unit = gramToUnit(simpleRow.gram) as any;
-      
-      const changeDirection: PriceDirection = 
-        simpleRow.change > 0 ? "up" : 
-        simpleRow.change < 0 ? "down" : 
-        "neutral";
-
-      prices.push({
-        unit,
-        price: simpleRow.today,
-        previousPrice: simpleRow.yesterday,
-        change: simpleRow.change !== 0 ? {
-          value: simpleRow.change,
-          direction: changeDirection,
-        } : undefined,
-      });
-    }
-  });
-
-  return {
-    metal: data.metal as any,
-    cityId: parseInt(data.cityId),
-    cityName: data.cityName,
-    date: data.lastUpdatedAt,
-    prices,
-  };
-}
-
-/**
- * Map last 10 days response to frontend model
- */
-export function mapLast10Days(
-  response: any,
-  metal: string,
-  cityId: number
-): MetalLast10Days {
-  console.log("mapLast10Days input:", { response, metal, cityId });
-  
-  // For now, return a placeholder structure until we see the actual API response
-  return {
-    metal: metal as any,
-    cityId: cityId,
-    data: response.data?.data || response.data || [],
-  };
-}
-
-/**
- * Map history data response to frontend model
- */
-export function mapHistoryData(
-  response: HistoryDataResponse
-): MetalHistoryData {
-  // Handle nested data structures: response.data.data, response.data, or response.result
-  const rawData = (response as any).data;
-  const historyData = Array.isArray(rawData?.data)
-    ? rawData.data
-    : Array.isArray(rawData)
-    ? rawData
-    : Array.isArray((response as any).result)
-    ? (response as any).result
-    : [];
-
-  const chartData: ChartPoint[] = historyData
-    .map((point: any) => ({
-      date: point.date || point.timestamp || point.time || point.created_at || "",
-      value: Number(point.price ?? point.value ?? point.rate ?? point.close ?? 0),
-    }))
-    .filter((p: ChartPoint) => p.date && !isNaN(p.value));
-
-  return {
-    metal: (response as any).data?.metal || response.metal,
-    citySlug:
-      (response as any).data?.cityName ||
-      (response as any).data?.city_slug ||
-      response.city_slug,
-    unit: (response as any).data?.unit || response.unit,
-    purity: (response as any).data?.purity || response.purity,
-    duration:
-      (response as any).data?.range ||
-      (response as any).data?.duration ||
-      response.duration,
-    data: chartData,
-  };
+export function mapHistoryData(response:unknown):MetalHistoryData {
+  const root=obj(response);const nested=obj(root.data);const raw=Array.isArray(nested.data)?nested.data:Array.isArray(root.data)?root.data:Array.isArray(root.result)?root.result:[];
+  const data=raw.flatMap(value=>{const p=obj(value);const date=p.date??p.timestamp??p.time??p.created_at;const price=number(p.price??p.value??p.rate??p.close);return typeof date==='string'&&Number.isFinite(Date.parse(date))&&price!==undefined&&price>0?[{date,value:price}]:[]}).sort((a,b)=>Date.parse(a.date)-Date.parse(b.date));
+  return {metal:metalName(nested.metal??root.metal),citySlug:String(nested.city_slug??root.city_slug??''),unit:unit(nested.unit??root.unit)||'1g',purity:purities.includes((nested.purity??root.purity) as MetalPurity)?(nested.purity??root.purity) as MetalPurity:undefined,duration:String(nested.duration??nested.range??root.duration??''),data};
 }

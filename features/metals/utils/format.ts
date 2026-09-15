@@ -6,11 +6,12 @@
 /**
  * Format price in Indian Rupees
  */
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | null | undefined): string {
+  if (price == null || !Number.isFinite(price)) return "—";
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(price);
 }
 
@@ -19,7 +20,7 @@ export function formatPrice(price: number): string {
  */
 export function formatPriceValue(price: number): string {
   return new Intl.NumberFormat("en-IN", {
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(price);
 }
 
@@ -50,7 +51,7 @@ export function formatChartDate(dateString: string): string {
  * Format change value with sign
  */
 export function formatChange(change: number): string {
-  const sign = change > 0 ? "+" : "";
+  const sign = change > 0 ? "+" : change < 0 ? "−" : "";
   return `${sign}${formatPriceValue(Math.abs(change))}`;
 }
 

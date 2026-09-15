@@ -1,27 +1,27 @@
-export type ComplianceStatus = 'compliant' | 'non_compliant' | 'doubtful';
+export type ComplianceStatus = 'compliant' | 'non_compliant' | 'doubtful' | 'unknown';
 
 export interface ShariahCriteria {
-  businessActivityStatus: 'pass' | 'fail';
-  nonHalalRevenuePercent: number;
+  businessActivityStatus: 'pass' | 'fail' | 'unknown';
+  nonHalalRevenuePercent: number | null;
   nonHalalRevenueSource?: string;
-  debtRatioPercent: number;
-  debtRatioStatus: 'pass' | 'fail';
-  cashAndSecuritiesRatioPercent: number;
-  cashRatioStatus: 'pass' | 'fail';
-  receivablesRatioPercent?: number;
-  purificationPercent: number;
+  debtRatioPercent: number | null;
+  debtRatioStatus: 'pass' | 'fail' | 'unknown';
+  cashAndSecuritiesRatioPercent: number | null;
+  cashRatioStatus: 'pass' | 'fail' | 'unknown';
+  receivablesRatioPercent?: number | null;
+  purificationPercent: number | null;
 }
 
 export interface FundamentalMetrics {
-  peRatio: number;
-  pbRatio: number;
-  roePercent: number;
-  rocePercent: number;
-  debtToEquity: number;
-  freeCashFlowCr: number;
-  dividendYield: number;
-  week52High: number;
-  week52Low: number;
+  peRatio: number | null;
+  pbRatio: number | null;
+  roePercent: number | null;
+  rocePercent: number | null;
+  debtToEquity: number | null;
+  freeCashFlowCr: number | null;
+  dividendYield: number | null;
+  week52High: number | null;
+  week52Low: number | null;
 }
 
 export interface StockItem {
@@ -35,13 +35,13 @@ export interface StockItem {
   currencySymbol?: string;
   sector: string;
   industry: string;
-  price: number;
-  change: number;
-  changePercent: number;
-  volume?: number;
-  marketCapCr: number;
-  marketCapCategory: 'Large Cap' | 'Mid Cap' | 'Small Cap';
-  halalScore: number;
+  price: number | null;
+  change: number | null;
+  changePercent: number | null;
+  volume?: number | null;
+  marketCapCr: number | null;
+  marketCapCategory: 'Large Cap' | 'Mid Cap' | 'Small Cap' | 'Unknown';
+  halalScore: number | null;
   complianceStatus: ComplianceStatus;
   statusReason: string;
   shariah: ShariahCriteria;

@@ -37,7 +37,7 @@ export function MetalSelector({ currentMetal, citySlug }: MetalSelectorProps) {
   };
 
   return (
-    <div className="inline-flex rounded-xl border border-slate-800 bg-slate-950/80 p-1">
+    <div className="inline-flex rounded-xl border border-line bg-canvas/80 p-1">
       {metals.map((metal) => {
         const isActive = metal === currentMetal;
         const config = METAL_CONFIG[metal];
@@ -57,7 +57,7 @@ export function MetalSelector({ currentMetal, citySlug }: MetalSelectorProps) {
               ${
                 isActive
                   ? activeStyles
-                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                  : "text-muted hover:text-ink hover:bg-panel"
               }
             `}
           >

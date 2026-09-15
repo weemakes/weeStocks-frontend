@@ -1,4 +1,4 @@
-import { StockItem, StockListItem, ComplianceStatus, StockCountry } from '../types';
+import { StockItem, StockListItem, ComplianceStatus } from '../types';
 
 export function getCurrencySymbol(countryOrCurrency?: string): string {
   if (!countryOrCurrency) return '₹';
@@ -42,83 +42,31 @@ export function formatMarketCap(mcap: number | string | undefined | null, countr
   return `${sym}${num.toLocaleString('en-US')}`;
 }
 
-export function mapBackendStockToStockItem(item: StockListItem, countryCode?: string): StockItem {
-  const complianceRaw = item.shariah_compliance?.status?.toUpperCase() || 'HALAL';
-  let complianceStatus: ComplianceStatus = 'compliant';
-  if (complianceRaw === 'NON_HALAL') complianceStatus = 'non_compliant';
-  if (complianceRaw === 'DOUBTFUL') complianceStatus = 'doubtful';
 
-  const debtRatioNum = Number(item.shariah_compliance?.debt_to_market_cap ?? 0);
-  const debtRatioPercent = Number((debtRatioNum * 100).toFixed(2));
-
-  // Determine market cap category
-  const mcap = item.metrics?.market_cap ? Number(item.metrics.market_cap) : 0;
-  let marketCapCategory: 'Large Cap' | 'Mid Cap' | 'Small Cap' = 'Mid Cap';
-  if (mcap >= 200000000000) { // >= 20,000 Cr
-    marketCapCategory = 'Large Cap';
-  } else if (mcap < 50000000000) { // < 5,000 Cr
-    marketCapCategory = 'Small Cap';
-  }
-
-  // Calculate Halal Score 0-100
-  let halalScore = 95;
-  if (complianceStatus === 'compliant') {
-    halalScore = Math.max(75, Math.round(100 - debtRatioPercent * 0.5));
-  } else if (complianceStatus === 'doubtful') {
-    halalScore = 60;
-  } else {
-    halalScore = 20;
-  }
-
-  const currencySym = getCurrencySymbol(item.country || item.currency);
-  const latestPrice = Number(item.latest_price || 0);
-
+export function numeric(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value); return Number.isFinite(n) ? n : null;
+}
+export function mapBackendStockToStockItem(item: Partial<StockListItem>, country?: string): StockItem {
+  const raw = item.shariah_compliance?.status?.toUpperCase();
+  const complianceStatus: ComplianceStatus = raw === 'HALAL' ? 'compliant' : raw === 'NON_HALAL' ? 'non_compliant' : raw === 'DOUBTFUL' ? 'doubtful' : 'unknown';
+  const debt = numeric(item.shariah_compliance?.debt_to_market_cap);
+  const mcap = numeric(item.metrics?.market_cap);
+  const actualCountry = item.country || country;
+  const percent = (value: unknown) => { const n = numeric(value); return n === null ? null : n * 100; };
+  const check = (value?: boolean) => value === true ? 'pass' as const : value === false ? 'fail' as const : 'unknown' as const;
   return {
-    id: item.id,
-    symbol: item.symbol,
-    name: item.company_name,
-    logo_url: item.logo_url || null,
-    exchange: item.exchange,
-    country: item.country,
-    currency: item.currency,
-    currencySymbol: currencySym,
-    sector: item.sector || 'Diversified',
-    industry: item.industry || item.sector || 'Equities',
-    price: latestPrice,
-    change: Number(item.change || 0),
-    changePercent: Number(item.change_percentage || 0),
-    volume: Number(item.volume || 0),
-    marketCapCr: Math.round(mcap / 10000000), // in Crores
-    marketCapCategory,
-    halalScore,
-    complianceStatus,
-    statusReason:
-      item.shariah_compliance?.notes?.[0] ||
-      (complianceStatus === 'compliant'
-        ? 'Passes AAOIFI debt & business activity guidelines'
-        : 'Exceeds interest-bearing debt threshold or impermissible business revenue'),
-    shariah: {
-      businessActivityStatus: item.shariah_compliance?.is_sector_compliant === false ? 'fail' : 'pass',
-      nonHalalRevenuePercent: 0,
-      nonHalalRevenueSource: undefined,
-      debtRatioPercent,
-      debtRatioStatus: item.shariah_compliance?.is_debt_compliant === false ? 'fail' : 'pass',
-      cashAndSecuritiesRatioPercent: 8.5,
-      cashRatioStatus: 'pass',
-      purificationPercent: 0.25,
-    },
-    fundamentals: {
-      peRatio: item.metrics?.pe_ratio ? Number(item.metrics.pe_ratio) : 0,
-      pbRatio: item.metrics?.price_to_book ? Number(item.metrics.price_to_book) : 0,
-      roePercent: item.metrics?.roe ? Number((Number(item.metrics.roe) * 100).toFixed(2)) : 0,
-      rocePercent: 14.2,
-      debtToEquity: debtRatioNum,
-      freeCashFlowCr: 0,
-      dividendYield: item.metrics?.dividend_yield ? Number((Number(item.metrics.dividend_yield) * 100).toFixed(2)) : 0,
-      week52High: item.metrics?.fifty_two_week_high ? Number(item.metrics.fifty_two_week_high) : (latestPrice ? latestPrice * 1.15 : 0),
-      week52Low: item.metrics?.fifty_two_week_low ? Number(item.metrics.fifty_two_week_low) : (latestPrice ? latestPrice * 0.85 : 0),
-    },
-    lastUpdated: item.market_date || 'Live',
-    isNifty50: item.country === 'India' && mcap >= 500000000000,
+    id: item.id || item.symbol || "", symbol: item.symbol || "", name: item.company_name || item.symbol || "", logo_url: item.logo_url,
+    exchange: item.exchange || "", country: actualCountry, currency: item.currency,
+    currencySymbol: getCurrencySymbol(item.currency || actualCountry), sector: item.sector || 'Unclassified', industry: item.industry || 'Unclassified',
+    price: numeric(item.latest_price), change: numeric(item.change), changePercent: numeric(item.change_percentage), volume: item.volume,
+    marketCapCr: mcap === null ? null : mcap / 10000000,
+    marketCapCategory: mcap === null || actualCountry !== 'India' ? 'Unknown' : mcap >= 200000000000 ? 'Large Cap' : mcap >= 50000000000 ? 'Mid Cap' : 'Small Cap',
+    halalScore: null, complianceStatus, statusReason: item.shariah_compliance?.notes?.join(' ') || 'Review the reported screening details and methodology.',
+    shariah: { businessActivityStatus: check(item.shariah_compliance?.is_sector_compliant), nonHalalRevenuePercent: null, debtRatioPercent: debt === null ? null : debt * 100,
+      debtRatioStatus: check(item.shariah_compliance?.is_debt_compliant), cashAndSecuritiesRatioPercent: null, cashRatioStatus: 'unknown', purificationPercent: null },
+    fundamentals: { peRatio: numeric(item.metrics?.pe_ratio), pbRatio: numeric(item.metrics?.price_to_book), roePercent: percent(item.metrics?.roe), rocePercent: null,
+      debtToEquity: null, freeCashFlowCr: null, dividendYield: percent(item.metrics?.dividend_yield), week52High: numeric(item.metrics?.fifty_two_week_high), week52Low: numeric(item.metrics?.fifty_two_week_low) },
+    lastUpdated: item.market_date || 'Date unavailable',
   };
 }

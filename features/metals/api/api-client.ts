@@ -1,3 +1,4 @@
+import 'server-only';
 /**
  * API Client
  * Server-side HTTP client for backend API communication
@@ -44,9 +45,10 @@ export async function apiRequest<T>(
 
   const fetchOptions: RequestInit = {
     method: options.method || "GET",
+    signal: AbortSignal.timeout(12000),
     headers,
     cache: options.cache,
-    next: options.revalidate ? { revalidate: options.revalidate } : undefined,
+    next: options.revalidate !== undefined ? { revalidate: options.revalidate } : undefined,
   };
 
   if (options.body) {

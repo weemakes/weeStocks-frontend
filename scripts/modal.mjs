@@ -1,0 +1,51 @@
+import fs from 'node:fs';
+fs.writeFileSync('features/stocks/components/StockDetailModal.tsx', `
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { X, ArrowUpRight, ShieldCheck, FileText, ChartNoAxesCombined, RotateCcw } from 'lucide-react';
+import type { StockItem, StockDetailData, StockChartData, StockHalalAuditData, StockFinancialsData, ComplianceStatus } from '../types';
+import { getStockDetail, getStockChart, getStockHalalAudit, getStockFinancials } from '../api';
+import { formatCurrencyAmount, formatMarketCap, numeric } from '../utils/mappers';
+import { ComplianceBadge } from './ComplianceBadge';
+import StockCandleChart from './StockCandleChart';
+
+const percent=(value:unknown)=>{const n=numeric(value);return n===null?'—':(n*100).toFixed(2)+'%'};
+const metric=(value:unknown)=>{const n=numeric(value);return n===null?'—':n.toLocaleString('en-IN',{maximumFractionDigits:2})};
+function Status({value}:{value:boolean|undefined}) { return <span className={value===undefined?'text-muted':value?'text-positive':'text-negative'}>{value===undefined?'Not reported':value?'Passed':'Not passed'}</span>; }
+export default function StockDetailModal({stock,onClose}:{stock:StockItem;onClose:()=>void}) {
+  const dialog=useRef<HTMLDialogElement>(null);
+  const [tab,setTab]=useState<'overview'|'audit'|'financials'>('overview');
+  const [range,setRange]=useState('1M');
+  const [period,setPeriod]=useState<'ANNUAL'|'QUARTERLY'>('ANNUAL');
+  const [detail,setDetail]=useState<StockDetailData|null|undefined>(undefined);
+  const [chart,setChart]=useState<{range:string;data:StockChartData|null}|null>(null);
+  const [audit,setAudit]=useState<StockHalalAuditData|null|undefined>(undefined);
+  const [financials,setFinancials]=useState<{period:string;data:StockFinancialsData|null}|null>(null);
+  const [retry,setRetry]=useState(0);
+  useEffect(()=>{const el=dialog.current;const previous=document.activeElement as HTMLElement|null;el?.showModal();const overflow=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{el?.close();document.body.style.overflow=overflow;previous?.focus()}},[]);
+  useEffect(()=>{let active=true;getStockDetail(stock.symbol,stock.country).then(data=>{if(active)setDetail(data)});return()=>{active=false}},[stock.symbol,stock.country,retry]);
+  useEffect(()=>{let active=true;getStockChart(stock.symbol,range,'1d',stock.country).then(data=>{if(active)setChart({range,data})});return()=>{active=false}},[stock.symbol,stock.country,range,retry]);
+  useEffect(()=>{if(tab!=='audit')return;let active=true;getStockHalalAudit(stock.symbol,stock.country).then(data=>{if(active)setAudit(data)});return()=>{active=false}},[stock.symbol,stock.country,tab,retry]);
+  useEffect(()=>{if(tab!=='financials')return;let active=true;getStockFinancials(stock.symbol,period,5,stock.country).then(data=>{if(active)setFinancials({period,data})});return()=>{active=false}},[stock.symbol,stock.country,tab,period,retry]);
+  const rawStatus=audit?.audit?.status||detail?.shariah_compliance?.status;
+  const status:ComplianceStatus=rawStatus==='HALAL'?'compliant':rawStatus==='NON_HALAL'?'non_compliant':rawStatus==='DOUBTFUL'?'doubtful':stock.complianceStatus;
+  const sym=stock.currencySymbol;
+  const price=numeric(detail?.quote?.price)??stock.price;
+  const change=numeric(detail?.quote?.change_percentage)??stock.changePercent;
+  const metrics=[['Market capitalization',formatMarketCap(detail?.metrics?.market_cap??(stock.marketCapCr===null?null:stock.marketCapCr*10000000),stock.country)],['P/E ratio',metric(detail?.metrics?.pe_ratio??stock.fundamentals.peRatio)],['Price / book',metric(detail?.metrics?.price_to_book??stock.fundamentals.pbRatio)],['Return on equity',detail?.metrics?.roe!=null?percent(detail.metrics.roe):stock.fundamentals.roePercent===null?'—':metric(stock.fundamentals.roePercent)+'%'],['52-week high',formatCurrencyAmount(numeric(detail?.metrics?.fifty_two_week_high)??stock.fundamentals.week52High,sym)],['52-week low',formatCurrencyAmount(numeric(detail?.metrics?.fifty_two_week_low)??stock.fundamentals.week52Low,sym)],['Dividend yield',detail?.metrics?.dividend_yield!=null?percent(detail.metrics.dividend_yield):stock.fundamentals.dividendYield===null?'—':metric(stock.fundamentals.dividendYield)+'%'],['Volume',metric(detail?.quote?.volume??stock.volume)]];
+  const snapshots=financials?.period===period?financials.data?.snapshots:undefined;
+  return <dialog ref={dialog} className="stock-dialog" aria-labelledby="stock-dialog-title" onCancel={onClose} onClick={e=>{if(e.target===dialog.current)onClose()}}><div className="dialog-inner">
+    <header className="dialog-header"><div className="flex gap-3 items-center"><span className="company-avatar">{stock.symbol.slice(0,2)}</span><div><h2 id="stock-dialog-title">{stock.symbol}</h2><p>{detail?.profile?.company_name||stock.name} · {stock.exchange}</p></div></div><button onClick={onClose} className="icon-button" aria-label="Close stock details"><X size={20}/></button></header>
+    <div className="dialog-quote"><div><span className="text-xs text-muted">Latest reported price</span><div className="flex flex-wrap items-center gap-3 mt-1"><strong>{formatCurrencyAmount(price,sym)}</strong><span className={change!==null&&change<0?'text-negative':'text-positive'}>{change===null?'—':(change>0?'+':'')+change.toFixed(2)+'%'}</span></div><p className="text-xs text-muted mt-1">{detail?.quote?.date||stock.lastUpdated}</p></div><ComplianceBadge status={status}/></div>
+    <div className="dialog-tabs" role="tablist" aria-label="Stock research">{([{id:'overview',label:'Overview',Icon:ChartNoAxesCombined},{id:'audit',label:'Shariah screening',Icon:ShieldCheck},{id:'financials',label:'Financials',Icon:FileText}] as const).map(({id,label,Icon})=><button key={id} role="tab" id={'tab-'+id} aria-controls="stock-panel" aria-selected={tab===id} onClick={()=>setTab(id)}><Icon size={15}/>{label}</button>)}</div>
+    <div id="stock-panel" role="tabpanel" aria-labelledby={'tab-'+tab} className="dialog-content">
+      {detail===null&&<p className="notice mb-4">Additional company details are unavailable. List data is shown where available.</p>}
+      {tab==='overview'&&<><div className="flex flex-wrap items-center justify-between gap-3 mb-3"><h3 className="text-sm">Closing price history</h3><div className="range-tabs" aria-label="Chart range">{['1W','1M','3M','6M','1Y','5Y'].map(r=><button key={r} aria-pressed={range===r} onClick={()=>setRange(r)}>{r}</button>)}</div></div><StockCandleChart candles={chart?.range===range?chart.data?.candles||[]:[]} currencySymbol={sym} loading={chart?.range!==range}/><div className="metrics-grid">{metrics.map(([name,value])=><div key={name}><span>{name}</span><strong>{value}</strong></div>)}</div>{detail?.profile?.description&&<section className="mt-6"><h3 className="text-sm mb-2">About the company</h3><p className="text-sm text-muted leading-relaxed">{detail.profile.description}</p>{detail.profile.website&&/^https?:\\/\\//.test(detail.profile.website)&&<a href={detail.profile.website} target="_blank" rel="noopener noreferrer" className="text-accent text-xs inline-flex items-center gap-1 mt-3">Company website<ArrowUpRight size={13}/></a>}</section>}</>}
+      {tab==='audit'&&(audit===undefined?<div className="skeleton h-48" role="status" aria-label="Loading screening"/>:!audit?<div className="empty-state"><ShieldCheck size={28}/><h3>Screening details unavailable</h3><p>Missing data does not imply that the company passed screening.</p><button className="btn btn-outline" onClick={()=>setRetry(v=>v+1)}><RotateCcw size={14}/>Retry</button></div>:<><div className="notice mb-5"><strong className="text-ink">Reported methodology</strong><p>{audit.audit.methodology||'Not provided by the source'}</p></div><div className="audit-rows"><div><span>Business activity</span><Status value={audit.audit.is_sector_compliant}/></div><div><span>Debt / market capitalization <strong>{percent(audit.audit.debt_to_market_cap)}</strong></span><Status value={audit.audit.is_debt_compliant}/></div><div><span>Cash / market capitalization <strong>{percent(audit.audit.cash_to_market_cap)}</strong></span><Status value={audit.audit.is_cash_compliant}/></div></div>{audit.audit.notes?.length>0&&<ul className="mt-5 list-disc pl-5 space-y-2 text-sm text-muted">{audit.audit.notes.map((note,i)=><li key={i}>{note}</li>)}</ul>}<p className="text-xs text-muted mt-5">Verdicts come from the source screening. Ratios are displayed as percentages; a value of 0.12 is shown as 12%.</p></>)}
+      {tab==='financials'&&<><div className="range-tabs mb-5" aria-label="Financial period">{(['ANNUAL','QUARTERLY'] as const).map(p=><button key={p} aria-pressed={period===p} onClick={()=>setPeriod(p)}>{p==='ANNUAL'?'Annual':'Quarterly'}</button>)}</div>{financials?.period!==period?<div className="skeleton h-48"/>:!snapshots?.length?<div className="empty-state"><FileText size={28}/><h3>No financial statements available</h3><p>Try another period or check again later.</p></div>:<div className="overflow-x-auto"><table className="stock-table"><thead><tr><th>Period</th><th>Revenue</th><th>Net income</th><th>Total debt</th><th>Free cash flow</th></tr></thead><tbody>{snapshots.map((s,i)=><tr key={s.id||i}><td>{s.fiscal_year} · {s.period_type.toLowerCase()} {s.period_type==='QUARTERLY'?'(quarter not supplied)':''}</td><td>{formatCurrencyAmount(numeric(s.income_statement?.revenue),sym)}</td><td>{formatCurrencyAmount(numeric(s.income_statement?.net_income),sym)}</td><td>{formatCurrencyAmount(numeric(s.balance_sheet?.total_debt),sym)}</td><td>{formatCurrencyAmount(numeric(s.cash_flow?.free_cash_flow),sym)}</td></tr>)}</tbody></table></div>}</>}
+    </div><footer className="dialog-footer">Reported data, not investment advice. Missing values are shown as —.</footer>
+  </div></dialog>;
+}
+`.trimStart());
+let page=fs.readFileSync('app/stocks/page.tsx','utf8').replace('</option value="compliant">','</option><option value="compliant">');
+fs.writeFileSync('app/stocks/page.tsx',page);

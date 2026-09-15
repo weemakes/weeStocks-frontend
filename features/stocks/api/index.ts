@@ -27,55 +27,13 @@ const getBaseUrl = () => {
 export async function getAvailableCountries(): Promise<StockCountry[]> {
   try {
     const url = `${getBaseUrl()}/countries`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     return json.data || [];
   } catch (error) {
     console.error('Failed to fetch stock countries:', error);
-    // Fallback list if backend is momentarily unreachable
-    return [
-      {
-        country: 'India',
-        code: 'IN',
-        flag: '🇮🇳',
-        exchange: 'NSE',
-        currency: 'INR',
-        currency_symbol: '₹',
-        total_companies: 2169,
-        is_active: true,
-      },
-      {
-        country: 'Saudi Arabia',
-        code: 'SA',
-        flag: '🇸🇦',
-        exchange: 'Tadawul',
-        currency: 'SAR',
-        currency_symbol: '﷼',
-        total_companies: 1877,
-        is_active: true,
-      },
-      {
-        country: 'United Arab Emirates',
-        code: 'AE',
-        flag: '🇦🇪',
-        exchange: 'ADX/DFM',
-        currency: 'AED',
-        currency_symbol: 'د.إ',
-        total_companies: 91,
-        is_active: true,
-      },
-      {
-        country: 'Japan',
-        code: 'JP',
-        flag: '🇯🇵',
-        exchange: 'TSE',
-        currency: 'JPY',
-        currency_symbol: '¥',
-        total_companies: 3775,
-        is_active: true,
-      },
-    ];
+    return [];
   }
 }
 
@@ -96,7 +54,7 @@ export interface StockListParams {
  * 2. Fetch Multi-Market Paginated Stock List
  * GET /stocks?...
  */
-export async function getStocksList(params: StockListParams = {}): Promise<StockListResponse> {
+export async function getStocksList(params: StockListParams = {}, signal?: AbortSignal): Promise<StockListResponse> {
   const p = new URLSearchParams();
   if (params.country && params.country !== 'All') p.set('country', params.country);
   if (params.exchange && params.exchange !== 'All') p.set('exchange', params.exchange);
@@ -110,7 +68,7 @@ export async function getStocksList(params: StockListParams = {}): Promise<Stock
   p.set('limit', String(params.limit || 20));
 
   const url = `${getBaseUrl()}?${p.toString()}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(url, { cache: 'no-store', signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -125,7 +83,7 @@ export async function getStockDetail(identifier: string, country?: string): Prom
     if (country) p.set('country', country);
     const qs = p.toString();
     const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}${qs ? `?${qs}` : ''}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     return json.data || null;
@@ -149,7 +107,7 @@ export async function getStockChart(
     const p = new URLSearchParams({ range, interval });
     if (country) p.set('country', country);
     const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/chart?${p.toString()}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     return json.data || null;
@@ -173,7 +131,7 @@ export async function getStockFinancials(
     const p = new URLSearchParams({ period_type: periodType, limit: String(limit) });
     if (country) p.set('country', country);
     const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/financials?${p.toString()}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     return json.data || null;
@@ -187,10 +145,10 @@ export async function getStockFinancials(
  * 6. Fetch AAOIFI Shariah Compliance Deep Audit
  * GET /stocks/:identifier/halal-screening
  */
-export async function getStockHalalAudit(identifier: string): Promise<StockHalalAuditData | null> {
+export async function getStockHalalAudit(identifier: string, country?: string): Promise<StockHalalAuditData | null> {
   try {
-    const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/halal-screening`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/halal-screening?${new URLSearchParams(country ? { country } : {}).toString()}`;
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     return json.data || null;
@@ -212,7 +170,7 @@ export async function getMarketMovers(
   try {
     const p = new URLSearchParams({ country, type, limit: String(limit) });
     const url = `${getBaseUrl()}/market-movers?${p.toString()}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     return json.data || [];
@@ -232,7 +190,7 @@ export async function getMarketOverview(country?: string): Promise<MarketOvervie
     if (country && country !== 'All') p.set('country', country);
     const qs = p.toString();
     const url = `${getBaseUrl()}/overview${qs ? `?${qs}` : ''}`;
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     return json.data || null;

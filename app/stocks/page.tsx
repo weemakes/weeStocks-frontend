@@ -1,455 +1,68 @@
 'use client';
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Link from 'next/link';
-import {
-  TrendingUp,
-  ShieldCheck,
-  Download,
-  Info,
-  ChevronRight,
-  ChevronLeft,
-  RotateCcw,
-  Loader2,
-  AlertTriangle,
-  Globe,
-} from 'lucide-react';
-import {
-  StockItem,
-  ComplianceStatus,
-  StockSortField,
-  SortDirection,
-  StockCountry,
-  StockListItem,
-} from '@/features/stocks/types';
-import {
-  StockCountrySelector,
-  StockMarketMovers,
-  StockSummaryStrip,
-  StockFilterBar,
-  StockTableView,
-  StockCardView,
-  StockDetailModal,
-} from '@/features/stocks/components';
-import { getAvailableCountries, getStocksList } from '@/features/stocks/api';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Download, Search, RotateCcw, LayoutGrid, List, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { getAvailableCountries, getStocksList, getMarketOverview } from '@/features/stocks/api';
 import { mapBackendStockToStockItem } from '@/features/stocks/utils/mappers';
-import { mockStocksData } from '@/features/stocks/mockData';
+import type { StockCountry, StockItem, StockSortField, SortDirection } from '@/features/stocks/types';
+import { StockMarketMovers, StockTableView, StockCardView, StockDetailModal, StockSummaryStrip } from '@/features/stocks/components';
+import { exportStocksCsv } from '@/features/stocks/utils/export';
 
-export default function StocksPage() {
-  // Country State
-  const [countries, setCountries] = useState<StockCountry[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState<string>('India');
-  const [loadingCountries, setLoadingCountries] = useState(false);
-
-  // Screener Filters & Pagination
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedSector, setSelectedSector] = useState('All');
-  const [selectedMarketCap, setSelectedMarketCap] = useState('All');
-  const [statusFilter, setStatusFilter] = useState<ComplianceStatus | 'all' | 'zero_debt' | 'nifty50'>('all');
-  const [activePreset, setActivePreset] = useState('all');
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
-  const [sortField, setSortField] = useState<StockSortField>('marketCapCr');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [page, setPage] = useState(1);
-  const [limit] = useState(20);
-
-  // Data States
-  const [stocks, setStocks] = useState<StockItem[]>([]);
-  const [totalStocks, setTotalStocks] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loadingStocks, setLoadingStocks] = useState(true);
-  const [backendError, setBackendError] = useState<string | null>(null);
-
-  // Modal State
-  const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Load available countries on mount
-  useEffect(() => {
-    let isMounted = true;
-    async function loadCountries() {
-      setLoadingCountries(true);
-      try {
-        const list = await getAvailableCountries();
-        if (isMounted && list.length > 0) {
-          setCountries(list);
-        }
-      } catch (err) {
-        console.error('Failed to load countries:', err);
-      } finally {
-        if (isMounted) setLoadingCountries(false);
-      }
-    }
-    loadCountries();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Fetch stocks when country, search, sector, status, sort or page changes
-  const fetchStocks = useCallback(async () => {
-    setLoadingStocks(true);
-    setBackendError(null);
-
-    // Map status filter to backend halal_status parameter
-    let halalParam: 'ALL' | 'HALAL' | 'NON_HALAL' | 'DOUBTFUL' | undefined = undefined;
-    if (statusFilter === 'compliant') halalParam = 'HALAL';
-    if (statusFilter === 'doubtful') halalParam = 'DOUBTFUL';
-    if (statusFilter === 'non_compliant') halalParam = 'NON_HALAL';
-
-    // Map sortField to backend sort_by parameter
-    let sortByParam: 'market_cap' | 'pe_ratio' | 'price' | 'volume' | 'symbol' | 'company_name' = 'market_cap';
-    if (sortField === 'price') sortByParam = 'price';
-    if (sortField === 'pe_ratio') sortByParam = 'pe_ratio';
-    if (sortField === 'volume') sortByParam = 'volume';
-    if (sortField === 'symbol') sortByParam = 'symbol';
-
-    try {
-      const response = await getStocksList({
-        country: selectedCountry,
-        search: debouncedSearch,
-        sector: selectedSector !== 'All' ? selectedSector : undefined,
-        halal_status: halalParam,
-        sort_by: sortByParam,
-        sort_order: sortDirection.toUpperCase() as 'ASC' | 'DESC',
-        page,
-        limit,
-      });
-
-      if (response && response.data && Array.isArray(response.data)) {
-        const mapped = response.data.map((item) => mapBackendStockToStockItem(item, selectedCountry));
-        setStocks(mapped);
-        setTotalStocks(response.meta?.total ?? mapped.length);
-        setTotalPages(response.meta?.totalPages ?? 1);
-      } else {
-        throw new Error('Invalid response structure');
-      }
-    } catch (err: any) {
-      console.warn('Backend stocks fetch fallback to local cache/mock:', err?.message);
-      // Seamless fallback if backend is momentarily cold
-      const filtered = mockStocksData.filter((s) => {
-        if (selectedCountry === 'India') return true;
-        return false;
-      });
-      setStocks(filtered);
-      setTotalStocks(filtered.length);
-      setTotalPages(1);
-    } finally {
-      setLoadingStocks(false);
-    }
-  }, [selectedCountry, debouncedSearch, selectedSector, statusFilter, sortField, sortDirection, page, limit]);
-
-  useEffect(() => {
-    fetchStocks();
-  }, [fetchStocks]);
-
-  // Extract unique sectors from active stocks
-  const sectors = useMemo(() => {
-    const list = Array.from(new Set(stocks.map((s) => s.sector).filter(Boolean)));
-    return list.sort();
-  }, [stocks]);
-
-  // Country Switch Handler
-  const handleSelectCountry = (country: string) => {
-    setSelectedCountry(country);
-    setPage(1);
-    setSelectedSector('All');
-    setSearchQuery('');
-    setActivePreset('all');
-    setStatusFilter('all');
-  };
-
-  // Preset Switch Handler
-  const handleSelectPreset = (preset: string) => {
-    setActivePreset(preset);
-    setSearchQuery('');
-    setSelectedSector('All');
-    setSelectedMarketCap('All');
-    setPage(1);
-
-    if (preset === 'all') {
-      setStatusFilter('all');
-    } else if (preset === 'nifty50_halal') {
-      setStatusFilter('compliant');
-    } else if (preset === 'zero_debt') {
-      setStatusFilter('zero_debt');
-    } else if (preset === 'tech') {
-      setSelectedSector('Information Technology');
-      setStatusFilter('compliant');
-    } else if (preset === 'pharma') {
-      setSelectedSector('Healthcare & Pharma');
-      setStatusFilter('compliant');
-    } else if (preset === 'high_purity') {
-      setStatusFilter('compliant');
-    }
-  };
-
-  // Reset all filters
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    setSelectedSector('All');
-    setSelectedMarketCap('All');
-    setStatusFilter('all');
-    setActivePreset('all');
-    setPage(1);
-  };
-
-  // Handle Sort Toggle
-  const handleSort = (field: StockSortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-    setPage(1);
-  };
-
-  // Open stock by symbol (from market movers or search)
-  const handleSelectStockBySymbol = (symbol: string) => {
-    const found = stocks.find((s) => s.symbol.toLowerCase() === symbol.toLowerCase());
-    if (found) {
-      setSelectedStock(found);
-    } else {
-      // Create minimal stock item to trigger modal fetch
-      setSelectedStock({
-        id: symbol,
-        symbol,
-        name: symbol,
-        exchange: selectedCountry === 'Saudi Arabia' ? 'Tadawul' : selectedCountry === 'Japan' ? 'TSE' : 'NSE',
-        country: selectedCountry,
-        sector: 'Equities',
-        industry: 'Equities',
-        price: 0,
-        change: 0,
-        changePercent: 0,
-        marketCapCr: 0,
-        marketCapCategory: 'Mid Cap',
-        halalScore: 90,
-        complianceStatus: 'compliant',
-        statusReason: 'Loading live audited fundamentals...',
-        shariah: {
-          businessActivityStatus: 'pass',
-          nonHalalRevenuePercent: 0,
-          debtRatioPercent: 0,
-          debtRatioStatus: 'pass',
-          cashAndSecuritiesRatioPercent: 0,
-          cashRatioStatus: 'pass',
-          purificationPercent: 0,
-        },
-        fundamentals: {
-          peRatio: 0,
-          pbRatio: 0,
-          roePercent: 0,
-          rocePercent: 0,
-          debtToEquity: 0,
-          freeCashFlowCr: 0,
-          dividendYield: 0,
-          week52High: 0,
-          week52Low: 0,
-        },
-        lastUpdated: 'Live',
-      });
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-950 py-6 md:py-8 pb-20">
-      <div className="container mx-auto">
-        {/* Breadcrumb & Header Title */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
-              <Link href="/" className="hover:text-slate-200 transition-colors">
-                Home
-              </Link>
-              <ChevronRight className="w-3 h-3 text-slate-600" />
-              <span className="text-slate-200 font-medium">Global Equities Screener</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-                <TrendingUp className="w-7 h-7 text-sky-400 shrink-0" />
-                Global Shariah &amp; Ethical Stock Screener
-              </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                AAOIFI Standard 21
-              </span>
-            </div>
-
-            <p className="text-xs md:text-sm text-slate-400 mt-1 max-w-3xl">
-              Institutional-grade screening across Indian (NSE), Saudi (Tadawul), UAE (ADX/DFM), and Japanese (TSE) markets. Filter by debt leverage, core business permissibility, and valuation multiples.
-            </p>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/about"
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 rounded-lg transition-colors flex items-center gap-1.5"
-            >
-              <Info className="w-3.5 h-3.5 text-slate-400" />
-              Methodology
-            </Link>
-            <button
-              onClick={() => {
-                alert(`Exporting Shariah screener results for ${selectedCountry} (CSV)...`);
-              }}
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 rounded-lg transition-colors flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5 text-slate-400" />
-              Export
-            </button>
-          </div>
-        </div>
-
-        {/* Prominent SEBI Regulatory Compliance Banner */}
-        <div className="bg-slate-900/80 border border-slate-800/80 rounded-xl px-4 py-2.5 flex items-center gap-3 text-xs text-slate-300 mb-6 shadow-sm">
-          <span className="w-1 h-3.5 bg-amber-500 rounded-full shrink-0" />
-          <p className="text-xs text-slate-300 leading-normal">
-            <strong className="font-semibold text-slate-100">Disclaimer:</strong> Stock screening and AAOIFI financial ratios are strictly for <strong className="font-semibold text-slate-100">educational and informational purposes</strong> only and not investment advice. WeeStox is not a SEBI registered investment advisor or research analyst.
-          </p>
-        </div>
-
-        {/* 1. Country Selection Tabs (India, Saudi Arabia, UAE, Japan) */}
-        <div className="mb-6">
-          <StockCountrySelector
-            countries={countries}
-            selectedCountry={selectedCountry}
-            onSelectCountry={handleSelectCountry}
-            isLoading={loadingCountries}
-          />
-        </div>
-
-        {/* 2. Top Summary KPI Strip */}
-        <StockSummaryStrip
-          stocks={stocks}
-          activeStatusFilter={statusFilter}
-          onSelectStatus={(status) => {
-            setStatusFilter(status);
-            setActivePreset('all');
-            setPage(1);
-          }}
-        />
-
-        {/* 3. Live Market Movers Widget (Gainers, Losers, Active for Selected Country) */}
-        <StockMarketMovers
-          country={selectedCountry}
-          onSelectStock={handleSelectStockBySymbol}
-        />
-
-        {/* 4. Stock Filters & Search Bar */}
-        <StockFilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedSector={selectedSector}
-          onSectorChange={(sec) => {
-            setSelectedSector(sec);
-            setPage(1);
-          }}
-          selectedMarketCap={selectedMarketCap}
-          onMarketCapChange={setSelectedMarketCap}
-          sectors={sectors}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSortChange={handleSort}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          activePreset={activePreset}
-          onSelectPreset={handleSelectPreset}
-          onResetFilters={handleResetFilters}
-          totalFilteredCount={totalStocks}
-        />
-
-        {/* 5. Screener Listings (Table or Cards View) */}
-        {loadingStocks ? (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-16 text-center shadow-xl mb-6">
-            <Loader2 className="w-8 h-8 animate-spin text-sky-400 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-slate-200">Loading {selectedCountry} equities...</h3>
-            <p className="text-xs text-slate-500 mt-1">Screening against AAOIFI balance-sheet debt and liquidity thresholds</p>
-          </div>
-        ) : viewMode === 'table' ? (
-          <StockTableView
-            stocks={stocks}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-            onSelectStock={setSelectedStock}
-          />
-        ) : (
-          <StockCardView stocks={stocks} onSelectStock={setSelectedStock} />
-        )}
-
-        {/* 6. Pagination Bar */}
-        {totalPages > 1 && (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between text-xs text-slate-400 mb-6 shadow-md">
-            <div>
-              Page <strong className="text-slate-100">{page}</strong> of{' '}
-              <strong className="text-slate-100">{totalPages}</strong> (Total {totalStocks.toLocaleString()} companies)
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-semibold flex items-center gap-1 transition-colors"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                Previous
-              </button>
-              <button
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-semibold flex items-center gap-1 transition-colors"
-              >
-                Next
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 7. Pro Trader Educational Context Banner */}
-        <div className="mt-8 bg-slate-900/60 border border-slate-800 rounded-xl p-5">
-          <h3 className="text-sm font-bold text-slate-200 mb-2 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-sky-400" />
-            Understanding Multi-Market Shariah Screening (AAOIFI Standard 21)
-          </h3>
-          <p className="text-xs text-slate-400 leading-relaxed mb-3">
-            Whether investing in Indian (NSE), Saudi (Tadawul), UAE (ADX/DFM), or Japanese (TSE) markets, AAOIFI screening provides a universal safety standard. Companies qualifying as Halal maintain strict balance-sheet discipline, reducing credit and default risk while barring speculative leverage.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-              <span className="font-semibold text-slate-200 block mb-0.5">1. Ethical Core Business</span>
-              <span className="text-slate-400">Companies must not engage in alcohol, gambling, weapons, predatory debt, or impermissible activities.</span>
-            </div>
-            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-              <span className="font-semibold text-slate-200 block mb-0.5">2. Debt &lt; 33% Threshold</span>
-              <span className="text-slate-400">Total interest-bearing debt divided by market cap must not exceed 33%, guarding against over-leverage.</span>
-            </div>
-            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-              <span className="font-semibold text-slate-200 block mb-0.5">3. Multi-Currency Native</span>
-              <span className="text-slate-400">Valuations and financial statements reflect native exchange currencies: INR (₹), SAR (﷼), AED (د.إ), and JPY (¥).</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Deep-Dive Modal with Chart, AAOIFI Audit & Financials */}
-        <StockDetailModal
-          stock={selectedStock}
-          onClose={() => setSelectedStock(null)}
-        />
-      </div>
-    </div>
-  );
+function Screener() {
+  const params=useSearchParams(); const router=useRouter();
+  const country=params.get('country')||'India';
+  const query=params.get('search')||'';
+  const status=params.get('status')||'all';
+  const sector=params.get('sector')||'All';
+  const page=Math.max(1,Number(params.get('page'))||1);
+  const validSorts:StockSortField[]=['marketCapCr','price','pe_ratio','volume','symbol'];
+  const rawSort=params.get('sort') as StockSortField;
+  const sort=validSorts.includes(rawSort)?rawSort:'marketCapCr';
+  const direction:SortDirection=params.get('direction')==='asc'?'asc':'desc';
+  const [search,setSearch]=useState(query);
+  const [countries,setCountries]=useState<StockCountry[]>([]);
+  const [sectors,setSectors]=useState<string[]>([]);
+  const [view,setView]=useState<'table'|'cards'>('table');
+  const [selected,setSelected]=useState<StockItem|null>(null);
+  const [retry,setRetry]=useState(0);
+  const [result,setResult]=useState<{key:string;stocks:StockItem[];total:number;pages:number;error:string|null}|null>(null);
+  const key=[country,query,status,sector,page,sort,direction,retry].join('|');
+  const loading=result?.key!==key;
+  const stocks=loading?[]:result?.stocks||[];
+  const change=(values:Record<string,string>)=>{const next=new URLSearchParams(params.toString()); next.delete('page'); Object.entries(values).forEach(([k,v])=>{if(v&&v!=='all'&&v!=='All')next.set(k,v);else next.delete(k)});router.replace('/stocks?'+next.toString(),{scroll:false});};
+  useEffect(()=>{let active=true;getAvailableCountries().then(data=>{if(active)setCountries(data)});return()=>{active=false}},[]);
+  useEffect(()=>{let active=true;getMarketOverview(country).then(data=>{if(active)setSectors(data?.top_sectors?.map(s=>s.sector)||[])});return()=>{active=false}},[country]);
+  useEffect(()=>{
+    const controller=new AbortController();
+    const sortMap={marketCapCr:'market_cap',price:'price',pe_ratio:'pe_ratio',volume:'volume',symbol:'symbol'} as const;
+    getStocksList({country,search:query,sector,halal_status:status==='compliant'?'HALAL':status==='non_compliant'?'NON_HALAL':status==='doubtful'?'DOUBTFUL':'ALL',sort_by:sortMap[sort as keyof typeof sortMap],sort_order:direction==='asc'?'ASC':'DESC',page,limit:20},controller.signal)
+      .then(response=>{if(controller.signal.aborted)return;if(!Array.isArray(response.data))throw new Error('Invalid stock response');setResult({key,stocks:response.data.map(s=>mapBackendStockToStockItem(s,country)),total:response.meta?.total??response.data.length,pages:response.meta?.totalPages??1,error:null})})
+      .catch(()=>{if(!controller.signal.aborted)setResult({key,stocks:[],total:0,pages:1,error:'We could not load market data. Please try again in a moment.'})});
+    return()=>controller.abort();
+  },[country,query,status,sector,page,sort,direction,key]);
+  const sectorOptions=useMemo(()=>Array.from(new Set([...sectors,...(sector!=='All'?[sector]:[])])).sort(),[sectors,sector]);
+  const onSort=(field:StockSortField)=>change({sort:field,direction:sort===field&&direction==='desc'?'asc':'desc'});
+  return <div className="container py-9 pb-16">
+    <div className="page-heading"><div><span className="eyebrow">MARKET EXPLORER</span><h1>Find your next idea.</h1><p>Explore companies, compare fundamentals, and review reported Shariah screening.</p></div><button className="btn btn-outline" disabled={loading||!stocks.length} onClick={()=>exportStocksCsv(stocks,country)}><Download size={15}/> Export this page</button></div>
+    <div className="country-tabs" role="group" aria-label="Stock market">{(countries.length?countries.map(c=>c.country):['India','Saudi Arabia','United Arab Emirates','Japan']).map(c=><button key={c} aria-pressed={country===c} onClick={()=>{setSearch('');change({country:c,search:'',sector:'',status:''})}}><span>{c==='India'?'🇮🇳':c==='Japan'?'🇯🇵':c==='Saudi Arabia'?'🇸🇦':'🇦🇪'}</span>{c==='United Arab Emirates'?'UAE':c}</button>)}</div>
+    <div className="surface p-5 mb-5"><div className="flex flex-wrap gap-3 items-center justify-between">
+      <form className="screener-search" onSubmit={e=>{e.preventDefault();change({search:search.trim()})}}><Search size={17}/><input key={query} aria-label="Search stocks" placeholder="Company name or symbol…" defaultValue={query} onChange={e=>setSearch(e.target.value)}/><button type="submit">Search</button></form>
+      <div className="flex items-center gap-2"><span className="text-muted text-xs mr-1">View</span><button className="view-button" aria-label="Table view" aria-pressed={view==='table'} onClick={()=>setView('table')}><List size={17}/></button><button className="view-button" aria-label="Card view" aria-pressed={view==='cards'} onClick={()=>setView('cards')}><LayoutGrid size={17}/></button></div>
+    </div><div className="flex flex-wrap items-center gap-3 pt-4 mt-4 border-t border-line"><SlidersHorizontal size={15} className="text-muted"/>
+      <select className="filter-select" aria-label="Screening status" value={status} onChange={e=>change({status:e.target.value})}><option value="all">All screening results</option><option value="compliant">Halal</option><option value="doubtful">Under review</option><option value="non_compliant">Non-Halal</option></select>
+      <select className="filter-select" aria-label="Sector" value={sector} onChange={e=>change({sector:e.target.value})}><option value="All">All sectors</option>{sectorOptions.map(s=><option key={s}>{s}</option>)}</select>
+      <select className="filter-select" aria-label="Sort stocks" value={sort} onChange={e=>change({sort:e.target.value})}><option value="marketCapCr">Market cap</option><option value="price">Price</option><option value="pe_ratio">P/E ratio</option><option value="volume">Volume</option><option value="symbol">Symbol</option></select>
+      <button className="filter-select inline-flex items-center gap-2" onClick={()=>change({direction:direction==='asc'?'desc':'asc'})}><ArrowUpDown size={13}/>{direction==='asc'?'Ascending':'Descending'}</button>
+      <button className="text-xs text-muted inline-flex gap-1.5 items-center ml-auto" onClick={()=>{setSearch('');router.replace('/stocks?country='+encodeURIComponent(country),{scroll:false})}}><RotateCcw size={13}/> Reset</button>
+    </div></div>
+    {!loading&&!result?.error&&<StockSummaryStrip stocks={stocks}/>}
+    <StockMarketMovers country={country} onSelectStock={symbol=>setSelected(stocks.find(s=>s.symbol===symbol)||mapBackendStockToStockItem({id:symbol,symbol,company_name:symbol,country}))}/>
+    <div className="flex justify-between items-center mb-3 text-xs text-muted"><span>{loading?'Loading companies…':result?.error?'Market data unavailable':(result?.total??0).toLocaleString()+' companies match your search'}</span><span>Prices in local currency</span></div>
+    {loading?<div className="surface p-5 space-y-4" role="status" aria-label="Loading stocks">{[0,1,2,3,4,5].map(i=><div key={i} className="skeleton h-12"/>)}<span className="sr-only">Loading market data</span></div>:result?.error?<div className="surface empty-state" role="alert"><div className="empty-icon"><ChartIcon/></div><h2>A brief pause in the data.</h2><p>{result.error}</p><button className="btn btn-primary" onClick={()=>setRetry(v=>v+1)}><RotateCcw size={15}/>Try again</button></div>:stocks.length===0?<div className="surface empty-state"><Search size={30}/><h2>No matching companies.</h2><p>Try another symbol or broaden your screening filters.</p></div>:view==='table'?<StockTableView stocks={stocks} sortField={sort} sortDirection={direction} onSort={onSort} onSelectStock={setSelected}/>:<StockCardView stocks={stocks} onSelectStock={setSelected}/>}
+    {!loading&&!result?.error&&result&&result.pages>1&&<div className="pagination"><span>Page {page} of {result.pages}</span><div className="flex gap-2"><button className="btn btn-outline" disabled={page<=1} onClick={()=>change({page:String(page-1)})}><ChevronLeft size={14}/>Previous</button><button className="btn btn-outline" disabled={page>=result.pages} onClick={()=>change({page:String(page+1)})}>Next<ChevronRight size={14}/></button></div></div>}
+    <p className="text-xs text-muted mt-6 leading-relaxed max-w-4xl">Screening results reflect reported source data and may change. A missing metric is shown as —, not as zero. Research information only; not investment advice.</p>
+    {selected&&<StockDetailModal key={selected.country+':'+selected.id} stock={selected} onClose={()=>setSelected(null)}/>}
+  </div>;
 }
+function ChartIcon(){return <SlidersHorizontal size={27}/>}
+export default function StocksPage(){return <Suspense fallback={<div className="container py-12"><div className="skeleton h-96"/></div>}><Screener/></Suspense>}

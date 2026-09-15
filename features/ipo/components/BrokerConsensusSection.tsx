@@ -12,7 +12,7 @@ interface BrokerConsensusSectionProps {
 export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerConsensusSectionProps) {
   const [filter, setFilter] = useState<'ALL' | 'Apply' | 'Neutral' | 'Avoid' | 'Not Rated'>('ALL');
 
-  const reviews = brokerReviews || [];
+  const reviews = useMemo(() => brokerReviews || [], [brokerReviews]);
 
   const counts = useMemo(() => {
     const apply = reviews.filter((r) => r.recommendation?.toLowerCase() === 'apply').length;
@@ -50,57 +50,57 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
   const avoidPct = counts.total > 0 ? Math.round((counts.avoid / counts.total) * 100) : 0;
 
   return (
-    <section id="broker-reviews" className="scroll-mt-28 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-lg">
+    <section id="broker-reviews" className="scroll-mt-28 bg-panel/90 border border-line rounded-2xl p-5 md:p-6 shadow-lg">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div className="flex items-center gap-2">
-          <Award className="w-5 h-5 text-emerald-400" />
+          <Award className="w-5 h-5 text-positive" />
           <div>
-            <h2 className="text-lg font-bold text-slate-100">{companyName} IPO Broker Consensus &amp; Reviews</h2>
-            <span className="text-xs text-slate-400">
+            <h2 className="text-lg font-bold text-ink">{companyName} IPO Broker Consensus &amp; Reviews</h2>
+            <span className="text-xs text-muted">
               Institutional and brokerage house recommendations with verified review reports
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-950/70 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
-          <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-slate-400">Consensus:</span>
-          <span className="font-bold text-emerald-400">
-            {applyPct >= 50 ? `${applyPct}% Positive (Apply)` : `${neutralPct}% Neutral`}
+        <div className="flex items-center gap-2 bg-canvas/70 border border-line px-3 py-1.5 rounded-xl text-xs">
+          <ThumbsUp className="w-3.5 h-3.5 text-positive" />
+          <span className="text-muted">Consensus:</span>
+          <span className="font-bold text-positive">
+            {applyPct > 50 ? applyPct+'% Apply' : avoidPct > 50 ? avoidPct+'% Avoid' : neutralPct > 50 ? neutralPct+'% Neutral' : 'Mixed / no majority'}
           </span>
         </div>
       </div>
 
       {/* Consensus Breakdown Meter */}
-      <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 mb-5">
+      <div className="bg-canvas/60 border border-line/80 rounded-xl p-4 mb-5">
         <div className="flex items-center justify-between text-xs mb-2 flex-wrap gap-2">
           <div className="flex items-center gap-4 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 text-emerald-400 font-semibold">
+            <span className="inline-flex items-center gap-1.5 text-positive font-semibold">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
               Apply: {counts.apply} ({applyPct}%)
             </span>
-            <span className="inline-flex items-center gap-1.5 text-amber-400 font-semibold">
+            <span className="inline-flex items-center gap-1.5 text-warning font-semibold">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
               Neutral: {counts.neutral} ({neutralPct}%)
             </span>
             {counts.avoid > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-rose-400 font-semibold">
+              <span className="inline-flex items-center gap-1.5 text-negative font-semibold">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
                 Avoid: {counts.avoid} ({avoidPct}%)
               </span>
             )}
             {counts.notRated > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-slate-400 font-medium">
+              <span className="inline-flex items-center gap-1.5 text-muted font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
                 Not Rated: {counts.notRated}
               </span>
             )}
           </div>
-          <span className="text-slate-500 font-medium">Total: {counts.total} Analysts</span>
+          <span className="text-quiet font-medium">Total: {counts.total} Analysts</span>
         </div>
 
         {/* Visual Bar */}
-        <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex gap-0.5">
+        <div className="w-full h-3 bg-well rounded-full overflow-hidden flex gap-0.5">
           {counts.apply > 0 && (
             <div
               className="bg-emerald-500 hover:opacity-90 transition-all"
@@ -124,7 +124,7 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
           )}
           {counts.notRated > 0 && (
             <div
-              className="bg-slate-700 hover:opacity-90 transition-all"
+              className="bg-elevated hover:opacity-90 transition-all"
               style={{ width: `${(counts.notRated / counts.total) * 100}%` }}
               title={`Not Rated: ${counts.notRated}`}
             />
@@ -138,8 +138,8 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
           onClick={() => setFilter('ALL')}
           className={`px-3 py-1.5 rounded-lg font-semibold transition-colors whitespace-nowrap ${
             filter === 'ALL'
-              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-              : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-700/60'
+              ? 'bg-sky-500/20 text-accent border border-sky-500/40'
+              : 'bg-well/80 text-muted hover:text-ink border border-line-strong/60'
           }`}
         >
           All Reviews ({counts.total})
@@ -148,8 +148,8 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
           onClick={() => setFilter('Apply')}
           className={`px-3 py-1.5 rounded-lg font-semibold transition-colors whitespace-nowrap ${
             filter === 'Apply'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-              : 'bg-slate-800/80 text-slate-400 hover:text-emerald-400 border border-slate-700/60'
+              ? 'bg-emerald-500/20 text-positive border border-emerald-500/40'
+              : 'bg-well/80 text-muted hover:text-positive border border-line-strong/60'
           }`}
         >
           Apply ({counts.apply})
@@ -158,8 +158,8 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
           onClick={() => setFilter('Neutral')}
           className={`px-3 py-1.5 rounded-lg font-semibold transition-colors whitespace-nowrap ${
             filter === 'Neutral'
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-              : 'bg-slate-800/80 text-slate-400 hover:text-amber-400 border border-slate-700/60'
+              ? 'bg-amber-500/20 text-warning border border-amber-500/40'
+              : 'bg-well/80 text-muted hover:text-warning border border-line-strong/60'
           }`}
         >
           Neutral ({counts.neutral})
@@ -169,8 +169,8 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
             onClick={() => setFilter('Avoid')}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-colors whitespace-nowrap ${
               filter === 'Avoid'
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                : 'bg-slate-800/80 text-slate-400 hover:text-rose-400 border border-slate-700/60'
+                ? 'bg-rose-500/20 text-negative border border-rose-500/40'
+                : 'bg-well/80 text-muted hover:text-negative border border-line-strong/60'
             }`}
           >
             Avoid ({counts.avoid})
@@ -181,8 +181,8 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
             onClick={() => setFilter('Not Rated')}
             className={`px-3 py-1.5 rounded-lg font-semibold transition-colors whitespace-nowrap ${
               filter === 'Not Rated'
-                ? 'bg-slate-700 text-slate-200 border border-slate-600'
-                : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-700/60'
+                ? 'bg-elevated text-ink border border-slate-600'
+                : 'bg-well/80 text-muted hover:text-ink border border-line-strong/60'
             }`}
           >
             Not Rated ({counts.notRated})
@@ -192,15 +192,15 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
 
       {/* Reviews Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800">
-          <thead className="bg-slate-950 text-[11px] font-semibold text-slate-400 uppercase">
+        <table className="w-full text-left text-xs border border-line rounded-xl overflow-hidden divide-y divide-line">
+          <thead className="bg-canvas text-[11px] font-semibold text-muted uppercase">
             <tr>
               <th className="py-2.5 px-4">Broker / Research Firm</th>
               <th className="py-2.5 px-4 text-center">Recommendation</th>
               <th className="py-2.5 px-4 text-right">Research Report</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80">
+          <tbody className="divide-y divide-line/80">
             {filteredReviews.map((review, idx) => {
               const recLower = review.recommendation?.toLowerCase();
               const isApply = recLower === 'apply';
@@ -208,28 +208,28 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
               const isAvoid = recLower === 'avoid';
 
               return (
-                <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="py-2.5 px-4 text-slate-200 font-semibold">
+                <tr key={idx} className="hover:bg-well/30 transition-colors">
+                  <td className="py-2.5 px-4 text-ink font-semibold">
                     {review.reviewer}
                   </td>
                   <td className="py-2.5 px-4 text-center">
                     {isApply && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold border border-emerald-500/30">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 text-positive text-xs font-bold border border-emerald-500/30">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Apply
                       </span>
                     )}
                     {isNeutral && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 text-xs font-bold border border-amber-500/30">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 text-warning text-xs font-bold border border-amber-500/30">
                         <MinusCircle className="w-3.5 h-3.5" /> Neutral
                       </span>
                     )}
                     {isAvoid && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-400 text-xs font-bold border border-rose-500/30">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/15 text-negative text-xs font-bold border border-rose-500/30">
                         <XCircle className="w-3.5 h-3.5" /> Avoid
                       </span>
                     )}
                     {!isApply && !isNeutral && !isAvoid && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 text-xs font-medium border border-slate-700">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-well text-muted text-xs font-medium border border-line-strong">
                         <HelpCircle className="w-3.5 h-3.5" /> {review.recommendation || 'Not Rated'}
                       </span>
                     )}
@@ -240,13 +240,13 @@ export function BrokerConsensusSection({ companyName, brokerReviews }: BrokerCon
                         href={review.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 text-sky-400 hover:text-sky-300 border border-slate-700 font-semibold text-xs transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-well hover:bg-elevated text-accent hover:text-accent border border-line-strong font-semibold text-xs transition-colors"
                       >
                         <span>View Review</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     ) : (
-                      <span className="text-slate-500 text-[11px]">Report via Media</span>
+                      <span className="text-quiet text-[11px]">Report via Media</span>
                     )}
                   </td>
                 </tr>

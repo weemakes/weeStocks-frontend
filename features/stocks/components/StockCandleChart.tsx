@@ -51,16 +51,16 @@ export default function StockCandleChart({
 
   if (loading) {
     return (
-      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-slate-950/60 rounded-xl border border-slate-800">
-        <div className="text-xs text-slate-400 animate-pulse">Loading interactive chart...</div>
+      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-canvas/60 rounded-xl border border-line">
+        <div className="text-xs text-muted animate-pulse">Loading interactive chart...</div>
       </div>
     );
   }
 
   if (!candles || candles.length === 0) {
     return (
-      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-slate-950/60 rounded-xl border border-slate-800">
-        <div className="text-xs text-slate-500">Historical price candles currently unavailable for this timeframe.</div>
+      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-canvas/60 rounded-xl border border-line">
+        <div className="text-xs text-quiet">Historical price candles currently unavailable for this timeframe.</div>
       </div>
     );
   }
@@ -109,27 +109,27 @@ export default function StockCandleChart({
                 const chg = data.close - data.open;
                 const chgPct = data.open ? (chg / data.open) * 100 : 0;
                 return (
-                  <div className="bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs shadow-xl min-w-[150px]">
-                    <div className="text-[10px] text-slate-400 font-medium mb-1">{data.date}</div>
-                    <div className="flex justify-between gap-3 text-slate-300">
+                  <div className="bg-panel border border-line-strong rounded-lg p-2.5 text-xs shadow-xl min-w-[150px]">
+                    <div className="text-[10px] text-muted font-medium mb-1">{data.date}</div>
+                    <div className="flex justify-between gap-3 text-body">
                       <span>Close:</span>
-                      <span className="font-bold text-slate-100 tabular-nums">
+                      <span className="font-bold text-ink tabular-nums">
                         {currencySymbol}{data.close?.toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[11px]">
+                    <div className="flex justify-between gap-3 text-muted text-[11px]">
                       <span>Open:</span>
                       <span className="tabular-nums">{currencySymbol}{data.open?.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[11px]">
+                    <div className="flex justify-between gap-3 text-muted text-[11px]">
                       <span>High:</span>
-                      <span className="text-emerald-400 tabular-nums">{currencySymbol}{data.high?.toLocaleString()}</span>
+                      <span className="text-positive tabular-nums">{currencySymbol}{data.high?.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[11px]">
+                    <div className="flex justify-between gap-3 text-muted text-[11px]">
                       <span>Low:</span>
-                      <span className="text-rose-400 tabular-nums">{currencySymbol}{data.low?.toLocaleString()}</span>
+                      <span className="text-negative tabular-nums">{currencySymbol}{data.low?.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[10px] pt-1 mt-1 border-t border-slate-800">
+                    <div className="flex justify-between gap-3 text-muted text-[10px] pt-1 mt-1 border-t border-line">
                       <span>Volume:</span>
                       <span className="tabular-nums">{data.volume?.toLocaleString()}</span>
                     </div>

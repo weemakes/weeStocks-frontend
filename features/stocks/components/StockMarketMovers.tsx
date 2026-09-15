@@ -42,33 +42,33 @@ export default function StockMarketMovers({ country, onSelectStock }: StockMarke
   const currencySym = getCurrencySymbol(country);
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl mb-6">
+    <div className="bg-panel/90 border border-line rounded-2xl p-4 shadow-xl mb-6">
       {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3.5 pb-3 border-b border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3.5 pb-3 border-b border-line/80">
         <div className="flex items-center gap-2">
-          <Flame className="w-5 h-5 text-amber-400 shrink-0" />
+          <Flame className="w-5 h-5 text-warning shrink-0" />
           <div>
-            <h2 className="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+            <h2 className="text-sm font-bold text-ink flex items-center gap-1.5">
               Market Movers ({country})
             </h2>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-muted">
               Live momentum leaders & high volume tickers
             </span>
           </div>
         </div>
 
         {/* Mover Tabs */}
-        <div className="inline-flex rounded-lg border border-slate-800 bg-slate-950 p-0.5">
+        <div className="inline-flex rounded-lg border border-line bg-canvas p-0.5">
           <button
             type="button"
             onClick={() => setMoverType('gainers')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all ${
               moverType === 'gainers'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-500/20 text-positive border border-emerald-500/30'
+                : 'text-muted hover:text-ink'
             }`}
           >
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+            <TrendingUp className="w-3.5 h-3.5 text-positive" />
             <span>Top Gainers</span>
           </button>
           <button
@@ -76,11 +76,11 @@ export default function StockMarketMovers({ country, onSelectStock }: StockMarke
             onClick={() => setMoverType('losers')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all ${
               moverType === 'losers'
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-rose-500/20 text-negative border border-rose-500/30'
+                : 'text-muted hover:text-ink'
             }`}
           >
-            <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+            <TrendingDown className="w-3.5 h-3.5 text-negative" />
             <span>Top Losers</span>
           </button>
           <button
@@ -88,11 +88,11 @@ export default function StockMarketMovers({ country, onSelectStock }: StockMarke
             onClick={() => setMoverType('active')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all ${
               moverType === 'active'
-                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-sky-500/20 text-accent border border-sky-500/30'
+                : 'text-muted hover:text-ink'
             }`}
           >
-            <Activity className="w-3.5 h-3.5 text-sky-400" />
+            <Activity className="w-3.5 h-3.5 text-accent" />
             <span>Most Active</span>
           </button>
         </div>
@@ -100,8 +100,8 @@ export default function StockMarketMovers({ country, onSelectStock }: StockMarke
 
       {/* Movers Cards Strip */}
       {loading ? (
-        <div className="h-20 flex items-center justify-center text-xs text-slate-500 gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
+        <div className="h-20 flex items-center justify-center text-xs text-quiet gap-2">
+          <Loader2 className="w-4 h-4 animate-spin text-accent" />
           <span>Loading market movers for {country}...</span>
         </div>
       ) : movers.length > 0 ? (
@@ -113,27 +113,27 @@ export default function StockMarketMovers({ country, onSelectStock }: StockMarke
               <div
                 key={m.id || m.symbol}
                 onClick={() => onSelectStock && onSelectStock(m.symbol)}
-                className="bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 p-2.5 rounded-xl cursor-pointer transition-all hover:bg-slate-800/40 group"
+                className="bg-canvas/70 border border-line/80 hover:border-line-strong p-2.5 rounded-xl cursor-pointer transition-all hover:bg-well/40 group"
               >
                 <div>
                   <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span className="font-bold text-xs text-slate-100 group-hover:text-sky-400 transition-colors">
+                    <span className="font-bold text-xs text-ink group-hover:text-accent transition-colors">
                       {m.symbol}
                     </span>
-                    <span className="text-[10px] text-slate-500 uppercase">{m.exchange}</span>
+                    <span className="text-[10px] text-quiet uppercase">{m.exchange}</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 truncate mb-2">
+                  <p className="text-[10px] text-muted truncate mb-2">
                     {m.company_name}
                   </p>
                 </div>
 
-                <div className="flex items-baseline justify-between gap-1 pt-1.5 border-t border-slate-800/60">
-                  <span className="text-xs font-bold text-slate-200 tabular-nums">
+                <div className="flex items-baseline justify-between gap-1 pt-1.5 border-t border-line/60">
+                  <span className="text-xs font-bold text-ink tabular-nums">
                     {currencySym}{Number(m.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                   <span
                     className={`text-[11px] font-bold tabular-nums flex items-center gap-0.5 ${
-                      isPositive ? 'text-emerald-400' : 'text-rose-400'
+                      isPositive ? 'text-positive' : 'text-negative'
                     }`}
                   >
                     {isPositive ? '+' : ''}{changePctNum.toFixed(2)}%
@@ -144,7 +144,7 @@ export default function StockMarketMovers({ country, onSelectStock }: StockMarke
           })}
         </div>
       ) : (
-        <div className="py-4 text-center text-xs text-slate-500">
+        <div className="py-4 text-center text-xs text-quiet">
           No mover data currently recorded for {country}. Track live listings below.
         </div>
       )}

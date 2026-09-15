@@ -257,7 +257,7 @@ export interface IPOSubscriptionSummary {
     applied_cr: number | null;
     times: number | null;
   }>;
-  day_wise?: Array<Record<string, any>>;
+  day_wise?: Array<{category?: string; day_1?: number | string | null; day_2?: number | string | null; day_3?: number | string | null}>;
   funding_interest_cost?: Record<string, number>;
   last_updated_at?: string | null;
 }
@@ -281,7 +281,7 @@ export interface IPODetailData {
   strengths?: string[];
   risks?: string[];
   broker_reviews?: IPOBrokerReview[];
-  peer_comparison?: any[];
+  peer_comparison?: unknown[];
   anchor_investor: IPOAnchorInvestor | null;
   halal_screening: IPOHalalScreening | null;
   created_at: string;
