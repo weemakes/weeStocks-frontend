@@ -45,10 +45,10 @@ export function HistoryControls({
       {/* Purity Controls (Gold only: 24K, 22K, 18K) */}
       {hasPurityControls && (
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
             Purity
           </label>
-          <div className="inline-flex rounded-lg border border-slate-700/80 bg-slate-950/80 p-0.5">
+          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-950/80 p-0.5">
             {purities!.map((purity) => (
               <button
                 key={purity}
@@ -58,7 +58,7 @@ export function HistoryControls({
                   ${
                     purity === selectedPurity
                       ? "bg-amber-500 text-slate-950 font-bold shadow-sm"
-                      : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800/60"
                   }
                 `}
               >
@@ -72,10 +72,10 @@ export function HistoryControls({
       {/* Unit Controls (Multiple for Gold; Fixed badge for Silver 10g / Platinum 1g) */}
       {hasMultipleUnits ? (
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+          <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
             Unit
           </label>
-          <div className="inline-flex rounded-lg border border-slate-700/80 bg-slate-950/80 p-0.5 flex-wrap">
+          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-950/80 p-0.5 flex-wrap">
             {units.map((unit) => (
               <button
                 key={unit}
@@ -84,8 +84,8 @@ export function HistoryControls({
                   px-3 py-1.5 rounded-md text-xs font-semibold transition-all
                   ${
                     unit === selectedUnit
-                      ? "bg-sky-500 text-white font-bold shadow-sm"
-                      : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                      ? "bg-sky-600 dark:bg-sky-500 text-white font-bold shadow-sm"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800/60"
                   }
                 `}
               >
@@ -95,19 +95,19 @@ export function HistoryControls({
           </div>
         </div>
       ) : hasSingleUnit ? (
-        <div className="flex items-center gap-1.5 text-xs bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg">
+        <div className="flex items-center gap-1.5 text-xs bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg">
           <span className="text-slate-500 font-medium uppercase text-[10px] tracking-wider">Unit:</span>
-          <span className="text-slate-100 font-bold">{units[0]}</span>
+          <span className="text-slate-900 dark:text-slate-100 font-bold">{units[0]}</span>
           <span className="text-[10px] text-slate-500 hidden sm:inline">(Fixed Benchmark)</span>
         </div>
       ) : null}
 
       {/* Duration Controls (1D, 1W, 1M, 3M, 6M, 9M, 1Y) */}
       <div className="flex items-center gap-2">
-        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+        <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">
           Duration
         </label>
-        <div className="inline-flex rounded-lg border border-slate-700/80 bg-slate-950/80 p-0.5">
+        <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-950/80 p-0.5">
           {durations.map((duration) => (
             <button
               key={duration}
@@ -116,8 +116,8 @@ export function HistoryControls({
                 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition-all
                 ${
                   duration === selectedDuration
-                    ? "bg-sky-500 text-white font-bold shadow-sm"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-sky-600 dark:bg-sky-500 text-white font-bold shadow-sm"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800/60"
                 }
               `}
             >

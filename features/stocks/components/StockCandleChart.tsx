@@ -13,6 +13,7 @@ import {
   ComposedChart,
 } from 'recharts';
 import { StockCandle } from '../types';
+import { useTheme } from '@/components/theme/useTheme';
 
 interface StockCandleChartProps {
   candles: StockCandle[];
@@ -25,6 +26,11 @@ export default function StockCandleChart({
   currencySymbol = '₹',
   loading = false,
 }: StockCandleChartProps) {
+  const { isDark } = useTheme();
+  const gridStroke = isDark ? '#1E293B' : '#E2E8F0';
+  const axisTextFill = isDark ? '#94A3B8' : '#64748B';
+  const axisLineStroke = isDark ? '#334155' : '#CBD5E1';
+
   const chartData = useMemo(() => {
     return candles.map((c) => ({
       ...c,
@@ -51,16 +57,16 @@ export default function StockCandleChart({
 
   if (loading) {
     return (
-      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-slate-950/60 rounded-xl border border-slate-800">
-        <div className="text-xs text-slate-400 animate-pulse">Loading interactive chart...</div>
+      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="text-xs text-slate-500 dark:text-slate-400 animate-pulse">Loading interactive chart...</div>
       </div>
     );
   }
 
   if (!candles || candles.length === 0) {
     return (
-      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-slate-950/60 rounded-xl border border-slate-800">
-        <div className="text-xs text-slate-500">Historical price candles currently unavailable for this timeframe.</div>
+      <div className="h-64 sm:h-72 w-full flex items-center justify-center bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="text-xs text-slate-500 dark:text-slate-400">Historical price candles currently unavailable for this timeframe.</div>
       </div>
     );
   }
@@ -78,12 +84,12 @@ export default function StockCandleChart({
               <stop offset="95%" stopColor={fillColor} stopOpacity={0.0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" opacity={0.6} />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} opacity={0.6} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: '#94A3B8' }}
-            tickLine={{ stroke: '#334155' }}
-            axisLine={{ stroke: '#334155' }}
+            tick={{ fontSize: 10, fill: axisTextFill }}
+            tickLine={{ stroke: axisLineStroke }}
+            axisLine={{ stroke: axisLineStroke }}
             tickFormatter={(val) => {
               try {
                 const d = new Date(val);
@@ -96,9 +102,9 @@ export default function StockCandleChart({
           <YAxis
             domain={[minPrice, maxPrice]}
             orientation="right"
-            tick={{ fontSize: 10, fill: '#94A3B8' }}
-            tickLine={{ stroke: '#334155' }}
-            axisLine={{ stroke: '#334155' }}
+            tick={{ fontSize: 10, fill: axisTextFill }}
+            tickLine={{ stroke: axisLineStroke }}
+            axisLine={{ stroke: axisLineStroke }}
             tickFormatter={(v) => `${currencySymbol}${v.toLocaleString()}`}
             width={70}
           />
@@ -109,27 +115,27 @@ export default function StockCandleChart({
                 const chg = data.close - data.open;
                 const chgPct = data.open ? (chg / data.open) * 100 : 0;
                 return (
-                  <div className="bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs shadow-xl min-w-[150px]">
-                    <div className="text-[10px] text-slate-400 font-medium mb-1">{data.date}</div>
-                    <div className="flex justify-between gap-3 text-slate-300">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs shadow-xl min-w-[150px]">
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-1">{data.date}</div>
+                    <div className="flex justify-between gap-3 text-slate-700 dark:text-slate-300">
                       <span>Close:</span>
-                      <span className="font-bold text-slate-100 tabular-nums">
+                      <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                         {currencySymbol}{data.close?.toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[11px]">
+                    <div className="flex justify-between gap-3 text-slate-500 dark:text-slate-400 text-[11px]">
                       <span>Open:</span>
                       <span className="tabular-nums">{currencySymbol}{data.open?.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[11px]">
+                    <div className="flex justify-between gap-3 text-slate-500 dark:text-slate-400 text-[11px]">
                       <span>High:</span>
-                      <span className="text-emerald-400 tabular-nums">{currencySymbol}{data.high?.toLocaleString()}</span>
+                      <span className="text-emerald-500 dark:text-emerald-400 tabular-nums">{currencySymbol}{data.high?.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[11px]">
+                    <div className="flex justify-between gap-3 text-slate-500 dark:text-slate-400 text-[11px]">
                       <span>Low:</span>
-                      <span className="text-rose-400 tabular-nums">{currencySymbol}{data.low?.toLocaleString()}</span>
+                      <span className="text-rose-500 dark:text-rose-400 tabular-nums">{currencySymbol}{data.low?.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between gap-3 text-slate-400 text-[10px] pt-1 mt-1 border-t border-slate-800">
+                    <div className="flex justify-between gap-3 text-slate-500 dark:text-slate-400 text-[10px] pt-1 mt-1 border-t border-slate-100 dark:border-slate-800">
                       <span>Volume:</span>
                       <span className="tabular-nums">{data.volume?.toLocaleString()}</span>
                     </div>

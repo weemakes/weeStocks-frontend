@@ -60,8 +60,8 @@ function CustomTooltip({ active, payload, metal }: CustomTooltipProps) {
     const data = payload[0].payload;
     const colors = getMetalColor(metal);
     return (
-      <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-3">
-        <p className="text-sm font-medium text-gray-300">
+      <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg shadow-xl p-3">
+        <p className="text-sm font-medium text-slate-600 dark:text-gray-300">
           {formatChartDate(data.date)}
         </p>
         <p className="text-lg font-bold mt-1" style={{ color: colors.tooltip }}>
@@ -88,17 +88,17 @@ export function HistoryChart({ data, loading = false, metal }: HistoryChartProps
 
   if (loading) {
     return (
-      <div className="h-80 flex items-center justify-center bg-gray-950 rounded-lg">
-        <div className="text-gray-400">Loading chart...</div>
+      <div className="h-80 flex items-center justify-center bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-slate-800 rounded-lg">
+        <div className="text-slate-500 dark:text-gray-400">Loading chart...</div>
       </div>
     );
   }
 
   if (data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center bg-gray-950 rounded-lg">
+      <div className="h-80 flex items-center justify-center bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-slate-800 rounded-lg">
         <div className="text-center">
-          <p className="text-gray-400">Historical price data is currently unavailable.</p>
+          <p className="text-slate-500 dark:text-gray-400">Historical price data is currently unavailable.</p>
         </div>
       </div>
     );

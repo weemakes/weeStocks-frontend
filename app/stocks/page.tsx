@@ -263,31 +263,31 @@ export default function StocksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 py-6 md:py-8 pb-20">
+    <div className="min-h-screen bg-canvas text-body py-6 md:py-8 pb-20">
       <div className="container mx-auto">
         {/* Breadcrumb & Header Title */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
-              <Link href="/" className="hover:text-slate-200 transition-colors">
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+              <Link href="/" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
                 Home
               </Link>
-              <ChevronRight className="w-3 h-3 text-slate-600" />
-              <span className="text-slate-200 font-medium">Global Equities Screener</span>
+              <ChevronRight className="w-3 h-3 text-slate-400 dark:text-slate-600" />
+              <span className="text-slate-800 dark:text-slate-200 font-medium">Global Equities Screener</span>
             </div>
 
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-                <TrendingUp className="w-7 h-7 text-sky-400 shrink-0" />
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
+                <TrendingUp className="w-7 h-7 text-sky-600 dark:text-sky-400 shrink-0" />
                 Global Shariah &amp; Ethical Stock Screener
               </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 AAOIFI Standard 21
               </span>
             </div>
 
-            <p className="text-xs md:text-sm text-slate-400 mt-1 max-w-3xl">
+            <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-3xl">
               Institutional-grade screening across Indian (NSE), Saudi (Tadawul), UAE (ADX/DFM), and Japanese (TSE) markets. Filter by debt leverage, core business permissibility, and valuation multiples.
             </p>
           </div>
@@ -296,28 +296,28 @@ export default function StocksPage() {
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/about"
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 rounded-lg transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <Info className="w-3.5 h-3.5 text-slate-400" />
+              <Info className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
               Methodology
             </Link>
             <button
               onClick={() => {
                 alert(`Exporting Shariah screener results for ${selectedCountry} (CSV)...`);
               }}
-              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 rounded-lg transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <Download className="w-3.5 h-3.5 text-slate-400" />
+              <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
               Export
             </button>
           </div>
         </div>
 
         {/* Prominent SEBI Regulatory Compliance Banner */}
-        <div className="bg-slate-900/80 border border-slate-800/80 rounded-xl px-4 py-2.5 flex items-center gap-3 text-xs text-slate-300 mb-6 shadow-sm">
+        <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-xl px-4 py-2.5 flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300 mb-6 shadow-sm">
           <span className="w-1 h-3.5 bg-amber-500 rounded-full shrink-0" />
-          <p className="text-xs text-slate-300 leading-normal">
-            <strong className="font-semibold text-slate-100">Disclaimer:</strong> Stock screening and AAOIFI financial ratios are strictly for <strong className="font-semibold text-slate-100">educational and informational purposes</strong> only and not investment advice. WeeStox is not a SEBI registered investment advisor or research analyst.
+          <p className="text-xs text-slate-700 dark:text-slate-300 leading-normal">
+            <strong className="font-semibold text-slate-900 dark:text-slate-100">Disclaimer:</strong> Stock screening and AAOIFI financial ratios are strictly for <strong className="font-semibold text-slate-900 dark:text-slate-100">educational and informational purposes</strong> only and not investment advice. WeeStox is not a SEBI registered investment advisor or research analyst.
           </p>
         </div>
 
@@ -369,14 +369,40 @@ export default function StocksPage() {
           onSelectPreset={handleSelectPreset}
           onResetFilters={handleResetFilters}
           totalFilteredCount={totalStocks}
+          isLoading={loadingStocks}
         />
 
         {/* 5. Screener Listings (Table or Cards View) */}
         {loadingStocks ? (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-16 text-center shadow-xl mb-6">
-            <Loader2 className="w-8 h-8 animate-spin text-sky-400 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-slate-200">Loading {selectedCountry} equities...</h3>
-            <p className="text-xs text-slate-500 mt-1">Screening against AAOIFI balance-sheet debt and liquidity thresholds</p>
+          <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm mb-6 transition-colors">
+            <div className="p-6 md:p-8 text-center border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 mb-3">
+                <Loader2 className="w-5 h-5 animate-spin" />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Loading {selectedCountry} equities...
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+                Screening real-time market data against AAOIFI balance-sheet debt and liquidity thresholds
+              </p>
+            </div>
+            {/* Shimmer Skeleton Rows */}
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/80 p-4 space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-4 py-2 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-800 shrink-0" />
+                    <div className="space-y-1.5">
+                      <div className="w-24 h-3.5 bg-slate-200 dark:bg-slate-800 rounded" />
+                      <div className="w-36 h-2.5 bg-slate-100 dark:bg-slate-850 rounded" />
+                    </div>
+                  </div>
+                  <div className="hidden md:block w-24 h-3 bg-slate-100 dark:bg-slate-850 rounded" />
+                  <div className="w-16 h-3 bg-slate-200 dark:bg-slate-800 rounded" />
+                  <div className="w-20 h-6 rounded-full bg-slate-100 dark:bg-slate-850" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : viewMode === 'table' ? (
           <StockTableView
@@ -392,17 +418,17 @@ export default function StocksPage() {
 
         {/* 6. Pagination Bar */}
         {totalPages > 1 && (
-          <div className="bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between text-xs text-slate-400 mb-6 shadow-md">
+          <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 mb-6 shadow-sm transition-colors">
             <div>
-              Page <strong className="text-slate-100">{page}</strong> of{' '}
-              <strong className="text-slate-100">{totalPages}</strong> (Total {totalStocks.toLocaleString()} companies)
+              Page <strong className="text-slate-900 dark:text-slate-100">{page}</strong> of{' '}
+              <strong className="text-slate-900 dark:text-slate-100">{totalPages}</strong> (Total {totalStocks.toLocaleString()} companies)
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-semibold flex items-center gap-1 transition-colors"
+                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1 transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 Previous
@@ -410,7 +436,7 @@ export default function StocksPage() {
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-950 border border-slate-800 rounded-lg text-slate-300 font-semibold flex items-center gap-1 transition-colors"
+                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1 transition-colors"
               >
                 Next
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -420,26 +446,26 @@ export default function StocksPage() {
         )}
 
         {/* 7. Pro Trader Educational Context Banner */}
-        <div className="mt-8 bg-slate-900/60 border border-slate-800 rounded-xl p-5">
-          <h3 className="text-sm font-bold text-slate-200 mb-2 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-sky-400" />
+        <div className="mt-8 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-5 transition-colors">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200 mb-2 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-sky-600 dark:text-sky-400" />
             Understanding Multi-Market Shariah Screening (AAOIFI Standard 21)
           </h3>
-          <p className="text-xs text-slate-400 leading-relaxed mb-3">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
             Whether investing in Indian (NSE), Saudi (Tadawul), UAE (ADX/DFM), or Japanese (TSE) markets, AAOIFI screening provides a universal safety standard. Companies qualifying as Halal maintain strict balance-sheet discipline, reducing credit and default risk while barring speculative leverage.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-              <span className="font-semibold text-slate-200 block mb-0.5">1. Ethical Core Business</span>
-              <span className="text-slate-400">Companies must not engage in alcohol, gambling, weapons, predatory debt, or impermissible activities.</span>
+            <div className="bg-white dark:bg-slate-950/80 p-3 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="font-semibold text-slate-900 dark:text-slate-200 block mb-0.5">1. Ethical Core Business</span>
+              <span className="text-slate-600 dark:text-slate-400">Companies must not engage in alcohol, gambling, weapons, predatory debt, or impermissible activities.</span>
             </div>
-            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-              <span className="font-semibold text-slate-200 block mb-0.5">2. Debt &lt; 33% Threshold</span>
-              <span className="text-slate-400">Total interest-bearing debt divided by market cap must not exceed 33%, guarding against over-leverage.</span>
+            <div className="bg-white dark:bg-slate-950/80 p-3 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="font-semibold text-slate-900 dark:text-slate-200 block mb-0.5">2. Debt &lt; 33% Threshold</span>
+              <span className="text-slate-600 dark:text-slate-400">Total interest-bearing debt divided by market cap must not exceed 33%, guarding against over-leverage.</span>
             </div>
-            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
-              <span className="font-semibold text-slate-200 block mb-0.5">3. Multi-Currency Native</span>
-              <span className="text-slate-400">Valuations and financial statements reflect native exchange currencies: INR (₹), SAR (﷼), AED (د.إ), and JPY (¥).</span>
+            <div className="bg-white dark:bg-slate-950/80 p-3 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
+              <span className="font-semibold text-slate-900 dark:text-slate-200 block mb-0.5">3. Multi-Currency Native</span>
+              <span className="text-slate-600 dark:text-slate-400">Valuations and financial statements reflect native exchange currencies: INR (₹), SAR (﷼), AED (د.إ), and JPY (¥).</span>
             </div>
           </div>
         </div>

@@ -32,38 +32,38 @@ export default function DebugPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-canvas py-8 text-body">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+        <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm dark:shadow-xl">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-6">
             Backend Connection Debug
           </h1>
 
           {loading ? (
             <div className="text-center py-8">
-              <div className="text-gray-600">Running tests...</div>
+              <div className="text-slate-600 dark:text-slate-400 font-medium">Running tests...</div>
             </div>
           ) : testResults?.error ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h3 className="font-semibold text-red-900 mb-2">Error</h3>
-              <p className="text-red-700">{testResults.message}</p>
+            <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 rounded-xl p-4">
+              <h3 className="font-semibold text-rose-900 dark:text-rose-200 mb-2">Error</h3>
+              <p className="text-rose-700 dark:text-rose-400 text-sm">{testResults.message}</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Summary */}
               <div
-                className={`p-4 rounded-lg ${
+                className={`p-4 rounded-xl border ${
                   testResults.summary.includes("passed")
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
+                    ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200"
+                    : "bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200"
                 }`}
               >
-                <h2 className="text-lg font-semibold mb-2">
+                <h2 className="text-base md:text-lg font-semibold mb-2">
                   {testResults.summary}
                 </h2>
-                <p className="text-sm">
+                <p className="text-xs md:text-sm">
                   Backend URL:{" "}
-                  <code className="bg-gray-100 px-2 py-1 rounded">
+                  <code className="bg-white/80 dark:bg-slate-950 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 font-mono">
                     {testResults.backend_url}
                   </code>
                 </p>
@@ -71,34 +71,34 @@ export default function DebugPage() {
 
               {/* Test Results */}
               <div>
-                <h3 className="text-xl font-semibold mb-4">Test Results</h3>
+                <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Test Results</h3>
                 <div className="space-y-3">
                   {testResults.tests.map((test: any, idx: number) => (
                     <div
                       key={idx}
-                      className="p-4 border border-gray-200 rounded-lg"
+                      className="p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/40"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-slate-900 dark:text-slate-100 text-sm">
                           {test.test}
                         </span>
                         <span
-                          className={`font-semibold ${
+                          className={`font-semibold text-xs px-2 py-0.5 rounded-full ${
                             test.status.includes("Pass")
-                              ? "text-green-600"
-                              : "text-red-600"
+                              ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30"
+                              : "bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30"
                           }`}
                         >
                           {test.status}
                         </span>
                       </div>
                       {test.value && (
-                        <div className="text-sm text-gray-600">
-                          Value: <code className="bg-gray-100 px-2 py-0.5 rounded">{test.value}</code>
+                        <div className="text-xs text-slate-600 dark:text-slate-400">
+                          Value: <code className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-mono text-slate-800 dark:text-slate-200">{test.value}</code>
                         </div>
                       )}
                       {test.error && (
-                        <div className="text-sm text-red-600 mt-2">
+                        <div className="text-xs text-rose-600 dark:text-rose-400 mt-2">
                           Error: {test.error}
                         </div>
                       )}
@@ -109,22 +109,22 @@ export default function DebugPage() {
 
               {/* Troubleshooting */}
               {!testResults.summary.includes("passed") && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-yellow-900 mb-2">
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-500/30 rounded-xl p-4">
+                  <h3 className="font-semibold text-amber-900 dark:text-amber-200 mb-2 text-sm">
                     Troubleshooting Steps
                   </h3>
-                  <ol className="list-decimal list-inside space-y-2 text-sm text-yellow-800">
+                  <ol className="list-decimal list-inside space-y-2 text-xs md:text-sm text-amber-800 dark:text-amber-300">
                     <li>
                       Ensure your backend API is running on{" "}
-                      <code className="bg-yellow-100 px-1 py-0.5 rounded">
+                      <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">
                         {testResults.backend_url}
                       </code>
                     </li>
                     <li>
-                      Check that <code className="bg-yellow-100 px-1 py-0.5 rounded">.env.local</code> has the correct{" "}
-                      <code className="bg-yellow-100 px-1 py-0.5 rounded">BACKEND_API_URL</code>
+                      Check that <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">.env.local</code> has the correct{" "}
+                      <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">BACKEND_API_URL</code>
                     </li>
-                    <li>Verify the backend endpoint <code className="bg-yellow-100 px-1 py-0.5 rounded">/cities/popular</code> exists</li>
+                    <li>Verify the backend endpoint <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">/cities/popular</code> exists</li>
                     <li>Check CORS settings on your backend</li>
                     <li>Restart both frontend and backend servers</li>
                   </ol>
@@ -134,7 +134,7 @@ export default function DebugPage() {
               {/* Retry Button */}
               <button
                 onClick={runTests}
-                className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                className="w-full px-4 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold text-sm shadow-md shadow-sky-600/20 transition-all cursor-pointer"
               >
                 Run Tests Again
               </button>
@@ -146,15 +146,15 @@ export default function DebugPage() {
         <div className="mt-6 grid grid-cols-2 gap-4">
           <a
             href="/"
-            className="block p-4 bg-white border border-gray-200 rounded-lg text-center hover:border-gray-900 transition-colors"
+            className="block p-4 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl text-center text-slate-800 dark:text-slate-200 hover:border-sky-500 font-semibold text-sm transition-all shadow-xs"
           >
-            ← Back to Homepage
+            &larr; Back to Homepage
           </a>
           <a
             href="/gold/agra"
-            className="block p-4 bg-white border border-gray-200 rounded-lg text-center hover:border-gray-900 transition-colors"
+            className="block p-4 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl text-center text-slate-800 dark:text-slate-200 hover:border-sky-500 font-semibold text-sm transition-all shadow-xs"
           >
-            Try Gold Page →
+            Try Gold Page &rarr;
           </a>
         </div>
       </div>

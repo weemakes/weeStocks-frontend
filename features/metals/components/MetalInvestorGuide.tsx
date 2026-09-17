@@ -50,72 +50,72 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
   return (
     <div className="space-y-6">
       {/* 1. Investor Guidance & Market Drivers */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
+      <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-xl">
         <div className="flex items-center gap-2 mb-4">
-          <BookOpen className="w-5 h-5 text-sky-400" />
-          <h2 className="text-lg font-bold text-slate-100">
+          <BookOpen className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
             Smart Investor Guide: {isGold ? "Gold" : metal.toUpperCase()} in {cityName}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
           {/* Card 1: Purity & Hallmarking */}
-          <div className="bg-slate-950/70 border border-slate-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center gap-2 text-sky-400 font-bold">
+          <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold">
               <Award className="w-4 h-4" />
               <span>BIS Hallmarking (HUID)</span>
             </div>
-            <p className="text-slate-400 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
               Always verify the 6-digit laser-etched HUID code on the BIS CARE app before buying. Standard hallmarks include:
             </p>
-            <ul className="space-y-1 text-slate-300">
-              <li>• <strong>24K999</strong>: 99.9% Pure Bullion</li>
-              <li>• <strong>22K916</strong>: 91.6% Jewellery Grade</li>
-              <li>• <strong>18K750</strong>: 75.0% Diamond Studded</li>
+            <ul className="space-y-1 text-slate-700 dark:text-slate-300">
+              <li>• <strong className="text-slate-900 dark:text-slate-100">24K999</strong>: 99.9% Pure Bullion</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">22K916</strong>: 91.6% Jewellery Grade</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">18K750</strong>: 75.0% Diamond Studded</li>
             </ul>
           </div>
 
           {/* Card 2: Market Catalysts */}
-          <div className="bg-slate-950/70 border border-slate-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center gap-2 text-amber-400 font-bold">
+          <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold">
               <TrendingUp className="w-4 h-4" />
               <span>Key Macro Price Drivers</span>
             </div>
-            <p className="text-slate-400 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
               Domestic metal rates in India are directly influenced by four core financial factors:
             </p>
-            <ul className="space-y-1 text-slate-300">
-              <li>• <strong>US Federal Reserve Rates</strong> &amp; Dollar Index</li>
-              <li>• <strong>USD / INR Exchange Rate</strong> depreciation</li>
-              <li>• <strong>Customs Import Duty (6%)</strong> &amp; 3% GST</li>
-              <li>• <strong>MCX Futures &amp; Festive Demand</strong></li>
+            <ul className="space-y-1 text-slate-700 dark:text-slate-300">
+              <li>• <strong className="text-slate-900 dark:text-slate-100">US Federal Reserve Rates</strong> &amp; Dollar Index</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">USD / INR Exchange Rate</strong> depreciation</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Customs Import Duty (6%)</strong> &amp; 3% GST</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">MCX Futures &amp; Festive Demand</strong></li>
             </ul>
           </div>
 
           {/* Card 3: Investment Vehicles */}
-          <div className="bg-slate-950/70 border border-slate-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold">
+          <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
               <Scale className="w-4 h-4" />
               <span>Ways to Invest in Precious Metals</span>
             </div>
-            <p className="text-slate-400 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
               Choose the right vehicle according to your financial timeline:
             </p>
-            <ul className="space-y-1 text-slate-300">
-              <li>• <strong>Physical Bullion</strong>: 0% making charges on minted bars</li>
-              <li>• <strong>Gold / Silver ETFs</strong>: Demat liquidity at spot prices</li>
-              <li>• <strong>Sovereign Gold Bonds (SGB)</strong>: 2.5% p.a. + Tax free</li>
-              <li>• <strong>Digital Gold</strong>: Fractional accumulation from ₹1</li>
+            <ul className="space-y-1 text-slate-700 dark:text-slate-300">
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Physical Bullion</strong>: 0% making charges on minted bars</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Gold / Silver ETFs</strong>: Demat liquidity at spot prices</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Sovereign Gold Bonds (SGB)</strong>: 2.5% p.a. + Tax free</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Digital Gold</strong>: Fractional accumulation from ₹1</li>
             </ul>
           </div>
         </div>
       </div>
 
       {/* 2. Frequently Asked Questions (FAQ) */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl">
+      <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-xl">
         <div className="flex items-center gap-2 mb-4">
-          <HelpCircle className="w-5 h-5 text-sky-400" />
-          <h2 className="text-lg font-bold text-slate-100">
+          <HelpCircle className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
             Frequently Asked Questions — {metal.toUpperCase()} in {cityName}
           </h2>
         </div>
@@ -124,13 +124,13 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
           {faqs.map((faq, idx) => (
             <div
               key={idx}
-              className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 transition-colors"
+              className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 transition-colors"
             >
-              <h3 className="text-xs font-bold text-slate-200 mb-1.5 flex items-start gap-2">
-                <span className="text-sky-400 font-extrabold">Q.</span>
+              <h3 className="text-xs font-bold text-slate-900 dark:text-slate-200 mb-1.5 flex items-start gap-2">
+                <span className="text-sky-600 dark:text-sky-400 font-extrabold">Q.</span>
                 <span>{faq.q}</span>
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed pl-4">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed pl-4">
                 {faq.a}
               </p>
             </div>

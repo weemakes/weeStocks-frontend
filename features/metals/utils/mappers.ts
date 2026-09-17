@@ -128,7 +128,7 @@ export function mapLast10Days(
   metal: string,
   cityId: number
 ): MetalLast10Days {
-  console.log("mapLast10Days input:", { response, metal, cityId });
+  // console.log("mapLast10Days input:", { response, metal, cityId });
   
   // For now, return a placeholder structure until we see the actual API response
   return {

@@ -22,10 +22,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full dark scroll-smooth`}>
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-300 antialiased selection:bg-sky-500/20 selection:text-sky-300">
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full scroll-smooth`}>
+      <head><script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('weestox-theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.classList.toggle('dark',d)}catch(e){}})();` }} /></head>
+      <body className="min-h-full flex flex-col bg-canvas text-body antialiased selection:bg-sky-500/20 selection:text-accent">
+        <a className="skip-link" href="#main-content">Skip to content</a>
         <Navigation />
-        <main className="flex-1 pt-[84px] md:pt-[88px]">
+        <main id="main-content" className="flex-1 pt-[76px]">
           {children}
         </main>
         <Footer />

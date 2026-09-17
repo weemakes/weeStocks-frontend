@@ -6,7 +6,8 @@
 /**
  * Format price in Indian Rupees
  */
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | undefined | null): string {
+  if (price === undefined || price === null || isNaN(price)) return '—';
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -17,7 +18,8 @@ export function formatPrice(price: number): string {
 /**
  * Format price without currency symbol
  */
-export function formatPriceValue(price: number): string {
+export function formatPriceValue(price: number | undefined | null): string {
+  if (price === undefined || price === null || isNaN(price)) return '—';
   return new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 0,
   }).format(price);

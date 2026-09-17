@@ -68,7 +68,7 @@ export async function getMetalLast10Days(
       }
     );
 
-    console.log("Last10Days API response:", response);
+    // console.log("Last10Days API response:", response);
 
     return mapLast10Days(response, metal, cityId);
   } catch (error) {

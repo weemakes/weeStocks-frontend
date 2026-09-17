@@ -34,9 +34,9 @@ export default function StockSummaryStrip({
       value: total,
       sublabel: 'Equities Tracked',
       icon: TrendingUp,
-      color: 'text-slate-100',
-      activeBorder: 'border-sky-500 ring-2 ring-sky-500/20 bg-sky-950/20',
-      iconColor: 'text-sky-400',
+      color: 'text-slate-900 dark:text-slate-100',
+      activeBorder: 'border-sky-500 ring-2 ring-sky-500/20 bg-sky-500/10 dark:bg-sky-950/20',
+      iconColor: 'text-sky-600 dark:text-sky-400',
     },
     {
       id: 'compliant' as const,
@@ -44,9 +44,9 @@ export default function StockSummaryStrip({
       value: compliantCount,
       sublabel: `${Math.round((compliantCount / total) * 100)}% of universe`,
       icon: ShieldCheck,
-      color: 'text-emerald-400',
-      activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-950/20',
-      iconColor: 'text-emerald-400',
+      color: 'text-emerald-600 dark:text-emerald-400',
+      activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-500/10 dark:bg-emerald-950/20',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
     },
     {
       id: 'doubtful' as const,
@@ -54,9 +54,9 @@ export default function StockSummaryStrip({
       value: doubtfulCount,
       sublabel: 'Debt ~33% ceiling',
       icon: AlertTriangle,
-      color: 'text-amber-400',
-      activeBorder: 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-950/20',
-      iconColor: 'text-amber-400',
+      color: 'text-amber-600 dark:text-amber-400',
+      activeBorder: 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-500/10 dark:bg-amber-950/20',
+      iconColor: 'text-amber-600 dark:text-amber-400',
     },
     {
       id: 'non_compliant' as const,
@@ -64,9 +64,9 @@ export default function StockSummaryStrip({
       value: nonCompliantCount,
       sublabel: 'Riba / Haram Revenue',
       icon: XCircle,
-      color: 'text-rose-400',
-      activeBorder: 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-950/20',
-      iconColor: 'text-rose-400',
+      color: 'text-rose-600 dark:text-rose-400',
+      activeBorder: 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-500/10 dark:bg-rose-950/20',
+      iconColor: 'text-rose-600 dark:text-rose-400',
     },
     {
       id: 'zero_debt' as const,
@@ -74,9 +74,9 @@ export default function StockSummaryStrip({
       value: zeroDebtCount,
       sublabel: 'Net-cash balance sheet',
       icon: Sparkles,
-      color: 'text-cyan-300',
-      activeBorder: 'border-cyan-500 ring-2 ring-cyan-500/20 bg-cyan-950/20',
-      iconColor: 'text-cyan-400',
+      color: 'text-cyan-600 dark:text-cyan-300',
+      activeBorder: 'border-cyan-500 ring-2 ring-cyan-500/20 bg-cyan-500/10 dark:bg-cyan-950/20',
+      iconColor: 'text-cyan-600 dark:text-cyan-400',
     },
     {
       id: 'metric' as const,
@@ -84,9 +84,9 @@ export default function StockSummaryStrip({
       value: `${avgDebtOfCompliant}%`,
       sublabel: 'Max allowed: 33%',
       icon: Percent,
-      color: 'text-blue-400',
+      color: 'text-sky-600 dark:text-blue-400',
       activeBorder: '',
-      iconColor: 'text-blue-400',
+      iconColor: 'text-sky-600 dark:text-blue-400',
       isStatOnly: true,
     },
   ];
@@ -101,16 +101,16 @@ export default function StockSummaryStrip({
           return (
             <div
               key={card.label}
-              className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-left transition-all"
+              className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-left transition-all shadow-sm"
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-medium text-slate-400">{card.label}</span>
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{card.label}</span>
                 <Icon className={`w-3.5 h-3.5 ${card.iconColor}`} />
               </div>
               <div className={`text-xl font-bold tabular-nums ${card.color}`}>
                 {card.value}
               </div>
-              <div className="text-[11px] text-slate-500 truncate mt-0.5">{card.sublabel}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{card.sublabel}</div>
             </div>
           );
         }
@@ -124,18 +124,18 @@ export default function StockSummaryStrip({
                 onSelectStatus(card.id);
               }
             }}
-            className={`bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-700 hover:bg-slate-850/60 ${
-              isActive ? card.activeBorder : 'border-slate-800'
+            className={`bg-white dark:bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-850/60 shadow-sm ${
+              isActive ? card.activeBorder : 'border-slate-200 dark:border-slate-800'
             }`}
           >
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-slate-400">{card.label}</span>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{card.label}</span>
               <Icon className={`w-3.5 h-3.5 ${card.iconColor}`} />
             </div>
             <div className={`text-xl font-bold tabular-nums ${card.color}`}>
               {card.value}
             </div>
-            <div className="text-[11px] text-slate-500 truncate mt-0.5">{card.sublabel}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{card.sublabel}</div>
           </button>
         );
       })}

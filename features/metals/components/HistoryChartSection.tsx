@@ -102,11 +102,11 @@ export function HistoryChartSection({
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h2 className="text-lg md:text-xl font-bold text-slate-100 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-sky-400" />
+          <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
             Historical Price Trend of {metalConfig.displayName} ({unit})
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Interactive multi-timeframe price chart with live spot movements
           </p>
         </div>
@@ -132,12 +132,12 @@ export function HistoryChartSection({
       {/* Chart */}
       <div className="mt-6">
         {error && chartData.length === 0 ? (
-          <div className="h-80 flex items-center justify-center bg-slate-950/80 border border-slate-800 rounded-xl">
+          <div className="h-80 flex items-center justify-center bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl">
             <div className="text-center px-4">
-              <p className="text-slate-400 text-sm mb-3">{error}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-3">{error}</p>
               <button
                 onClick={fetchChartData}
-                className="px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-xs font-semibold text-sky-400 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 dark:hover:bg-sky-500/25 border border-sky-200 dark:border-sky-500/30 text-xs font-semibold text-sky-700 dark:text-sky-400 transition-colors"
               >
                 Retry Loading
               </button>
