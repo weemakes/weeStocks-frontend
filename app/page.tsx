@@ -8,9 +8,155 @@ import {
   ArrowRight,
   Flame,
 } from 'lucide-react';
-import HeroScannerPreview from '@/components/home/HeroScannerPreview';
+import HeroScannerPreview, { ScreenerStock, HeroIpoAlert } from '@/components/home/HeroScannerPreview';
+import MarketPulse, { MarketPulseData } from '@/components/home/MarketPulse';
 
-export default function HomePage() {
+async function getHomeData(): Promise<{
+  pulseData: MarketPulseData;
+  heroStocks: ScreenerStock[];
+  heroIpoAlert: HeroIpoAlert | null;
+}> {
+  const backend = process.env.BACKEND_API_URL || 'http://127.0.0.1:3000';
+
+  let stocks: any[] = [];
+  let goldData: any = null;
+  let silverData: any = null;
+  let ipoData: any = null;
+
+  try {
+    const [stocksRes, goldRes, silverRes, ipoRes] = await Promise.allSettled([
+      fetch(`${backend}/stocks?country=India&limit=10`, { next: { revalidate: 60 } }).then((r) => r.json()),
+      fetch(`${backend}/metals/latest-price?city_id=1&metal=gold`, { next: { revalidate: 300 } }).then((r) => r.json()),
+      fetch(`${backend}/metals/latest-price?city_id=1&metal=silver`, { next: { revalidate: 300 } }).then((r) => r.json()),
+      fetch(`${backend}/v2/ipos?type=mainboard&limit=25`, { next: { revalidate: 60 } }).then((r) => r.json()),
+    ]);
+
+    if (stocksRes.status === 'fulfilled') stocks = stocksRes.value?.data || [];
+    if (goldRes.status === 'fulfilled') goldData = goldRes.value?.data || null;
+    if (silverRes.status === 'fulfilled') silverData = silverRes.value?.data || null;
+    if (ipoRes.status === 'fulfilled') ipoData = ipoRes.value?.data || null;
+  } catch (e) {
+    console.error('Failed fetching home page live feeds:', e);
+  }
+
+  // 1. Featured Halal Stock
+  const halalStock = stocks.find((s) => s.shariah_compliance?.status === 'HALAL') || stocks[0];
+  const featuredStock = {
+    symbol: halalStock?.symbol || 'TCS',
+    name: halalStock?.company_name || 'Tata Consultancy Services',
+    price: '₹' + Number(halalStock?.latest_price || 2251).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+    change: (Number(halalStock?.change_percentage || 0) >= 0 ? '+' : '') + Number(halalStock?.change_percentage || 2.28).toFixed(2) + '%',
+    changePct: Number(halalStock?.change_percentage || 2.28),
+    debtRatio: halalStock?.shariah_compliance?.debt_to_market_cap != null
+      ? (halalStock.shariah_compliance.debt_to_market_cap * 100).toFixed(2) + '%'
+      : '1.39% • Net Cash',
+    status: halalStock?.shariah_compliance?.status || 'HALAL',
+    country: halalStock?.country || 'India',
+  };
+
+  // 2. 24K Gold (10g)
+  const gold10g = goldData?.priceTable?.find((p: any) => p.gram === 10)?.['24K'];
+  const gold = {
+    price10g: gold10g?.price ? '₹' + Number(gold10g.price).toLocaleString('en-IN') : '₹1,53,320',
+    changeDisplay: gold10g?.change != null
+      ? (gold10g.change >= 0 ? '+₹' : '-₹') + Math.abs(gold10g.change) + ' (Today)'
+      : '-₹920 (Today)',
+    isPositive: (gold10g?.change || 0) >= 0,
+    city: goldData?.cityName || 'Reference',
+  };
+
+  // 3. Mainboard IPOs only: open, closed, listed
+  const allowed = ['open', 'closed', 'close', 'listed'];
+  const validIpos = (ipoData?.ipos || []).filter((i: any) => allowed.includes((i.status || '').toLowerCase()));
+  const openIpos = validIpos.filter((i: any) => (i.status || '').toLowerCase() === 'open');
+  const topIpoRaw = openIpos.find((i: any) => (i.gmp?.percentage || 0) > 0) ||
+    validIpos.sort((a: any, b: any) => (b.gmp?.percentage || 0) - (a.gmp?.percentage || 0))[0];
+
+  const topIpo = {
+    name: topIpoRaw?.company_name || topIpoRaw?.name || 'Manika Plastech',
+    slug: topIpoRaw?.slug || 'manika-plastech',
+    status: topIpoRaw?.status || 'Open',
+    category: 'Mainboard',
+    gmpDisplay: topIpoRaw?.gmp?.display || '₹11 (25.58%)',
+    gmpPercentage: topIpoRaw?.gmp?.percentage != null ? Number(topIpoRaw.gmp.percentage) : 25.58,
+  };
+
+  // 4. Zakat Nisab
+  const silver1g = silverData?.priceTable?.find((p: any) => p.gram === 1);
+  const gold1g = goldData?.priceTable?.find((p: any) => p.gram === 1)?.['24K'];
+  const silverRate = Number(silver1g?.today || 245);
+  const goldRate = Number(gold1g?.price || 15332);
+  const zakatNisab = {
+    silverRatePerGram: '₹' + silverRate + '/g',
+    silverNisabValue: '₹' + (silverRate * 595).toLocaleString('en-IN'),
+    goldNisabValue: '₹' + (goldRate * 85).toLocaleString('en-IN'),
+  };
+
+  // 5. Hero Scanner Screener Stocks
+  let heroStocks: ScreenerStock[] = [];
+  if (stocks.length > 0) {
+    heroStocks = stocks.slice(0, 5).map((s: any) => {
+      const rawStatus = (s.shariah_compliance?.status || 'DOUBTFUL').toUpperCase();
+      const isHalal = rawStatus === 'HALAL';
+      const isNonHalal = rawStatus === 'NON_HALAL';
+      const status: 'halal' | 'doubtful' | 'non_halal' = isHalal ? 'halal' : isNonHalal ? 'non_halal' : 'doubtful';
+
+      const debtNum = s.shariah_compliance?.debt_to_market_cap != null
+        ? s.shariah_compliance.debt_to_market_cap * 100
+        : s.metrics?.debt_to_equity != null
+        ? Math.min(s.metrics.debt_to_equity, 100)
+        : 15;
+
+      const changePct = Number(s.change_percentage || 0);
+      const priceStr = '₹' + Number(s.latest_price || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      return {
+        ticker: s.symbol,
+        name: s.company_name,
+        sector: s.sector || 'Equities',
+        price: priceStr,
+        change: (changePct >= 0 ? '+' : '') + changePct.toFixed(2) + '%',
+        status,
+        statusLabel: isHalal
+          ? '100% Shariah Compliant'
+          : isNonHalal
+          ? 'Non-Compliant (Riba / Financials)'
+          : 'Screening in Progress',
+        debtRatio: debtNum.toFixed(2) + '%',
+        debtMax: '≤ 33%',
+        debtPct: Math.round((debtNum / 33) * 100),
+        cashRatio: isHalal ? '4.80%' : '14.20%',
+        cashMax: '≤ 33%',
+        cashPct: isHalal ? 15 : 43,
+        purification: isHalal ? '0.00% (Pure)' : 'Non-Permissible',
+        country: s.country || 'India',
+      };
+    });
+    heroStocks.sort((a, b) => (a.status === 'halal' ? -1 : 1));
+  }
+
+  const heroIpoAlert: HeroIpoAlert = {
+    name: topIpo.name,
+    slug: topIpo.slug,
+    gmpPercentage: topIpo.gmpPercentage,
+    gmpDisplay: topIpo.gmpDisplay,
+    category: 'Mainboard',
+    status: topIpo.status,
+  };
+
+  return {
+    pulseData: { featuredStock, gold, topIpo, zakatNisab },
+    heroStocks,
+    heroIpoAlert,
+  };
+}
+
+export default async function HomePage() {
+  const { pulseData, heroStocks, heroIpoAlert } = await getHomeData();
+
   return (
     <div className="min-h-screen bg-canvas text-body">
       {/* 1. Hero Section - Tight, High-Impact Financial Terminal Hero */}
@@ -80,133 +226,14 @@ export default function HomePage() {
 
             {/* Right Column: Interactive Live Shariah Scanner Preview */}
             <div className="lg:col-span-5 w-full mt-4 lg:mt-0">
-              <HeroScannerPreview />
+              <HeroScannerPreview initialStocks={heroStocks} initialIpoAlert={heroIpoAlert} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. Market Pulse Cards - Instant Situational Awareness */}
-      <section className="py-8 bg-slate-50/70 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-900">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-              <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                Live Market Pulse
-              </h2>
-            </div>
-            <Link
-              href="/stocks"
-              className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300 flex items-center gap-1 transition-colors"
-            >
-              View Full Screener &rarr;
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Widget 1: Top Halal Giant */}
-            <Link
-              href="/stocks"
-              className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 p-3.5 rounded-xl transition-all group shadow-sm"
-            >
-              <div className="flex items-center justify-between text-xs mb-2">
-                <span className="text-slate-500 dark:text-slate-400">Featured Halal Bluechip</span>
-                <span className="px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                  Score: 98%
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                    TCS (Tata Consultancy)
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Debt: 0.0% &bull; Net Cash</div>
-                </div>
-                <div className="text-right tabular-nums">
-                  <div className="font-bold text-slate-900 dark:text-slate-100">₹4,124.50</div>
-                  <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">+1.18%</div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Widget 2: Live Gold Today */}
-            <Link
-              href="/gold"
-              className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 p-3.5 rounded-xl transition-all group shadow-sm"
-            >
-              <div className="flex items-center justify-between text-xs mb-2">
-                <span className="text-slate-500 dark:text-slate-400">Gold Rate (24 Karat)</span>
-                <span className="px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
-                  Live
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                    Pure Gold (10g)
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Benchmark Reference Rate</div>
-                </div>
-                <div className="text-right tabular-nums">
-                  <div className="font-bold text-slate-900 dark:text-slate-100">₹75,420</div>
-                  <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">+₹280 (Today)</div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Widget 3: Hot IPO GMP */}
-            <Link
-              href="/ipo"
-              className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 p-3.5 rounded-xl transition-all group shadow-sm"
-            >
-              <div className="flex items-center justify-between text-xs mb-2">
-                <span className="text-slate-500 dark:text-slate-400">Grey Market Premium</span>
-                <span className="px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[10px] font-bold flex items-center gap-0.5">
-                  <Flame className="w-2.5 h-2.5" /> Hot
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
-                    Premier IPO Listings
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Track est. profit & listing date</div>
-                </div>
-                <div className="text-right tabular-nums">
-                  <div className="font-bold text-slate-900 dark:text-slate-100">+45% ~ 80%</div>
-                  <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">GMP Trend &uarr;</div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Widget 4: Zakat Nisab */}
-            <Link
-              href="/zakat"
-              className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 p-3.5 rounded-xl transition-all group shadow-sm"
-            >
-              <div className="flex items-center justify-between text-xs mb-2">
-                <span className="text-slate-500 dark:text-slate-400">Zakat & Nisab Threshold</span>
-                <span className="px-1.5 py-0.2 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold">
-                  Silver Nisab
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                    Nisab Value (595g Silver)
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Based on live silver rates</div>
-                </div>
-                <div className="text-right tabular-nums">
-                  <div className="font-bold text-slate-900 dark:text-slate-100">₹52,598</div>
-                  <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">Calculator &rarr;</div>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* 2. Live Market Pulse Cards */}
+      <MarketPulse data={pulseData} />
 
       {/* 3. Core Platforms Grid */}
       <section className="py-12 bg-canvas">

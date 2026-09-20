@@ -60,11 +60,11 @@ export default function StockCountrySelector({
               <span className="text-sm shrink-0">{c.flag}</span>
               <span>{c.country}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-normal ${
-                  isSelected ? 'bg-sky-600/60 text-sky-100' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium ${
+                  isSelected ? 'bg-sky-600/70 text-sky-100' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                {c.exchange}
+                {c.total_companies ? `${c.total_companies} Stocks` : c.exchange}
               </span>
             </button>
           );

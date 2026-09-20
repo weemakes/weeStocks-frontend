@@ -1,20 +1,36 @@
 'use client';
 
-import React from 'react';
-import { Search, LayoutGrid, Table, SlidersHorizontal, RotateCcw } from 'lucide-react';
-import { StockSortField, SortDirection } from '../types';
+import React, { useEffect, useState } from 'react';
+import {
+  Search,
+  LayoutGrid,
+  Table,
+  RotateCcw,
+  Sparkles,
+  ShieldCheck,
+  TrendingUp,
+  Flame,
+  ArrowUpDown,
+  Filter,
+  Check,
+  ChevronDown,
+} from 'lucide-react';
+import { StockFiltersConfig, StockFilterPreset, StockSortOption, StockMarketTier } from '../types';
+import { getFiltersConfig } from '../api';
 
 interface StockFilterBarProps {
+  country: string;
   searchQuery: string;
   onSearchChange: (val: string) => void;
   selectedSector: string;
   onSectorChange: (val: string) => void;
-  selectedMarketCap: string;
-  onMarketCapChange: (val: string) => void;
-  sectors: string[];
-  sortField: StockSortField;
-  sortDirection: SortDirection;
-  onSortChange: (field: StockSortField) => void;
+  selectedMarketTier: string;
+  onMarketTierChange: (val: string) => void;
+  selectedHalalStatus: 'ALL' | 'HALAL' | 'NON_HALAL' | 'DOUBTFUL';
+  onHalalStatusChange: (val: 'ALL' | 'HALAL' | 'NON_HALAL' | 'DOUBTFUL') => void;
+  sortField: string;
+  sortOrder: 'ASC' | 'DESC';
+  onSortChange: (field: string, order?: 'ASC' | 'DESC') => void;
   viewMode: 'table' | 'cards';
   onViewModeChange: (mode: 'table' | 'cards') => void;
   activePreset: string;
@@ -24,25 +40,30 @@ interface StockFilterBarProps {
   isLoading?: boolean;
 }
 
-const PRESET_TABS = [
+const DEFAULT_PRESETS: StockFilterPreset[] = [
   { id: 'all', label: 'All Stocks' },
-  { id: 'nifty50_halal', label: 'Nifty 50 Halal' },
-  { id: 'zero_debt', label: 'Zero Debt' },
-  { id: 'tech', label: 'Tech & IT' },
-  { id: 'pharma', label: 'Pharma & Health' },
-  { id: 'high_purity', label: '95%+ Halal Score' },
+  { id: 'bluechips', label: 'Blue Chips' },
+  { id: 'gainers', label: 'Top Gainers' },
+  { id: 'losers', label: 'Dip Opportunities' },
+  { id: 'most_active', label: 'Most Active' },
+  { id: 'near_52w_high', label: 'Near 52W High' },
+  { id: 'undervalued_growth', label: 'Undervalued PE < 20' },
+  { id: 'high_dividend', label: 'High Dividend > 3%' },
+  { id: 'halal_only', label: '100% Halal' },
 ];
 
 export default function StockFilterBar({
+  country,
   searchQuery,
   onSearchChange,
   selectedSector,
   onSectorChange,
-  selectedMarketCap,
-  onMarketCapChange,
-  sectors,
+  selectedMarketTier,
+  onMarketTierChange,
+  selectedHalalStatus,
+  onHalalStatusChange,
   sortField,
-  sortDirection,
+  sortOrder,
   onSortChange,
   viewMode,
   onViewModeChange,
@@ -52,34 +73,82 @@ export default function StockFilterBar({
   totalFilteredCount,
   isLoading = false,
 }: StockFilterBarProps) {
+  const [config, setConfig] = useState<StockFiltersConfig | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadConfig() {
+      try {
+        const res = await getFiltersConfig(country);
+        if (isMounted && res) {
+          setConfig(res);
+        }
+      } catch (err) {
+        console.error('Failed to load filter config for', country, err);
+      }
+    }
+    loadConfig();
+    return () => {
+      isMounted = false;
+    };
+  }, [country]);
+
+  const presets = config?.presets?.length ? config.presets : DEFAULT_PRESETS;
+  const sectors = config?.sectors || [];
+  const marketTiers = config?.market_tiers || [
+    { id: 'MEGA_CAP', label: 'Mega Cap' },
+    { id: 'LARGE_CAP', label: 'Large Cap' },
+    { id: 'MID_CAP', label: 'Mid Cap' },
+    { id: 'SMALL_CAP', label: 'Small Cap' },
+  ];
+  const sortOptions = config?.sort_options || [
+    { id: 'market_cap', label: 'Market Cap' },
+    { id: 'latest_price', label: 'Price' },
+    { id: 'change_percentage', label: '% Change' },
+    { id: 'volume', label: 'Volume' },
+    { id: 'pe_ratio', label: 'P/E Ratio' },
+  ];
+
+  const hasActiveFilters =
+    Boolean(searchQuery.trim()) ||
+    selectedSector !== 'All' ||
+    selectedMarketTier !== 'All' ||
+    selectedHalalStatus !== 'ALL' ||
+    activePreset !== 'all';
+
   return (
-    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-3 md:p-4 mb-5 shadow-sm space-y-3.5 transition-colors">
-      {/* Top Row: Search + Sort Dropdown + View Mode Switcher */}
-      <div className="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">
-        {/* Search Input with Shortcut badge */}
-        <div className="relative flex-1 max-w-xl">
+    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 md:p-5 mb-6 shadow-sm space-y-4 transition-colors">
+      {/* Row 1: Search + Filters Dropdowns + View Mode Switcher */}
+      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+        {/* Search Input */}
+        <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
-            placeholder="Search by company name, ticker (e.g., TCS, INFY, TITAN) or sector..."
+            placeholder={`Search ${country} equities by ticker, name or sector...`}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-14 py-2 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-all"
+            className="w-full pl-9 pr-14 py-2.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
           />
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded">
-              ⌘K
-            </kbd>
-          </div>
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => onSearchChange('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-medium"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between md:justify-end">
-          {/* Sector Filter */}
+        {/* Dropdowns Row */}
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between lg:justify-end">
+          {/* Sector Dropdown */}
           <select
             value={selectedSector}
             onChange={(e) => onSectorChange(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500"
+            aria-label="Filter by Sector"
+            className="px-3 py-2 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500 transition-colors"
           >
             <option value="All">All Sectors</option>
             {sectors.map((sec) => (
@@ -89,36 +158,78 @@ export default function StockFilterBar({
             ))}
           </select>
 
-          {/* Market Cap Filter */}
+          {/* Market Tier Dropdown */}
           <select
-            value={selectedMarketCap}
-            onChange={(e) => onMarketCapChange(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500"
+            value={selectedMarketTier}
+            onChange={(e) => onMarketTierChange(e.target.value)}
+            aria-label="Filter by Market Tier"
+            className="px-3 py-2 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500 transition-colors"
           >
-            <option value="All">All Market Caps</option>
-            <option value="Large Cap">Large Cap (&gt;₹20k Cr)</option>
-            <option value="Mid Cap">Mid Cap</option>
-            <option value="Small Cap">Small Cap</option>
+            <option value="All">All Tiers</option>
+            {marketTiers.map((tier) => (
+              <option key={tier.id} value={tier.id}>
+                {tier.label}
+              </option>
+            ))}
           </select>
 
-          {/* Reset Filters */}
-          {(searchQuery || selectedSector !== 'All' || selectedMarketCap !== 'All' || activePreset !== 'all') && (
+          {/* Shariah Status Dropdown */}
+          <select
+            value={selectedHalalStatus}
+            onChange={(e) => onHalalStatusChange(e.target.value as any)}
+            aria-label="Filter by Shariah Status"
+            className="px-3 py-2 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500 transition-colors"
+          >
+            <option value="ALL">All Compliance</option>
+            <option value="HALAL">100% Halal</option>
+            <option value="DOUBTFUL">Under Review</option>
+            <option value="NON_HALAL">Non-Compliant</option>
+          </select>
+
+          {/* Sort Option & Direction */}
+          <div className="flex items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 overflow-hidden">
+            <select
+              value={sortField}
+              onChange={(e) => onSortChange(e.target.value, sortOrder)}
+              aria-label="Sort By Field"
+              className="px-2.5 py-2 bg-transparent text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none border-r border-slate-200 dark:border-slate-800"
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
             <button
+              type="button"
+              onClick={() => onSortChange(sortField, sortOrder === 'ASC' ? 'DESC' : 'ASC')}
+              title={`Sorting ${sortOrder === 'ASC' ? 'Ascending' : 'Descending'}. Click to toggle.`}
+              className="p-2 text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Reset Filters Button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
               onClick={onResetFilters}
-              title="Reset all filters"
-              className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Reset all filters to default"
+              className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
           )}
 
-          {/* View Mode Toggle: Table / Cards */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-0.5">
+          {/* View Mode Switcher: Table / Cards */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 shrink-0">
             <button
+              type="button"
               onClick={() => onViewModeChange('table')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === 'table'
-                  ? 'bg-sky-600 text-white shadow-sm'
+                  ? 'bg-sky-600 text-white shadow-xs'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
               title="Table View (Institutional)"
@@ -127,10 +238,11 @@ export default function StockFilterBar({
               <span className="hidden sm:inline">Table</span>
             </button>
             <button
+              type="button"
               onClick={() => onViewModeChange('cards')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 viewMode === 'cards'
-                  ? 'bg-sky-600 text-white shadow-sm'
+                  ? 'bg-sky-600 text-white shadow-xs'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
               title="Cards View"
@@ -142,40 +254,42 @@ export default function StockFilterBar({
         </div>
       </div>
 
-      {/* Bottom Row: Quick Presets (StockeZee-style tabs) + Result Count */}
-      <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
+      {/* Row 2: Dynamic Screener Presets (StockeZee-Style) + Count */}
+      <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-1.5 flex-nowrap shrink-0">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
-            Quick Views:
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-sky-500" />
+            Presets:
           </span>
-          {PRESET_TABS.map((tab) => {
+          {presets.map((tab) => {
             const isActive = activePreset === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => onSelectPreset(tab.id)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                type="button"
+                onClick={() => onSelectPreset(isActive && tab.id !== 'all' ? 'all' : tab.id)}
+                className={`px-3 py-1 rounded-full text-xs whitespace-nowrap transition-all flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/40 shadow-xs font-semibold'
-                    : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-200'
+                    ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/40 shadow-xs font-bold'
+                    : 'bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-200 font-medium'
                 }`}
+                title={tab.description || tab.label}
               >
-                {tab.label}
+                {isActive && <Check className="w-3 h-3 text-sky-500" />}
+                <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="text-xs text-slate-500 dark:text-slate-400 shrink-0 font-medium tabular-nums pl-2">
+        {/* Counter Badge */}
+        <div className="text-xs text-slate-500 dark:text-slate-400 shrink-0 font-medium hidden md:block">
           {isLoading ? (
-            <span className="inline-flex items-center gap-1.5 text-sky-600 dark:text-sky-400 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
-              Screening equities...
-            </span>
+            <span className="animate-pulse">Loading {country} data...</span>
           ) : (
-            <>
-              Showing <span className="text-slate-900 dark:text-slate-100 font-bold">{totalFilteredCount}</span> results
-            </>
+            <span>
+              Showing <strong className="text-slate-900 dark:text-slate-100 font-bold">{totalFilteredCount}</strong> stocks
+            </span>
           )}
         </div>
       </div>

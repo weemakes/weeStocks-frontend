@@ -14,6 +14,38 @@ export function formatCurrencyAmount(amount: number | undefined | null, currency
   return `${currencySymbol}${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 }
 
+export function formatSafeNumber(val: any, decimals = 2, fallback = '—'): string {
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = typeof val === 'number' ? val : parseFloat(String(val));
+  if (isNaN(num)) return fallback;
+  return num.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+export function formatSafePrice(val: any, currencySymbol: string = '', decimals = 2, fallback = '—'): string {
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = typeof val === 'number' ? val : parseFloat(String(val));
+  if (isNaN(num)) return fallback;
+  return `${currencySymbol}${num.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+}
+
+export function formatSafePct(val: any, withPlus = true, fallback = '—'): string {
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = typeof val === 'number' ? val : parseFloat(String(val));
+  if (isNaN(num)) return fallback;
+  const sign = withPlus && num > 0 ? '+' : '';
+  return `${sign}${num.toFixed(2)}%`;
+}
+
+export function formatSafeVolume(val: any, fallback = '—'): string {
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = typeof val === 'number' ? val : parseFloat(String(val));
+  if (isNaN(num)) return fallback;
+  if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(2)}B`;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+  return num.toLocaleString();
+}
+
 export function formatMarketCap(mcap: number | string | undefined | null, country?: string): string {
   if (mcap === undefined || mcap === null || mcap === '') return '–';
   const num = typeof mcap === 'number' ? mcap : parseFloat(String(mcap));
@@ -120,5 +152,7 @@ export function mapBackendStockToStockItem(item: StockListItem, countryCode?: st
     },
     lastUpdated: item.market_date || 'Live',
     isNifty50: item.country === 'India' && mcap >= 500000000000,
+    rawMarketCap: mcap,
+    trader_indicators: item.trader_indicators,
   };
 }

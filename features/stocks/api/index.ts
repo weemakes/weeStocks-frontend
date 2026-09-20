@@ -3,11 +3,13 @@ import type {
   StockListItem,
   StockListResponse,
   StockDetailData,
+  StockMasterDetail,
   StockChartData,
   StockFinancialsData,
   StockHalalAuditData,
   MarketMoverItem,
   MarketOverviewData,
+  StockFiltersConfig,
 } from '../types';
 
 // In browser / client environment, use relative URL to route proxy.
@@ -33,7 +35,6 @@ export async function getAvailableCountries(): Promise<StockCountry[]> {
     return json.data || [];
   } catch (error) {
     console.error('Failed to fetch stock countries:', error);
-    // Fallback list if backend is momentarily unreachable
     return [
       {
         country: 'India',
@@ -42,7 +43,7 @@ export async function getAvailableCountries(): Promise<StockCountry[]> {
         exchange: 'NSE',
         currency: 'INR',
         currency_symbol: '₹',
-        total_companies: 2169,
+        total_companies: 2414,
         is_active: true,
       },
       {
@@ -85,8 +86,10 @@ export interface StockListParams {
   sector?: string;
   industry?: string;
   search?: string;
+  q?: string;
+  preset?: string;
   halal_status?: 'ALL' | 'HALAL' | 'NON_HALAL' | 'DOUBTFUL';
-  sort_by?: 'market_cap' | 'pe_ratio' | 'price' | 'volume' | 'symbol' | 'company_name';
+  sort_by?: string;
   sort_order?: 'ASC' | 'DESC';
   page?: number;
   limit?: number;
@@ -102,7 +105,9 @@ export async function getStocksList(params: StockListParams = {}): Promise<Stock
   if (params.exchange && params.exchange !== 'All') p.set('exchange', params.exchange);
   if (params.sector && params.sector !== 'All') p.set('sector', params.sector);
   if (params.industry && params.industry !== 'All') p.set('industry', params.industry);
+  if (params.preset && params.preset !== 'all') p.set('preset', params.preset);
   if (params.search && params.search.trim()) p.set('search', params.search.trim());
+  if (params.q && params.q.trim()) p.set('q', params.q.trim());
   if (params.halal_status && params.halal_status !== 'ALL') p.set('halal_status', params.halal_status);
   if (params.sort_by) p.set('sort_by', params.sort_by);
   if (params.sort_order) p.set('sort_order', params.sort_order);
@@ -116,10 +121,10 @@ export async function getStocksList(params: StockListParams = {}): Promise<Stock
 }
 
 /**
- * 3. Fetch Single Stock Details & Profile
+ * 3. Fetch Single Stock Details & Profile (Master 14 Institutional Sections)
  * GET /stocks/:identifier
  */
-export async function getStockDetail(identifier: string, country?: string): Promise<StockDetailData | null> {
+export async function getStockDetail(identifier: string, country?: string): Promise<StockMasterDetail | null> {
   try {
     const p = new URLSearchParams();
     if (country) p.set('country', country);
@@ -131,6 +136,23 @@ export async function getStockDetail(identifier: string, country?: string): Prom
     return json.data || null;
   } catch (error) {
     console.error(`Failed to fetch stock detail for ${identifier}:`, error);
+    return null;
+  }
+}
+
+/**
+ * 4. Fetch Dynamic Filter Presets & Dropdown Configurations
+ * GET /stocks/filters/config
+ */
+export async function getFiltersConfig(country: string = 'India'): Promise<StockFiltersConfig | null> {
+  try {
+    const url = `${getBaseUrl()}/filters/config?country=${encodeURIComponent(country)}`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return json.data || null;
+  } catch (error) {
+    console.error(`Failed to fetch filter config for ${country}:`, error);
     return null;
   }
 }

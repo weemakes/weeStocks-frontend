@@ -48,6 +48,18 @@ export interface StockItem {
   fundamentals: FundamentalMetrics;
   lastUpdated: string;
   isNifty50?: boolean;
+  rawMarketCap?: number;
+  trader_indicators?: {
+    market_tier?: string;
+    rank_in_country?: number;
+    is_top_ten?: boolean;
+    range_52w_position?: number | null;
+    distance_52w_high_pct?: number | null;
+    distance_52w_low_pct?: number | null;
+    delivery_pct?: number | null;
+    momentum_status?: string;
+    cpr_nature?: string | null;
+  };
 }
 
 export type StockSortField = 
@@ -94,6 +106,17 @@ export interface StockListItem {
   change_percentage: number;
   volume: number;
   market_date?: string;
+  trader_indicators?: {
+    market_tier?: string;
+    rank_in_country?: number;
+    is_top_ten?: boolean;
+    range_52w_position?: number | null;
+    distance_52w_high_pct?: number | null;
+    distance_52w_low_pct?: number | null;
+    delivery_pct?: number | null;
+    momentum_status?: string;
+    cpr_nature?: string | null;
+  };
   metrics?: {
     market_cap?: number;
     pe_ratio?: number;
@@ -104,13 +127,193 @@ export interface StockListItem {
     fifty_two_week_low?: number;
   };
   shariah_compliance?: {
-    status: 'HALAL' | 'NON_HALAL' | 'DOUBTFUL';
+    status: 'HALAL' | 'NON_HALAL' | 'DOUBTFUL' | 'PASS' | 'FAIL';
+    score?: number;
     is_sector_compliant?: boolean;
     is_debt_compliant?: boolean;
     debt_to_market_cap?: number;
     methodology?: string;
-    notes?: string[];
+    notes?: string[] | string;
   };
+}
+
+export interface StockFilterPreset {
+  id: string;
+  label: string;
+  description?: string;
+  category?: string;
+  icon?: string;
+}
+
+export interface StockSortOption {
+  id: string;
+  label: string;
+  default_order?: 'ASC' | 'DESC';
+}
+
+export interface StockMarketTier {
+  id: string;
+  label: string;
+}
+
+export interface StockFiltersConfig {
+  country: string;
+  presets: StockFilterPreset[];
+  sort_options: StockSortOption[];
+  market_tiers: StockMarketTier[];
+  sectors: string[];
+}
+
+export interface StockMasterDetail {
+  trader_insights: {
+    market_tier: string;
+    rank_in_country: number;
+    is_top_ten: boolean;
+    momentum_status: string;
+    range_52w_position: number;
+    distance_52w_high_pct: number;
+    distance_52w_low_pct: number;
+    cpr_nature?: string | null;
+  };
+  company: {
+    id: string;
+    symbol: string;
+    name: string;
+    country: string;
+    exchange: string;
+    currency: string;
+    sector: string;
+    industry: string;
+    sub_industry?: string;
+    website?: string;
+    logo_url?: string;
+    description?: string;
+  };
+  quote: {
+    price: number;
+    previous_close: number;
+    change: number;
+    change_percentage: number;
+    day_high: number;
+    day_low: number;
+    volume: number;
+    date?: string;
+  };
+  metrics: {
+    market_cap: number;
+    enterprise_value?: number;
+    pe_ratio?: number;
+    forward_pe?: number;
+    price_to_book?: number;
+    peg_ratio?: number;
+    eps?: number;
+    forward_eps?: number;
+    roe?: number;
+    roa?: number;
+    roce?: number;
+    debt_to_equity?: number;
+    dividend_yield?: number;
+    face_value?: number;
+    fifty_two_week_high?: number;
+    fifty_two_week_low?: number;
+  };
+  scores: {
+    overall: number;
+    valuation: number;
+    profitability: number;
+    financial_health: number;
+  };
+  flags: {
+    green_flags: string[];
+    red_flags: string[];
+  };
+  thesis: {
+    bull_case: string[];
+    bear_case: string[];
+    flip_conditions: string[];
+  };
+  technicals: {
+    reference_date?: string;
+    current_price?: number;
+    classical_pivots?: {
+      pivot: number;
+      r1: number;
+      r2: number;
+      r3: number;
+      s1: number;
+      s2: number;
+      s3: number;
+    };
+    cpr?: {
+      tc: number;
+      pivot: number;
+      bc: number;
+      nature?: string;
+    };
+    moving_averages?: Record<string, number>;
+  };
+  delivery_conviction?: Array<{
+    date: string;
+    delivery_percentage: number;
+    traded_quantity: number;
+    delivery_quantity: number;
+  }>;
+  quarterly_financials?: Array<{
+    fiscal_year: number;
+    fiscal_quarter: number;
+    revenue: number;
+    operating_income?: number;
+    ebitda?: number;
+    net_income: number;
+    diluted_eps?: number;
+  }>;
+  annual_financials?: Array<{
+    fiscal_year: number;
+    revenue: number;
+    operating_income?: number;
+    ebitda?: number;
+    net_income: number;
+    diluted_eps?: number;
+    total_assets?: number;
+    total_debt?: number;
+    free_cash_flow?: number;
+  }>;
+  shareholding_pattern?: Array<{
+    quarter: string;
+    promoter: number;
+    fii: number;
+    dii: number;
+    public: number;
+    pledged?: number;
+  }>;
+  peers?: Array<{
+    symbol: string;
+    company_name: string;
+    market_cap: number;
+    pe_ratio?: number;
+    price_to_book?: number;
+    roe?: number;
+    roce?: number;
+  }>;
+  shariah_compliance: {
+    status: string;
+    score?: number;
+    is_sector_compliant?: boolean;
+    is_debt_compliant?: boolean;
+    is_cash_compliant?: boolean;
+    debt_to_market_cap?: number;
+    cash_to_market_cap?: number;
+    methodology?: string;
+    notes?: string | string[];
+  };
+  chart: Array<{
+    date: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  }>;
 }
 
 export interface StockListResponse {
@@ -274,16 +477,20 @@ export interface MarketMoverItem {
   date?: string;
 }
 
+export interface MarketSectorOverview {
+  sector: string;
+  count: number | string;
+  percentage?: number | string;
+}
+
 export interface MarketOverviewData {
   country: string;
-  summary: Array<{
+  total_stocks?: number | string;
+  summary?: Array<{
     country: string;
-    total_companies: number;
-    companies_with_isin?: number;
-    companies_with_sector?: number;
+    total_companies: number | string;
+    companies_with_isin?: number | string;
+    companies_with_sector?: number | string;
   }>;
-  top_sectors: Array<{
-    sector: string;
-    count: number;
-  }>;
+  top_sectors: MarketSectorOverview[];
 }
