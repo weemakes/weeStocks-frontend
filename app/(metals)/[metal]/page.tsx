@@ -4,7 +4,7 @@
  * Route: /gold, /silver, /platinum
  */
 
-import { redirect, notFound } from "next/navigation";
+import { permanentRedirect, notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getPopularCities } from "@/features/metals/api";
 import { METAL_CONFIG, type Metal } from "@/features/metals/types";
@@ -30,9 +30,17 @@ export async function generateMetadata({
     };
   }
 
+  const metalName = metalConfig.displayName;
+  const purityCopy = metal === "gold" ? "24K, 22K and 18K" : "1g, 10g and 1kg";
+  const title = `${metalName} Price Today in India — ${purityCopy} Rates | WeeStox`;
+  const description = `Check today's ${metalName.toLowerCase()} prices across major Indian cities, with per-gram rates, recent history and city comparisons.`;
+
   return {
-    title: `${metalConfig.displayName} Price Today in India — Live 24K, 22K, 18K Rates | WeeStox`,
-    description: `Check today's live ${metalConfig.displayName.toLowerCase()} prices across major Indian cities. Real-time spot rates, multi-city comparison, and intraday charts on WeeStox.`,
+    title,
+    description,
+    alternates: { canonical: `/${metal}` },
+    openGraph: { type: "website", url: `/${metal}`, siteName: "WeeStox", title, description },
+    twitter: { card: "summary", title, description },
   };
 }
 
@@ -53,7 +61,7 @@ export default async function MetalPage({ params }: MetalPageProps) {
   // If we have popular cities, redirect to the capital / top city (e.g. delhi)
   if (popularCities && popularCities.length > 0) {
     const capitalCity = popularCities.find((c) => c.slug === "delhi") || popularCities[0];
-    redirect(`/${metal}/${capitalCity.slug}`);
+    permanentRedirect(`/${metal}/${capitalCity.slug}`);
   }
 
   // Fallback: show city selection page in dark theme

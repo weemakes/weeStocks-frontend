@@ -130,6 +130,7 @@ export default function StockDetailModal({ stock, onClose, onSelectStock }: Stoc
             </div>
           ) : (
             <StockDetailContent
+              key={detail.company.symbol}
               detail={detail}
               onSelectPeer={(sym) => setCurrentSymbol(sym)}
             />

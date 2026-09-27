@@ -21,8 +21,6 @@ import {
   Phone,
   Mail,
   Globe,
-  Flame,
-  Star,
   Layers,
   BarChart3,
   Scale,
@@ -33,7 +31,7 @@ import {
   BookOpen,
   ChevronRight,
 } from 'lucide-react';
-import { getIPODetail } from '@/features/ipo/api';
+import { getIPODetail, getIPOGmpHistory } from '@/features/ipo/api';
 import type { Metadata } from 'next';
 import { IPODetailData } from '@/features/ipo/types';
 import {
@@ -41,6 +39,7 @@ import {
   SubscriptionTabsSection,
   StrengthsRisksSection,
   GMPDisclaimer,
+  GMPHistorySection,
 } from '@/features/ipo/components';
 
 interface IPODetailPageProps {
@@ -49,14 +48,39 @@ interface IPODetailPageProps {
   }>;
 }
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
+
 export async function generateMetadata({ params }: IPODetailPageProps): Promise<Metadata> {
   const { companyName } = await params;
   const decodedSlug = decodeURIComponent(companyName);
+  const canonical = `/ipo/${encodeURIComponent(decodedSlug)}`;
 
-  return {
-    title: `${decodedSlug.replace(/-/g, ' ').toUpperCase()} IPO - GMP Today, Dates, Lot Size, Anchor & Financials | WeeStox`,
-    description: `Complete Chittorgarh-style IPO details for ${decodedSlug}: Live Grey Market Premium (GMP), timetable, lot sizes, anchor allocation, multi-year financials, documents and Shariah audit.`,
-  };
+  try {
+    const { data } = await getIPODetail(decodedSlug);
+    const name = data.profile.company_name;
+    const gmp = data.gmp?.display || `₹${data.gmp?.value ?? 0}`;
+    const description = `${name} IPO GMP is ${gmp}. Check price band, lot size, subscription, allotment status, listing date, financials and Shariah screening.`;
+    return {
+      title: `${name} IPO GMP Today, Allotment, Dates & Review | WeeStox`,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        type: 'article',
+        url: canonical,
+        title: `${name} IPO GMP Today & Allotment Status`,
+        description,
+        images: data.profile.logo_url ? [{ url: data.profile.logo_url, alt: `${name} logo` }] : undefined,
+      },
+      twitter: { card: 'summary', title: `${name} IPO GMP Today`, description },
+    };
+  } catch {
+    const name = decodedSlug.replace(/-/g, ' ');
+    return {
+      title: `${name} IPO GMP Today, Dates & Allotment | WeeStox`,
+      description: `Check ${name} IPO GMP, dates, price band, lot size, subscription and allotment status.`,
+      alternates: { canonical },
+    };
+  }
 }
 
 function formatDate(dateStr: string | null | undefined) {
@@ -115,7 +139,10 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
   const decodedSlug = decodeURIComponent(companyName);
 
   try {
-    const response = await getIPODetail(decodedSlug);
+    const [response, historyResponse] = await Promise.all([
+      getIPODetail(decodedSlug),
+      getIPOGmpHistory(decodedSlug).catch(() => null),
+    ]);
     const data: IPODetailData = response.data;
 
     if (!data || !data.profile) {
@@ -144,6 +171,8 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
       peer_comparison,
       anchor_investor,
       halal_screening,
+      is_allotment_out,
+      allotment_declared_at,
     } = data;
 
     const isSme = profile.type?.toLowerCase().includes('sme');
@@ -159,6 +188,29 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
     let sHniMaxLots = Math.max(sHniMinLots, Math.floor(1000000 / (lotSize * upperPrice)));
     const bHniMinLots = sHniMaxLots + 1;
 
+    const canonicalUrl = `${SITE_URL}/ipo/${encodeURIComponent(profile.slug)}`;
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'FinancialProduct',
+          name: `${profile.company_name} IPO`,
+          url: canonicalUrl,
+          description: profile.ipo_summary || `${profile.company_name} IPO details, GMP, allotment and subscription status.`,
+          image: profile.logo_url || undefined,
+          provider: { '@type': 'Organization', name: profile.company_name, url: profile.website || undefined },
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+            { '@type': 'ListItem', position: 2, name: 'IPOs', item: `${SITE_URL}/ipo` },
+            { '@type': 'ListItem', position: 3, name: `${profile.company_name} IPO`, item: canonicalUrl },
+          ],
+        },
+      ],
+    };
+
     // Deduplicate subscription categories
     const uniqueSubscriptions = subscriptions
       ? Array.from(new Map(subscriptions.map((item) => [item.category, item])).values())
@@ -171,61 +223,12 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
       ? Math.round((issue_details.total_issue_amount_cr * 10000000) / upperPrice)
       : null;
 
-    // Synthesize historical Day-wise market data if not already array
-    const baseSnapshot = gmp?.snapshot_date ? new Date(gmp.snapshot_date) : new Date();
-    const marketDataHistory = [
-      {
-        id: 'day-1',
-        date: gmp?.snapshot_date || '2026-09-09',
-        price: upperPrice,
-        gmp_value: gmp?.value ?? 143,
-        gmp_pct: gmp?.percentage ?? 35.4,
-        subscription: gmp?.subscription_display || `${gmp?.subscription_times ?? 1.42}x`,
-        est_listing: estimates?.est_listing ?? upperPrice + (gmp?.value ?? 143),
-        est_profit: estimates?.est_profit_per_lot ?? (gmp?.value ?? 143) * lotSize,
-        updated_on: gmp?.updated_on || '9-Sep 21:58',
-        trend: 'up' as const,
-      },
-      {
-        id: 'day-2',
-        date: new Date(baseSnapshot.getTime() - 86400000).toISOString().split('T')[0],
-        price: upperPrice,
-        gmp_value: gmp?.previous ?? 79,
-        gmp_pct: upperPrice ? Number((((gmp?.previous ?? 79) / upperPrice) * 100).toFixed(1)) : 19.5,
-        subscription: '0.62x',
-        est_listing: upperPrice + (gmp?.previous ?? 79),
-        est_profit: (gmp?.previous ?? 79) * lotSize,
-        updated_on: '8-Sep 23:30',
-        trend: 'up' as const,
-      },
-      {
-        id: 'day-3',
-        date: new Date(baseSnapshot.getTime() - 86400000 * 2).toISOString().split('T')[0],
-        price: upperPrice,
-        gmp_value: Math.round((gmp?.previous ?? 79) * 0.7),
-        gmp_pct: upperPrice ? Number(((((gmp?.previous ?? 79) * 0.7) / upperPrice) * 100).toFixed(1)) : 13.6,
-        subscription: '–',
-        est_listing: upperPrice + Math.round((gmp?.previous ?? 79) * 0.7),
-        est_profit: Math.round((gmp?.previous ?? 79) * 0.7) * lotSize,
-        updated_on: '7-Sep 22:00',
-        trend: 'neutral' as const,
-      },
-      {
-        id: 'day-4',
-        date: new Date(baseSnapshot.getTime() - 86400000 * 3).toISOString().split('T')[0],
-        price: upperPrice,
-        gmp_value: Math.round((gmp?.previous ?? 79) * 0.5),
-        gmp_pct: upperPrice ? Number(((((gmp?.previous ?? 79) * 0.5) / upperPrice) * 100).toFixed(1)) : 9.8,
-        subscription: '–',
-        est_listing: upperPrice + Math.round((gmp?.previous ?? 79) * 0.5),
-        est_profit: Math.round((gmp?.previous ?? 79) * 0.5) * lotSize,
-        updated_on: '6-Sep 20:30',
-        trend: 'neutral' as const,
-      },
-    ];
-
     return (
       <div className="bg-canvas min-h-screen py-6 md:py-8 pb-8 text-body">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
         <div className="container mx-auto">
           {/* Breadcrumb Navigation */}
           <div className="flex items-center justify-between gap-4 mb-3 text-xs text-slate-500 dark:text-slate-400">
@@ -251,6 +254,10 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                   <img
                     src={profile.logo_url}
                     alt={profile.company_name}
+                    width={64}
+                    height={64}
+                    fetchPriority="high"
+                    decoding="async"
                     className="w-16 h-16 rounded-xl object-contain bg-white p-1 border border-slate-200 dark:border-slate-700 shrink-0"
                   />
                 ) : (
@@ -287,8 +294,51 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                 </div>
               </div>
 
-              {/* Minimal Clean Action Link (All documents organized in dedicated section below) */}
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex w-full flex-col gap-2.5 sm:w-auto lg:min-w-[250px] lg:items-end">
+                <div
+                  className={`flex w-full items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 lg:w-[250px] ${
+                    is_allotment_out
+                      ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-500/40 dark:bg-emerald-500/15'
+                      : 'border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <span className="mb-0.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Allotment status
+                    </span>
+                    <span
+                      className={`flex items-center gap-1.5 text-sm font-extrabold ${
+                        is_allotment_out
+                          ? 'text-emerald-700 dark:text-emerald-300'
+                          : 'text-amber-700 dark:text-amber-300'
+                      }`}
+                    >
+                      {is_allotment_out ? (
+                        <><CheckCircle2 className="h-4 w-4 shrink-0" /> Allotment is out</>
+                      ) : (
+                        <><Clock className="h-4 w-4 shrink-0" /> Not declared yet</>
+                      )}
+                    </span>
+                    {is_allotment_out && allotment_declared_at && (
+                      <span className="mt-0.5 block text-[10px] text-emerald-700/80 dark:text-emerald-300/80">
+                        Declared {formatDate(allotment_declared_at)}
+                      </span>
+                    )}
+                  </div>
+                  {is_allotment_out && registrar?.website && (
+                    <a
+                      href={registrar.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-emerald-700"
+                    >
+                      Check <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+
+                {/* Minimal Clean Action Links */}
+                <div className="flex items-center gap-2.5">
                 {profile.website && (
                   <a
                     href={profile.website}
@@ -307,6 +357,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                   <FileText className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
                   <span>View All Documents &darr;</span>
                 </a>
+                </div>
               </div>
             </div>
 
@@ -409,6 +460,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
           </div>
 
           <div className="space-y-6">
+            <GMPHistorySection slug={profile.slug} companyName={profile.company_name} rating={gmp?.rating ?? 1} data={historyResponse?.data ?? null} />
             {/* ========================================================================= */}
             {/* ROW 1: TWO TABLES SIDE-BY-SIDE (Chittorgarh Style)                        */}
             {/* Left: IPO Details | Right: IPO Timeline (Timetable)                       */}
@@ -879,82 +931,6 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
               companyName={profile.company_name}
               brokerReviews={broker_reviews}
             />
-
-            {/* ========================================================================= */}
-            {/* FULL WIDTH: Day-wise Market Data & GMP Trend (With Year - User Requested) */}
-            {/* ========================================================================= */}
-            <section id="market-data" className="scroll-mt-28 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-lg">
-              <div className="flex items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Flame className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                  <div>
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                      {profile.company_name} IPO GMP &amp; Day-wise Market Trend
-                    </h2>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      Day-by-day historical grey market premium rates with full date and year
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline">Trend Rating:</span>
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-500/15 border border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-500 dark:fill-amber-400 text-amber-500 dark:text-amber-400" />
-                    {gmp?.rating ?? 4}/5 Rating
-                  </span>
-                </div>
-              </div>
-
-              <GMPDisclaimer className="mb-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800" />
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-200 dark:divide-slate-800">
-                  <thead className="bg-slate-50 dark:bg-slate-950 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">
-                    <tr>
-                      <th className="py-2.5 px-4">GMP Date (Year)</th>
-                      <th className="py-2.5 px-4 text-right">IPO Price</th>
-                      <th className="py-2.5 px-4 text-right">GMP (₹)</th>
-                      <th className="py-2.5 px-4 text-center">Sub</th>
-                      <th className="py-2.5 px-4 text-right">Est. Listing Price</th>
-                      <th className="py-2.5 px-4 text-right">Est. Profit / Lot</th>
-                      <th className="py-2.5 px-4 text-center">Last Updated</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
-                    {marketDataHistory.map((item, idx) => (
-                      <tr key={item.id} className={idx === 0 ? 'bg-slate-50 dark:bg-slate-950/60 font-medium' : 'hover:bg-slate-100/60 dark:hover:bg-slate-800/30'}>
-                        {/* GMP Date with Full Year (e.g. 09 Sep 2026) */}
-                        <td className="py-2.5 px-4 font-bold text-slate-800 dark:text-slate-200 tabular-nums">
-                          {formatDate(item.date)}
-                        </td>
-                        <td className="py-2.5 px-4 text-right text-slate-700 dark:text-slate-300 tabular-nums">
-                          ₹{item.price}
-                        </td>
-                        <td className="py-2.5 px-4 text-right tabular-nums">
-                          <div className="inline-flex items-center gap-1">
-                            <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{item.gmp_value}</span>
-                            <span className="text-[11px] text-emerald-700 dark:text-emerald-500 font-semibold">(+{item.gmp_pct}%)</span>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-4 text-center tabular-nums text-slate-700 dark:text-slate-300 font-semibold">
-                          {item.subscription}
-                        </td>
-                        <td className="py-2.5 px-4 text-right tabular-nums text-slate-900 dark:text-slate-100 font-bold">
-                          ₹{item.est_listing}
-                        </td>
-                        <td className="py-2.5 px-4 text-right tabular-nums font-bold text-emerald-600 dark:text-emerald-400">
-                          +₹{item.est_profit.toLocaleString('en-IN')}
-                        </td>
-                        <td className="py-2.5 px-4 text-center text-slate-500 dark:text-slate-400 text-[11px] tabular-nums">
-                          {item.updated_on}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
 
             {/* ========================================================================= */}
             {/* FULL WIDTH: Comprehensive Subscription Tabs & HNI Funding Cost            */}

@@ -257,6 +257,7 @@ export interface StockMasterDetail {
     delivery_percentage: number;
     traded_quantity: number;
     delivery_quantity: number;
+    conviction?: string;
   }>;
   quarterly_financials?: Array<{
     fiscal_year: number;
@@ -280,11 +281,12 @@ export interface StockMasterDetail {
   }>;
   shareholding_pattern?: Array<{
     quarter: string;
-    promoter: number;
-    fii: number;
-    dii: number;
-    public: number;
-    pledged?: number;
+    promoter: number | null;
+    fii: number | null;
+    dii: number | null;
+    public: number | null;
+    pledged?: number | null;
+    num_shareholders?: number | null;
   }>;
   peers?: Array<{
     symbol: string;
@@ -300,7 +302,7 @@ export interface StockMasterDetail {
     score?: number;
     is_sector_compliant?: boolean;
     is_debt_compliant?: boolean;
-    is_cash_compliant?: boolean;
+    is_cash_compliant?: boolean | null;
     debt_to_market_cap?: number;
     cash_to_market_cap?: number;
     methodology?: string;

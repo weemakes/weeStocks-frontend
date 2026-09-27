@@ -5,9 +5,9 @@
  * Complete history chart section with controls
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import dynamic from "next/dynamic";
 import { TrendingUp } from "lucide-react";
-import { HistoryChart } from "./HistoryChart";
 import { HistoryControls } from "./HistoryControls";
 import type {
   Metal,
@@ -17,6 +17,14 @@ import type {
   ChartPoint,
 } from "../types";
 import { METAL_CONFIG, CHART_DURATIONS } from "../types";
+
+const HistoryChart = dynamic(
+  () => import("./HistoryChart").then((module) => module.HistoryChart),
+  {
+    ssr: false,
+    loading: () => <div className="skeleton h-80 rounded-2xl" aria-label="Loading price chart" />,
+  }
+);
 
 interface HistoryChartSectionProps {
   metal: Metal;
@@ -47,20 +55,20 @@ export function HistoryChartSection({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Track initial mount so SSR initialData is used initially,
+  // but ANY subsequent change (including returning to initial settings) triggers an API call
+  const isFirstMount = useRef(true);
+
   const fetchChartData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // In case of platinum, show 9m data by default; even if user selects 1w, 1m, 3m, 6m, query 9m data; 1y will be 1y
-      const effectiveDuration: ChartDuration =
-        metal === "platinum" && duration !== "1y" ? "9m" : duration;
-
       const params = new URLSearchParams({
         metal,
         citySlug,
         unit,
-        duration: effectiveDuration,
+        duration,
       });
 
       // Strictly only append purity for gold
@@ -85,18 +93,15 @@ export function HistoryChartSection({
     }
   }, [metal, citySlug, unit, duration, purity]);
 
-  // Fetch new data when controls change
+  // Fetch new data whenever controls change (including returning to initial duration)
   useEffect(() => {
-    const isInitialState =
-      unit === initialUnit &&
-      duration === initialDuration &&
-      purity === initialPurity &&
-      chartData.length > 0;
-
-    if (!isInitialState) {
-      fetchChartData();
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
     }
-  }, [unit, duration, purity, fetchChartData, initialUnit, initialDuration, initialPurity]);
+
+    fetchChartData();
+  }, [unit, duration, purity, fetchChartData]);
 
   return (
     <div>
@@ -124,7 +129,7 @@ export function HistoryChartSection({
         units={historyUnits}
         selectedUnit={unit}
         onUnitChange={setUnit}
-        durations={CHART_DURATIONS}
+        durations={metal === "platinum" ? ["9m", "1y"] : CHART_DURATIONS}
         selectedDuration={duration}
         onDurationChange={setDuration}
       />
@@ -148,6 +153,7 @@ export function HistoryChartSection({
             data={chartData}
             loading={loading}
             metal={metal}
+            duration={duration}
           />
         )}
       </div>

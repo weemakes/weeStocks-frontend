@@ -2,9 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Calculator, ShieldCheck, Sparkles, AlertCircle, Percent } from "lucide-react";
+import { Calculator, ShieldCheck } from "lucide-react";
 import type { Metal } from "../types";
-import { formatPrice } from "../utils";
 
 interface SmartMetalCalculatorProps {
   metal: Metal;
@@ -31,14 +30,18 @@ export function SmartMetalCalculator({
   const [includeGst, setIncludeGst] = useState<boolean>(true); // 3% GST in India
 
   // Determine active rate per gram
-  const pricePerGram = useMemo(() => {
+  const activeRate = useMemo(() => {
     if (isGold) {
-      return prices[purity] || 15495;
+      return prices[purity];
     }
-    return prices.perGram || (isSilver ? 250 : 5513);
-  }, [isGold, purity, prices, isSilver]);
+    return prices.perGram;
+  }, [isGold, purity, prices]);
 
-  const parsedWeight = parseFloat(weight) || 0;
+  const hasValidRate = Number.isFinite(activeRate) && (activeRate ?? 0) > 0;
+  const pricePerGram = hasValidRate ? activeRate! : 0;
+  const rawWeight = Number(weight);
+  const hasValidWeight = Number.isFinite(rawWeight) && rawWeight > 0;
+  const parsedWeight = hasValidWeight ? rawWeight : 0;
   const metalValue = parsedWeight * pricePerGram;
   const makingChargeAmount = (metalValue * makingChargePct) / 100;
   const subtotal = metalValue + makingChargeAmount;
@@ -46,11 +49,11 @@ export function SmartMetalCalculator({
   const totalPayable = subtotal + gstAmount;
 
   // Nisab calculations (85g 24K gold, 595g silver)
-  const nisabThresholdGrams = isGold ? 85 : isSilver ? 595 : 85;
-  const nisabGoldRate = prices["24K"] || 15495;
-  const nisabSilverRate = prices.perGram || 250;
-  const nisabValueINR = isGold ? 85 * nisabGoldRate : 595 * nisabSilverRate;
-  const isEligibleForZakat = metalValue >= nisabValueINR;
+  const nisabThresholdGrams = isGold ? 85 : 595;
+  const nisabRate = isGold ? prices["24K"] : isSilver ? prices.perGram : undefined;
+  const hasNisabRate = Number.isFinite(nisabRate) && (nisabRate ?? 0) > 0;
+  const nisabValueINR = hasNisabRate ? nisabThresholdGrams * nisabRate! : undefined;
+  const isEligibleForZakat = nisabValueINR !== undefined && metalValue >= nisabValueINR;
 
   const quickWeights = isGold
     ? [
@@ -86,7 +89,7 @@ export function SmartMetalCalculator({
         </div>
 
         <span className="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-          Live Rate: ₹{pricePerGram.toLocaleString("en-IN")}/g
+          {hasValidRate ? `Live Rate: ₹${pricePerGram.toLocaleString("en-IN")}/g` : "Rate unavailable"}
         </span>
       </div>
 
@@ -135,7 +138,7 @@ export function SmartMetalCalculator({
           {/* Weight Input & Quick Chips */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              <label htmlFor="metal-weight" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 Weight in Grams
               </label>
               <span className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -145,6 +148,7 @@ export function SmartMetalCalculator({
 
             <div className="relative mb-2">
               <input
+                id="metal-weight"
                 type="number"
                 inputMode="decimal"
                 min="0.1"
@@ -153,11 +157,18 @@ export function SmartMetalCalculator({
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="Enter weight in grams..."
                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:outline-none focus-visible:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all tabular-nums"
+                aria-invalid={weight !== "" && !hasValidWeight}
+                aria-describedby={weight !== "" && !hasValidWeight ? "metal-weight-error" : undefined}
               />
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                 grams
               </span>
             </div>
+            {weight !== "" && !hasValidWeight && (
+              <p id="metal-weight-error" className="text-xs text-rose-600 dark:text-rose-400 mb-2" role="alert">
+                Enter a weight greater than zero.
+              </p>
+            )}
 
             {/* Quick Weight Chips */}
             <div className="flex flex-wrap gap-1.5">
@@ -239,7 +250,7 @@ export function SmartMetalCalculator({
             </span>
 
             <div className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums tracking-tight mb-4">
-              ₹{Math.round(totalPayable).toLocaleString("en-IN")}
+              {hasValidRate && hasValidWeight ? `₹${Math.round(totalPayable).toLocaleString("en-IN")}` : "—"}
             </div>
 
             {/* Price Line Breakdown (2-Line Financial Layout) */}
@@ -250,7 +261,7 @@ export function SmartMetalCalculator({
                     Base Metal
                   </span>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 block tabular-nums">
-                    {parsedWeight}g @ ₹{pricePerGram.toLocaleString("en-IN")}/g
+                    {hasValidWeight ? parsedWeight : "—"}g @ {hasValidRate ? `₹${pricePerGram.toLocaleString("en-IN")}/g` : "rate unavailable"}
                   </span>
                 </div>
                 <span className="font-bold tabular-nums text-slate-900 dark:text-slate-100 text-sm shrink-0">
@@ -289,13 +300,14 @@ export function SmartMetalCalculator({
           </div>
 
           {/* Shariah Zakat Nisab Check (WeeStox Special Feature) */}
+          {(isGold || isSilver) && (
           <div className="mt-4 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 bg-slate-100/80 dark:bg-slate-900/70 p-3.5 rounded-xl">
             <div className="flex items-center gap-1.5 mb-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
               <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
               <span>Zakat Nisab Benchmark Check</span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
-              Standard Nisab is <strong className="text-slate-800 dark:text-slate-200">{nisabThresholdGrams}g</strong> of pure metal (≈ ₹{Math.round(nisabValueINR).toLocaleString("en-IN")}).
+              Standard Nisab is <strong className="text-slate-800 dark:text-slate-200">{nisabThresholdGrams}g</strong> of pure metal{nisabValueINR !== undefined ? ` (≈ ₹${Math.round(nisabValueINR).toLocaleString("en-IN")})` : ". Current threshold value is unavailable"}.
             </p>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1.5 border-t border-slate-200/60 dark:border-slate-800/60">
               <span
@@ -315,6 +327,7 @@ export function SmartMetalCalculator({
               </Link>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>

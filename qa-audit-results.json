@@ -1,0 +1,253 @@
+{
+  "timestamp": "2026-09-26T10:37:09.913Z",
+  "note": "HTTP elapsed times are local smoke timings, not browser Web Vitals. Fixtures test actual exported source functions.",
+  "sourceProbes": {
+    "normalized10gTo1g": 10000,
+    "normalized1gTo1kg": 100000,
+    "missingPurity": null,
+    "missingCompliance": {
+      "status": "compliant",
+      "score": 100,
+      "low52": 85,
+      "high52": 114.99999999999999
+    },
+    "unknownCompliance": "compliant",
+    "responseBodyDoubleRead": "Body is unusable: Body has already been read"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "ms": 151,
+      "bytes": 104124,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/about",
+      "status": 200,
+      "ms": 123,
+      "bytes": 68496,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/zakat",
+      "status": 200,
+      "ms": 124,
+      "bytes": 61510,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/stocks",
+      "status": 200,
+      "ms": 235,
+      "bytes": 43031,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/stocks/QA-NOT-A-REAL-TICKER",
+      "status": 200,
+      "ms": 229,
+      "bytes": 49374,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": true
+    },
+    {
+      "path": "/ipo",
+      "status": 200,
+      "ms": 712,
+      "bytes": 264381,
+      "location": null,
+      "title": "Live IPO GMP Today &amp; Subscription Status (NSE &amp; BSE) | WeeStox",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/ipo/qa-not-a-real-company",
+      "status": 200,
+      "ms": 123,
+      "bytes": 44510,
+      "location": null,
+      "title": "QA NOT A REAL COMPANY IPO - GMP Today, Dates, Lot Size, Anchor &amp; Financials | WeeStox",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": true
+    },
+    {
+      "path": "/gold",
+      "status": 307,
+      "ms": 193,
+      "bytes": 17420,
+      "location": "/gold/delhi",
+      "title": "Gold Price Today in India — Live 24K, 22K, 18K Rates | WeeStox",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/silver",
+      "status": 307,
+      "ms": 203,
+      "bytes": 17434,
+      "location": "/silver/delhi",
+      "title": "Silver Price Today in India — Live 24K, 22K, 18K Rates | WeeStox",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/platinum",
+      "status": 307,
+      "ms": 66,
+      "bytes": 17448,
+      "location": "/platinum/delhi",
+      "title": "Platinum Price Today in India — Live 24K, 22K, 18K Rates | WeeStox",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/gold/delhi",
+      "status": 200,
+      "ms": 476,
+      "bytes": 166020,
+      "location": null,
+      "title": "Gold Rate Today in Delhi (10g, 1g) - Prices | WeeStox",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/silver/delhi",
+      "status": 200,
+      "ms": 533,
+      "bytes": 152868,
+      "location": null,
+      "title": "Silver Rate Today in Delhi (10g, 1g) - Prices | WeeStox",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/platinum/delhi",
+      "status": 200,
+      "ms": 230,
+      "bytes": 167713,
+      "location": null,
+      "title": "Platinum Rate Today in Delhi (10g, 1g) - Prices | WeeStox",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/gold/qa-not-a-real-city",
+      "status": 200,
+      "ms": 111,
+      "bytes": 51855,
+      "location": null,
+      "title": "City Not Found | WeeStox",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": true,
+      "errorScreen": false
+    },
+    {
+      "path": "/qa-invalid-metal",
+      "status": 404,
+      "ms": 45,
+      "bytes": 17495,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": true,
+      "errorScreen": false
+    },
+    {
+      "path": "/debug",
+      "status": 200,
+      "ms": 66,
+      "bytes": 42861,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 1,
+      "canonical": false,
+      "noindex": false,
+      "errorScreen": false
+    },
+    {
+      "path": "/robots.txt",
+      "status": 404,
+      "ms": 54,
+      "bytes": 17483,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": true,
+      "errorScreen": false
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 404,
+      "ms": 54,
+      "bytes": 17485,
+      "location": null,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 0,
+      "canonical": false,
+      "noindex": true,
+      "errorScreen": false
+    },
+    {
+      "path": "/stocks/TCS?country=India",
+      "status": 200,
+      "ms": 40,
+      "bytes": 49370,
+      "title": "WeeStox | Shariah &amp; Ethical Stock Screener, Live Metals &amp; IPO GMP",
+      "h1Count": 0,
+      "errorScreen": false
+    },
+    {
+      "path": "/ipo/vishal-nirmiti",
+      "status": 200,
+      "ms": 206,
+      "bytes": 155696,
+      "title": "VISHAL NIRMITI IPO - GMP Today, Dates, Lot Size, Anchor &amp; Financials | WeeStox",
+      "h1Count": 1,
+      "errorScreen": false
+    }
+  ]
+}

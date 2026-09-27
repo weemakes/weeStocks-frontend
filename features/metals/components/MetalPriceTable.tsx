@@ -6,7 +6,7 @@
 import type { LatestMetalPrice, Metal } from "../types";
 import { METAL_CONFIG } from "../types";
 import { formatPrice } from "../utils";
-import { Table, Layers, ArrowUp, ArrowDown } from "lucide-react";
+import { Layers, ArrowUp, ArrowDown } from "lucide-react";
 
 interface MetalPriceTableProps {
   data: LatestMetalPrice;
@@ -56,9 +56,9 @@ export function MetalPriceTable({ data }: MetalPriceTableProps) {
       case "1g":
         return "Standard Spot";
       case "8g":
-        return "1 Sovereign (Pavan)";
+        return metalKey === "gold" ? "8 Gram Sovereign (Pavan)" : "8 Gram Reference";
       case "10g":
-        return "1 Tola (Benchmark)";
+        return "10 Gram Benchmark";
       case "100g":
         return "Minted Bullion Bar";
       case "1kg":

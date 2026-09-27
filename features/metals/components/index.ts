@@ -16,3 +16,4 @@ export * from "./GoldCalculator";
 export * from "./SmartMetalCalculator";
 export * from "./CityComparisonTable";
 export * from "./MetalInvestorGuide";
+export * from "./MetalHistorySections";

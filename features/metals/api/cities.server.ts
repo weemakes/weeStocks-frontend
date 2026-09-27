@@ -8,26 +8,28 @@ import { apiRequest, buildQueryString } from "./api-client";
 import type { City, CitySearchParams } from "../types";
 import { ensureCitySlugs, generateSlug } from "../utils";
 
+function readCities(response: unknown): City[] {
+  if (Array.isArray(response)) return response as City[];
+  if (!response || typeof response !== "object" || !("data" in response)) return [];
+
+  const data = response.data;
+  if (Array.isArray(data)) return data as City[];
+  if (data && typeof data === "object" && "cities" in data && Array.isArray(data.cities)) {
+    return data.cities as City[];
+  }
+  return [];
+}
+
 /**
  * Get popular cities
  */
 export async function getPopularCities(): Promise<City[]> {
   try {
-    const response = await apiRequest<any>("/cities/popular", {
+    const response = await apiRequest<unknown>("/cities/popular", {
       revalidate: 3600, // Cache for 1 hour
     });
 
-    // Handle different response structures
-    let cities: City[] = [];
-    
-    if (Array.isArray(response.data?.cities)) {
-      cities = response.data.cities;
-    } else if (Array.isArray(response.data)) {
-      cities = response.data;
-    } else if (Array.isArray(response)) {
-      cities = response;
-    }
-    
+    const cities = readCities(response);
     // Ensure all cities have slugs
     return ensureCitySlugs(cities);
   } catch (error) {
@@ -82,8 +84,9 @@ export const getCityBySlug = cache(async function getCityBySlug(slug: string): P
       return null;
     }
 
-    const city = cities[0];
-    return city ? ensureCitySlugs([city])[0] : null;
+    const normalizedSlug = generateSlug(slug);
+    const normalizedCities = ensureCitySlugs(cities);
+    return normalizedCities.find((city) => city.slug === normalizedSlug) || null;
   } catch (error) {
     console.error(`Error in getCityBySlug for "${slug}":`, error);
     return null;

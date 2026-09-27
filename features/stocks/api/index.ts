@@ -1,8 +1,6 @@
 import type {
   StockCountry,
-  StockListItem,
   StockListResponse,
-  StockDetailData,
   StockMasterDetail,
   StockChartData,
   StockFinancialsData,
@@ -21,6 +19,148 @@ const getBaseUrl = () => {
   const backend = process.env.BACKEND_API_URL || 'http://localhost:3000';
   return `${backend}/stocks`;
 };
+
+function toNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
+
+function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
+  const source = asRecord(raw);
+  if (!source.company || !source.quote) return null;
+
+  const metrics = asRecord(source.metrics);
+  const rawDebtToEquity = toNumber(metrics.debt_to_equity);
+  // Some market feeds expose D/E as a percentage (36.65 means 0.3665x).
+  const debtToEquity = rawDebtToEquity !== null && Math.abs(rawDebtToEquity) > 10
+    ? rawDebtToEquity / 100
+    : rawDebtToEquity;
+
+  const technicals = asRecord(source.technicals);
+  const pivotRows = Array.isArray(technicals.classical_pivots)
+    ? technicals.classical_pivots.map(asRecord)
+    : [];
+  const pivotValue = (level: string) =>
+    toNumber(pivotRows.find((row) => String(row.level || '').toUpperCase() === level)?.price) ?? 0;
+  const pivot = pivotRows.find((row) => String(row.level || '').toLowerCase().includes('pivot'));
+  const cpr = asRecord(technicals.cpr);
+
+  const delivery = Array.isArray(source.delivery_conviction)
+    ? source.delivery_conviction.map((item) => {
+        const row = asRecord(item);
+        return {
+          date: String(row.date || ''),
+          traded_quantity: toNumber(row.traded_quantity) ?? 0,
+          delivery_quantity: toNumber(row.delivery_quantity ?? row.deliverable_quantity) ?? 0,
+          delivery_percentage: toNumber(row.delivery_percentage ?? row.delivery_pct) ?? 0,
+          conviction: row.conviction ? String(row.conviction) : undefined,
+        };
+      })
+    : [];
+
+  const quarterly = Array.isArray(source.quarterly_financials)
+    ? source.quarterly_financials.map((item) => {
+        const row = asRecord(item);
+        return {
+          fiscal_year: toNumber(row.fiscal_year) ?? 0,
+          fiscal_quarter: toNumber(row.fiscal_quarter) ?? 0,
+          revenue: toNumber(row.revenue) ?? 0,
+          operating_income: toNumber(row.operating_income) ?? undefined,
+          ebitda: toNumber(row.ebitda) ?? undefined,
+          net_income: toNumber(row.net_income) ?? 0,
+          diluted_eps: toNumber(row.diluted_eps) ?? undefined,
+        };
+      })
+    : [];
+
+  const annualRows = Array.isArray(source.annual_financials)
+    ? source.annual_financials.map((item) => {
+        const row = asRecord(item);
+        return {
+          fiscal_year: toNumber(row.fiscal_year) ?? 0,
+          revenue: toNumber(row.revenue) ?? 0,
+          operating_income: toNumber(row.operating_income) ?? undefined,
+          ebitda: toNumber(row.ebitda) ?? undefined,
+          net_income: toNumber(row.net_income) ?? 0,
+          diluted_eps: toNumber(row.diluted_eps) ?? undefined,
+          total_assets: toNumber(row.total_assets) ?? undefined,
+          total_debt: toNumber(row.total_debt) ?? undefined,
+          free_cash_flow: toNumber(row.free_cash_flow) ?? undefined,
+        };
+      })
+    : [];
+  const annualByYear = new Map<number, (typeof annualRows)[number]>();
+  for (const row of annualRows) {
+    const current = annualByYear.get(row.fiscal_year);
+    const completeness = Object.values(row).filter((value) => value !== undefined && value !== null).length;
+    const currentCompleteness = current
+      ? Object.values(current).filter((value) => value !== undefined && value !== null).length
+      : -1;
+    if (!current || completeness > currentCompleteness) annualByYear.set(row.fiscal_year, row);
+  }
+
+  const shareholding = Array.isArray(source.shareholding_pattern)
+    ? source.shareholding_pattern.map((item) => {
+        const row = asRecord(item);
+        return {
+          quarter: String(row.quarter ?? row.quarter_ending ?? ''),
+          promoter: toNumber(row.promoter ?? row.promoter_pct),
+          fii: toNumber(row.fii ?? row.fii_pct),
+          dii: toNumber(row.dii ?? row.dii_pct),
+          public: toNumber(row.public ?? row.public_pct),
+          pledged: toNumber(row.pledged ?? row.promoter_pledged_pct),
+          num_shareholders: toNumber(row.num_shareholders),
+        };
+      })
+    : [];
+
+  const peers = Array.isArray(source.peers)
+    ? source.peers.map((item) => {
+        const row = asRecord(item);
+        return {
+          symbol: String(row.symbol || ''),
+          company_name: String(row.company_name || ''),
+          market_cap: toNumber(row.market_cap) ?? 0,
+          pe_ratio: toNumber(row.pe_ratio) ?? undefined,
+          price_to_book: toNumber(row.price_to_book) ?? undefined,
+          roe: toNumber(row.roe) ?? undefined,
+          roce: toNumber(row.roce) ?? undefined,
+        };
+      })
+    : [];
+
+  return {
+    ...(source as unknown as StockMasterDetail),
+    metrics: {
+      ...(metrics as StockMasterDetail['metrics']),
+      debt_to_equity: debtToEquity ?? undefined,
+    },
+    technicals: {
+      ...(technicals as StockMasterDetail['technicals']),
+      classical_pivots: pivotRows.length ? {
+        pivot: toNumber(pivot?.price) ?? 0,
+        r1: pivotValue('R1'), r2: pivotValue('R2'), r3: pivotValue('R3'),
+        s1: pivotValue('S1'), s2: pivotValue('S2'), s3: pivotValue('S3'),
+      } : undefined,
+      cpr: Object.keys(cpr).length ? {
+        tc: toNumber(cpr.tc ?? cpr.top_central) ?? 0,
+        pivot: toNumber(cpr.pivot) ?? 0,
+        bc: toNumber(cpr.bc ?? cpr.bottom_central) ?? 0,
+        nature: String(cpr.nature ?? cpr.sentiment ?? ''),
+      } : undefined,
+    },
+    delivery_conviction: delivery,
+    quarterly_financials: quarterly,
+    annual_financials: Array.from(annualByYear.values()).sort((a, b) => b.fiscal_year - a.fiscal_year),
+    shareholding_pattern: shareholding,
+    peers,
+  };
+}
 
 /**
  * 1. Fetch Available Countries List
@@ -133,7 +273,7 @@ export async function getStockDetail(identifier: string, country?: string): Prom
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    return json.data || null;
+    return normalizeStockDetail(json.data);
   } catch (error) {
     console.error(`Failed to fetch stock detail for ${identifier}:`, error);
     return null;

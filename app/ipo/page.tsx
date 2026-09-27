@@ -15,16 +15,39 @@ import {
 } from 'lucide-react';
 import { getIPOList } from '@/features/ipo/api';
 import { IPOQueryParams, IPOV2ListItem } from '@/features/ipo/types';
-import { GMPDisclaimer } from '@/features/ipo/components';
+import { GMPDisclaimer, IpoCompanyLogo } from '@/features/ipo/components';
 import IPOFilters from './components/IPOFilters';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Live IPO GMP Today & Subscription Status (NSE & BSE) | WeeStox',
-  description: 'Complete Indian IPO intelligence: Real-time Grey Market Premium (GMP), subscription demand status, allotment dates, and Shariah compliance screening.',
-};
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
 
 interface IPOPageProps {
   searchParams: Promise<IPOQueryParams>;
+}
+
+export async function generateMetadata({ searchParams }: IPOPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const status = typeof params.status === 'string' && params.status !== 'all' ? params.status : null;
+  const category = typeof params.category === 'string' && params.category !== 'all' ? params.category : null;
+  const page = Number(params.page) > 1 ? Number(params.page) : null;
+  const canonicalParams = new URLSearchParams();
+  if (status) canonicalParams.set('status', status);
+  if (category) canonicalParams.set('category', category);
+  if (page) canonicalParams.set('page', String(page));
+  const canonical = `/ipo${canonicalParams.size ? `?${canonicalParams}` : ''}`;
+  const qualifier = [status, category, page ? `Page ${page}` : null].filter(Boolean).join(' · ');
+  const title = `${qualifier ? `${qualifier} IPOs — ` : ''}Live IPO GMP Today & Subscription Status | WeeStox`;
+  const description = 'Track Indian IPO GMP, expected listing price, subscription demand, allotment status, dates, lot size and Shariah screening for NSE and BSE IPOs.';
+  const hasNonCanonicalFilter = Boolean(params.search || params.sort || params.halal || params.snapshot_date || params.type);
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    robots: hasNonCanonicalFilter ? { index: false, follow: true } : { index: true, follow: true },
+    openGraph: { type: 'website', url: canonical, title, description },
+    twitter: { card: 'summary', title, description },
+  };
 }
 
 function getStatusBadge(status: string) {
@@ -127,6 +150,19 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
     });
 
     const { ipos, summary, total, page, total_pages, snapshot_date } = ipoListData.data;
+    const listJsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Indian IPO GMP and subscription status',
+      url: `${SITE_URL}/ipo`,
+      numberOfItems: total,
+      itemListElement: ipos.map((ipo, index) => ({
+        '@type': 'ListItem',
+        position: (page - 1) * 20 + index + 1,
+        name: `${ipo.company_name} IPO`,
+        url: `${SITE_URL}/ipo/${encodeURIComponent(ipo.slug)}`,
+      })),
+    };
 
     const getSortUrl = (sortKey: string) => {
       const p = new URLSearchParams();
@@ -141,6 +177,10 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
 
     return (
       <div className="bg-canvas min-h-screen py-6 md:py-8 pb-8 text-body">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd).replace(/</g, '\\u003c') }}
+        />
         <div className="container mx-auto">
           {/* Breadcrumb & Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
@@ -308,6 +348,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                       <th className="px-4 py-3 text-right whitespace-nowrap hidden md:table-cell">Est. Listing / Profit</th>
                       <th className="px-3 py-3 text-center whitespace-nowrap hidden lg:table-cell">Sub. Demand</th>
                       <th className="px-3 py-3 text-center whitespace-nowrap hidden xl:table-cell">Listing Date</th>
+                      <th className="px-3 py-3 text-center whitespace-nowrap">Allotment</th>
                       <th className="px-4 py-3 text-right">Details</th>
                     </tr>
                   </thead>
@@ -325,9 +366,11 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                           {/* Company Name, Type, Halal Status */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center font-bold text-xs text-sky-600 dark:text-sky-400 group-hover:border-sky-500/50 transition-all shrink-0">
-                                {ipo.company_name.slice(0, 2).toUpperCase()}
-                              </div>
+                              <IpoCompanyLogo
+                                src={ipo.logo_url}
+                                name={ipo.company_name}
+                                size="md"
+                              />
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <Link
@@ -437,6 +480,24 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                               {ipo.listing_date_display || ipo.listing_date || '–'}
                             </div>
                             <div className="text-[10px] text-slate-400 dark:text-slate-500">Tentative</div>
+                          </td>
+
+                          {/* Allotment Status */}
+                          <td className="px-3 py-3 text-center whitespace-nowrap">
+                            {ipo.is_allotment_out ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-300">
+                                  <ShieldCheck className="h-3 w-3" />Out
+                                </span>
+                                {(ipo.allotment_url || ipo.registrar_url) && (
+                                  <a href={ipo.allotment_url || ipo.registrar_url || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 hover:underline dark:text-emerald-400">
+                                    Check <ExternalLink className="h-2.5 w-2.5" />
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-slate-300 dark:text-slate-700">—</span>
+                            )}
                           </td>
 
                           {/* Action Button */}

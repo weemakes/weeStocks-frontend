@@ -143,8 +143,10 @@ export function CityComparisonTable({
                           {isUp ? "+" : ""}
                           {formatPrice(Math.abs(item.change))}
                         </span>
+                      ) : item.change === 0 ? (
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">Flat</span>
                       ) : (
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">₹0.00</span>
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">Unavailable</span>
                       )}
                     </td>
 

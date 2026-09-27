@@ -35,8 +35,6 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const url = `${BACKEND_API_URL}${endpoint}`;
 
-  console.log(`[API Request] ${options.method || "GET"} ${url}`);
-
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -56,20 +54,25 @@ export async function apiRequest<T>(
   try {
     const response = await fetch(url, fetchOptions);
 
-    console.log(`[API Response] ${url} - Status: ${response.status}`);
-
     if (!response.ok) {
+      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
       const errorText = await response.text();
-      console.error(`[API Error] ${url} - ${response.status}: ${errorText}`);
-      throw new ApiError(
-        `API request failed: ${response.status} ${response.statusText}`,
-        response.status,
-        errorText
-      );
+      let errorPayload: unknown = errorText || null;
+      try {
+        const errorJson = JSON.parse(errorText) as { message?: string };
+        errorPayload = errorJson;
+        if (errorJson.message) errorMessage = errorJson.message;
+      } catch {
+        // Keep the original text payload when the backend does not return JSON.
+      }
+      console.error(`[API Error] ${url} - ${response.status}:`, errorMessage);
+      throw new ApiError(errorMessage, response.status, errorPayload);
     }
 
     const data = await response.json();
-    console.log(`[API Success] ${url} - Data received`);
+    if (data && typeof data === 'object' && 'status' in data && data.status === 0) {
+      throw new ApiError(data.message || 'Operation failed', response.status, data);
+    }
     return data as T;
   } catch (error) {
     if (error instanceof ApiError) {

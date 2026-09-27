@@ -178,6 +178,7 @@ function StockDetailInner() {
           </div>
         ) : (
           <StockDetailContent
+            key={detail.company.symbol}
             detail={detail}
             onSelectPeer={handleSelectPeer}
             isStandalonePage={true}

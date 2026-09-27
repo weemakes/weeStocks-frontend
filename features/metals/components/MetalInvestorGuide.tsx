@@ -1,4 +1,4 @@
-import { Shield, BookOpen, TrendingUp, HelpCircle, Award, Scale } from "lucide-react";
+import { BookOpen, TrendingUp, HelpCircle, Award, Scale } from "lucide-react";
 import type { Metal } from "../types";
 
 interface MetalInvestorGuideProps {
@@ -8,6 +8,7 @@ interface MetalInvestorGuideProps {
 
 export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps) {
   const isGold = metal === "gold";
+  const isSilver = metal === "silver";
 
   const faqs = isGold
     ? [
@@ -32,7 +33,8 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
           a: "According to classical Islamic jurisprudence, the Nisab for gold is 85 grams (approx 7.5 tolas) of pure 24K gold. For silver, it is 595 grams (52.5 tolas). If your total qualifying wealth meets or exceeds this threshold and has been held for one full lunar year (hawl), 2.5% is payable as Zakat.",
         },
       ]
-    : [
+    : isSilver
+    ? [
         {
           q: `How is silver priced in ${cityName}?`,
           a: "Silver rates are quoted in grams and kilograms based on international spot silver (XAG/USD), MCX commodity futures prices, import duty (6%), and currency fluctuations between the USD and INR.",
@@ -44,6 +46,20 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
         {
           q: "What is the Nisab for silver in Zakat calculation?",
           a: "The Nisab threshold for silver is 595 grams (approx 52.5 tolas). Because silver has a lower per-gram cost than gold, classical scholars often recommend using the silver Nisab to ensure maximum benefit for the needy.",
+        },
+      ]
+    : [
+        {
+          q: `How is platinum priced in ${cityName}?`,
+          a: "Platinum rates reflect international platinum markets, the USD/INR exchange rate, import costs, local availability, and the purity of the quoted product.",
+        },
+        {
+          q: "Which platinum purity should I compare?",
+          a: "Platinum jewellery and bullion can use different fineness standards. Compare products using the stated fineness and weight, and ask the seller for a purity certificate before purchase.",
+        },
+        {
+          q: "Why can platinum prices move differently from gold?",
+          a: "Platinum has significant industrial demand, especially from automotive and manufacturing uses. Supply concentration and industrial cycles can therefore move its price differently from gold.",
         },
       ];
 
@@ -63,16 +79,28 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
           <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2">
             <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold">
               <Award className="w-4 h-4" />
-              <span>BIS Hallmarking (HUID)</span>
+              <span>{isGold ? "Gold Purity & HUID" : isSilver ? "Silver Fineness" : "Platinum Fineness"}</span>
             </div>
-            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-              Always verify the 6-digit laser-etched HUID code on the BIS CARE app before buying. Standard hallmarks include:
-            </p>
-            <ul className="space-y-1 text-slate-700 dark:text-slate-300">
-              <li>• <strong className="text-slate-900 dark:text-slate-100">24K999</strong>: 99.9% Pure Bullion</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">22K916</strong>: 91.6% Jewellery Grade</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">18K750</strong>: 75.0% Diamond Studded</li>
-            </ul>
+            {isGold ? (
+              <>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Verify the stated purity and HUID on hallmarked gold jewellery before buying.
+                </p>
+                <ul className="space-y-1 text-slate-700 dark:text-slate-300">
+                  <li>• <strong className="text-slate-900 dark:text-slate-100">24K999</strong>: 99.9% pure bullion</li>
+                  <li>• <strong className="text-slate-900 dark:text-slate-100">22K916</strong>: 91.6% jewellery grade</li>
+                  <li>• <strong className="text-slate-900 dark:text-slate-100">18K750</strong>: 75.0% gold</li>
+                </ul>
+              </>
+            ) : isSilver ? (
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                Compare silver products by weight and fineness. Fine silver is commonly marked 999, while sterling silver is commonly marked 925.
+              </p>
+            ) : (
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                Compare platinum products using the seller&apos;s stated fineness and net weight. Request a purity certificate and itemised invoice before purchase.
+              </p>
+            )}
           </div>
 
           {/* Card 2: Market Catalysts */}
@@ -102,10 +130,10 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
               Choose the right vehicle according to your financial timeline:
             </p>
             <ul className="space-y-1 text-slate-700 dark:text-slate-300">
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Physical Bullion</strong>: 0% making charges on minted bars</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Gold / Silver ETFs</strong>: Demat liquidity at spot prices</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Sovereign Gold Bonds (SGB)</strong>: 2.5% p.a. + Tax free</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Digital Gold</strong>: Fractional accumulation from ₹1</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Physical Bullion</strong>: Compare dealer premium, certification, storage, and resale terms</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Exchange-traded products</strong>: Check availability, tracking cost, and liquidity</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Jewellery</strong>: Compare purity, making charges, and resale deductions</li>
+              <li>• <strong className="text-slate-900 dark:text-slate-100">Digital products</strong>: Review custody, redemption, and counterparty terms</li>
             </ul>
           </div>
         </div>

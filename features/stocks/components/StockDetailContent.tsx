@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import Link from 'next/link';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   ShieldCheck,
   AlertTriangle,
@@ -12,7 +11,6 @@ import {
   FileText,
   PieChart,
   Users,
-  Compass,
   Sparkles,
   ExternalLink,
   ChevronRight,
@@ -28,7 +26,6 @@ import {
   Zap,
   Globe,
   Building2,
-  DollarSign,
 } from 'lucide-react';
 import { StockMasterDetail, StockCandle } from '../types';
 import StockCandleChart from './StockCandleChart';
@@ -216,6 +213,10 @@ export default function StockDetailContent({
   const [chartCandles, setChartCandles] = useState<StockCandle[] | null>(null);
   const [chartLoading, setChartLoading] = useState(false);
 
+  // Track initial mount so initial SSR candles are shown immediately,
+  // but ANY subsequent timeframe change (including returning to 3M) calls the API
+  const isFirstMount = useRef(true);
+
   const {
     company,
     quote,
@@ -234,6 +235,26 @@ export default function StockDetailContent({
     chart,
   } = detail;
 
+  // Default candles from master detail payload (sanitized)
+  const defaultCandles: StockCandle[] = useMemo(() => {
+    return (chart || [])
+      .filter((c) => Number(c.close || 0) > 0)
+      .map((c) => {
+        const close = Number(c.close);
+        const open = Number(c.open || 0) > 0 ? Number(c.open) : close;
+        const high = Number(c.high || 0) > 0 ? Math.max(Number(c.high), open, close) : Math.max(open, close);
+        const low = Number(c.low || 0) > 0 ? Math.min(Number(c.low), open, close) : Math.min(open, close);
+        return {
+          date: c.date,
+          open,
+          high,
+          low,
+          close,
+          volume: Number(c.volume || 0),
+        };
+      });
+  }, [chart]);
+
   const fetchChartData = useCallback(
     async (rangeLabel: ChartRangeLabel) => {
       const cfg = CHART_RANGES.find((r) => r.label === rangeLabel);
@@ -246,20 +267,27 @@ export default function StockDetailContent({
           cfg.interval,
           company.country
         );
-        if (data?.candles) {
-          setChartCandles(
-            data.candles.map((c) => ({
-              date: c.date,
-              open: Number(c.open || 0),
-              high: Number(c.high || 0),
-              low: Number(c.low || 0),
-              close: Number(c.close || 0),
-              volume: Number(c.volume || 0),
-            }))
-          );
+        if (data?.candles && data.candles.length > 0) {
+          const sanitized = data.candles
+            .filter((c) => Number(c.close || 0) > 0)
+            .map((c) => {
+              const close = Number(c.close);
+              const open = Number(c.open || 0) > 0 ? Number(c.open) : close;
+              const high = Number(c.high || 0) > 0 ? Math.max(Number(c.high), open, close) : Math.max(open, close);
+              const low = Number(c.low || 0) > 0 ? Math.min(Number(c.low), open, close) : Math.min(open, close);
+              return {
+                date: c.date,
+                open,
+                high,
+                low,
+                close,
+                volume: Number(c.volume || 0),
+              };
+            });
+          setChartCandles(sanitized);
         }
-      } catch {
-        // silently fall back to default chart data
+      } catch (err) {
+        console.error(`Failed to fetch chart range ${rangeLabel}:`, err);
       } finally {
         setChartLoading(false);
       }
@@ -267,11 +295,17 @@ export default function StockDetailContent({
     [company.symbol, company.country]
   );
 
+  // Fetch when range changes (always trigger API call on user interaction, including returning to 3M)
   useEffect(() => {
-    if (chartRange !== '3M') {
-      fetchChartData(chartRange);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
     }
+    fetchChartData(chartRange);
   }, [chartRange, fetchChartData]);
+
+  // Use dynamically fetched candles, falling back to sanitized defaultCandles for initial 3M display
+  const candleList = chartCandles ?? (chartRange === '3M' ? defaultCandles : []);
 
   const currencySym = getCurrencySymbol(company.country || company.currency);
   const changePctNum = Number(quote.change_percentage || 0);
@@ -280,18 +314,6 @@ export default function StockDetailContent({
     shariah_compliance.status?.toUpperCase() === 'HALAL' ||
     shariah_compliance.status?.toUpperCase() === 'PASS';
   const isDoubtful = shariah_compliance.status?.toUpperCase() === 'DOUBTFUL';
-
-  // Default candles from master detail payload (3M worth)
-  const defaultCandles: StockCandle[] = (chart || []).map((c) => ({
-    date: c.date,
-    open: Number(c.open || 0),
-    high: Number(c.high || 0),
-    low: Number(c.low || 0),
-    close: Number(c.close || 0),
-    volume: Number(c.volume || 0),
-  }));
-  // Use dynamically fetched candles if available, else fall back to default
-  const candleList = chartCandles ?? defaultCandles;
 
   const low52 = Number(metrics.fifty_two_week_low || 0);
   const high52 = Number(metrics.fifty_two_week_high || 0);
@@ -320,6 +342,24 @@ export default function StockDetailContent({
       ? delivery_conviction.slice(0, 10).reduce((s, d) => s + Number(d.delivery_percentage || 0), 0) /
         Math.min(10, delivery_conviction.length)
       : null;
+
+  const latestAnnual = annual_financials?.[0];
+  const earningsYield = Number(metrics.pe_ratio || 0) > 0 ? 100 / Number(metrics.pe_ratio) : null;
+  const forwardEpsGrowth = Number(metrics.eps || 0) > 0 && metrics.forward_eps != null
+    ? ((Number(metrics.forward_eps) / Number(metrics.eps)) - 1) * 100
+    : null;
+  const evPremium = Number(metrics.market_cap || 0) > 0 && metrics.enterprise_value != null
+    ? ((Number(metrics.enterprise_value) / Number(metrics.market_cap)) - 1) * 100
+    : null;
+  const netMargin = latestAnnual && Number(latestAnnual.revenue || 0) > 0
+    ? (Number(latestAnnual.net_income || 0) / Number(latestAnnual.revenue)) * 100
+    : null;
+  const latestOwnership = shareholding_pattern?.find((item) =>
+    item.promoter != null || item.fii != null || item.dii != null || item.public != null
+  );
+  const visibleRedFlags = (flags?.red_flags || []).filter((flag) =>
+    !flag.toLowerCase().includes('debt-to-equity') || Number(metrics.debt_to_equity || 0) > 1
+  );
 
   const navSections = [
     { id: 'chart', label: 'Chart' },
@@ -483,13 +523,13 @@ export default function StockDetailContent({
             />
             <MetricTile
               label="ROE"
-              value={metrics.roe ? formatSafePct(Number(metrics.roe) * 100, false) : '—'}
-              highlight={Number(metrics.roe || 0) > 0.15 ? 'green' : undefined}
+              value={metrics.roe != null ? formatSafePct(Number(metrics.roe), false) : '—'}
+              highlight={Number(metrics.roe || 0) > 15 ? 'green' : undefined}
             />
             <MetricTile
               label="ROCE"
-              value={metrics.roce ? formatSafePct(Number(metrics.roce) * 100, false) : '—'}
-              highlight={Number(metrics.roce || 0) > 0.15 ? 'green' : undefined}
+              value={metrics.roce != null ? formatSafePct(Number(metrics.roce), false) : '—'}
+              highlight={Number(metrics.roce || 0) > 15 ? 'green' : undefined}
             />
             <MetricTile
               label="EPS"
@@ -548,6 +588,21 @@ export default function StockDetailContent({
               </div>
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-2 border-t border-slate-200/80 pt-4 dark:border-slate-800/60 sm:grid-cols-4">
+            {[
+              { label: 'Earnings Yield', value: earningsYield == null ? '—' : formatSafePct(earningsYield, false), note: '1 ÷ P/E' },
+              { label: 'Forward EPS Growth', value: forwardEpsGrowth == null ? '—' : formatSafePct(forwardEpsGrowth), note: 'Forward vs trailing EPS' },
+              { label: 'EV Premium', value: evPremium == null ? '—' : formatSafePct(evPremium), note: 'EV above market cap' },
+              { label: 'Latest Net Margin', value: netMargin == null ? '—' : formatSafePct(netMargin, false), note: latestAnnual ? `FY ${latestAnnual.fiscal_year}` : 'Annual data unavailable' },
+            ].map((item) => (
+              <div key={item.label} className="rounded-xl border border-slate-200 bg-white/70 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950/40">
+                <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-400">{item.label}</span>
+                <span className="mt-0.5 block text-sm font-black tabular-nums text-slate-800 dark:text-slate-200">{item.value}</span>
+                <span className="block text-[9px] text-slate-400">{item.note}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -590,7 +645,7 @@ export default function StockDetailContent({
               </h2>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 {chartRange === '1D' ? 'Intraday 5-min candles' :
-                 chartRange === '1W' ? 'Last 7 days, 1-hour bars' :
+                 chartRange === '1W' ? 'Last 7 days, daily bars' :
                  chartRange === '1M' ? 'Last 30 days, daily bars' :
                  chartRange === '3M' ? 'Last 90 days, daily bars' :
                  chartRange === '6M' ? 'Last 6 months, daily bars' :
@@ -620,7 +675,7 @@ export default function StockDetailContent({
           </div>
         </div>
 
-        <StockCandleChart candles={candleList} currencySymbol={currencySym} loading={chartLoading} />
+        <StockCandleChart candles={candleList} currencySymbol={currencySym} loading={chartLoading} range={chartRange} />
 
         {/* CPR + MA strip below chart */}
         {(technicals?.cpr || technicals?.classical_pivots || technicals?.moving_averages) && (
@@ -955,7 +1010,7 @@ export default function StockDetailContent({
           )}
 
           {/* Green + Red Flags */}
-          {flags && (flags.green_flags?.length > 0 || flags.red_flags?.length > 0) && (
+          {flags && (flags.green_flags?.length > 0 || visibleRedFlags.length > 0) && (
             <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-2 flex items-center gap-1">
@@ -977,7 +1032,7 @@ export default function StockDetailContent({
                   Risk Signals
                 </p>
                 <div className="space-y-1.5">
-                  {(flags.red_flags || []).map((f, i) => (
+                  {visibleRedFlags.map((f, i) => (
                     <div key={i} className="flex items-start gap-1.5 text-[11px] text-slate-600 dark:text-slate-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 shrink-0" />
                       {f}
@@ -1173,13 +1228,13 @@ export default function StockDetailContent({
 
           {/* Latest quarter big cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-            {shareholding_pattern[0] && (
+            {latestOwnership && (
               <>
                 {[
-                  { label: 'Promoter', value: shareholding_pattern[0].promoter, color: '#8B5CF6', bg: 'from-purple-500/10 to-purple-500/5' },
-                  { label: 'FII / Foreign', value: shareholding_pattern[0].fii, color: '#0EA5E9', bg: 'from-sky-500/10 to-sky-500/5' },
-                  { label: 'DII / Domestic', value: shareholding_pattern[0].dii, color: '#10B981', bg: 'from-emerald-500/10 to-emerald-500/5' },
-                  { label: 'Retail / Public', value: shareholding_pattern[0].public, color: '#F59E0B', bg: 'from-amber-500/10 to-amber-500/5' },
+                  { label: 'Promoter', value: latestOwnership.promoter, color: '#8B5CF6', bg: 'from-purple-500/10 to-purple-500/5' },
+                  { label: 'FII / Foreign', value: latestOwnership.fii, color: '#0EA5E9', bg: 'from-sky-500/10 to-sky-500/5' },
+                  { label: 'DII / Domestic', value: latestOwnership.dii, color: '#10B981', bg: 'from-emerald-500/10 to-emerald-500/5' },
+                  { label: 'Retail / Public', value: latestOwnership.public, color: '#F59E0B', bg: 'from-amber-500/10 to-amber-500/5' },
                 ].map((item) => (
                   <div
                     key={item.label}
@@ -1200,10 +1255,10 @@ export default function StockDetailContent({
                         }}
                       />
                     </div>
-                    {shareholding_pattern[0].pledged !== undefined &&
+                    {latestOwnership.pledged != null &&
                       item.label === 'Promoter' && (
                         <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-bold">
-                          Pledged: {formatSafePct(shareholding_pattern[0].pledged, false)}
+                          Pledged: {formatSafePct(latestOwnership.pledged, false)}
                         </p>
                       )}
                   </div>
@@ -1229,7 +1284,9 @@ export default function StockDetailContent({
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {shareholding_pattern.map((sh, idx) => {
                     const prev = shareholding_pattern[idx + 1];
-                    const fiiDelta = prev ? Number(sh.fii || 0) - Number(prev.fii || 0) : null;
+                    const fiiDelta = prev && sh.fii != null && prev.fii != null
+                      ? Number(sh.fii) - Number(prev.fii)
+                      : null;
                     return (
                       <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/20 transition-colors">
                         <td className="px-4 py-2.5 font-bold text-slate-700 dark:text-slate-300">{sh.quarter}</td>
@@ -1380,10 +1437,10 @@ export default function StockDetailContent({
                     {formatSafeNumber(metrics.price_to_book, 2)}
                   </td>
                   <td className="px-5 py-3 text-right font-semibold tabular-nums text-slate-700 dark:text-slate-300">
-                    {metrics.roe ? formatSafePct(Number(metrics.roe) * 100, false) : '—'}
+                    {metrics.roe != null ? formatSafePct(Number(metrics.roe), false) : '—'}
                   </td>
                   <td className="px-5 py-3 text-right font-semibold tabular-nums text-slate-700 dark:text-slate-300">
-                    {metrics.roce ? formatSafePct(Number(metrics.roce) * 100, false) : '—'}
+                    {metrics.roce != null ? formatSafePct(Number(metrics.roce), false) : '—'}
                   </td>
                   <td className="px-5 py-3 text-right" />
                 </tr>
@@ -1406,10 +1463,10 @@ export default function StockDetailContent({
                       {formatSafeNumber(peer.price_to_book, 2)}
                     </td>
                     <td className="px-5 py-3 text-right font-medium tabular-nums text-slate-600 dark:text-slate-400">
-                      {peer.roe ? formatSafePct(Number(peer.roe) * 100, false) : '—'}
+                      {peer.roe != null ? formatSafePct(Number(peer.roe), false) : '—'}
                     </td>
                     <td className="px-5 py-3 text-right font-medium tabular-nums text-slate-600 dark:text-slate-400">
-                      {peer.roce ? formatSafePct(Number(peer.roce) * 100, false) : '—'}
+                      {peer.roce != null ? formatSafePct(Number(peer.roce), false) : '—'}
                     </td>
                     <td className="px-5 py-3 text-right">
                       <button

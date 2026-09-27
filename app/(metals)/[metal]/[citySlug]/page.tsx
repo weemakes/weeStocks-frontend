@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense } from "react";
 import { CityRatesSection } from '@/features/metals/components/CityRatesSection';
 import { normalizedPrice } from '@/features/metals/utils/prices';
 /**
@@ -14,34 +14,23 @@ import {
   getCityBySlug,
   getPopularCities,
   getLatestMetalPrice,
-  getMetalLast10Days,
-  getMetalHistoryData,
 } from "@/features/metals/api";
 import {
   MetalSelector,
   CitySelector,
   MetalPriceTable,
-  Last10DaysTable,
-  HistoryChartSection,
   SmartMetalCalculator,
-  CityComparisonTable,
   MetalInvestorGuide,
-  type CityMetalPriceItem,
+  MetalHistorySection,
+  MetalLast10DaysSection,
 } from "@/features/metals/components";
 import { METAL_CONFIG, type Metal } from "@/features/metals/types";
 import { formatPrice } from "@/features/metals/utils";
 import {
-  Coins,
-  Sparkles,
-  Gem,
-  TrendingUp,
-  ArrowUp,
-  ArrowDown,
   Clock,
-  MapPin,
-  Scale,
-  ShieldCheck,
 } from "lucide-react";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://weestox.com";
 
 interface MetalCityPageProps {
   params: Promise<{
@@ -59,6 +48,7 @@ export async function generateMetadata({
   if (!city) {
     return {
       title: "City Not Found | WeeStox",
+      robots: { index: false, follow: false },
     };
   }
 
@@ -66,15 +56,29 @@ export async function generateMetadata({
   if (!metalConfig) {
     return {
       title: "Page Not Found | WeeStox",
+      robots: { index: false, follow: false },
     };
   }
 
   const capitalizedCity = city.name;
   const metalName = metalConfig.displayName;
 
+  const title = `${metalName} Rate Today in ${capitalizedCity} (1g, 10g) | WeeStox`;
+  const description = `Check today's ${metalName.toLowerCase()} rate in ${capitalizedCity} per gram and 10 grams, with recent price history and rates across major Indian cities.`;
+  const canonicalPath = `/${metal}/${city.slug || citySlug}`;
+
   return {
-    title: `${metalName} Rate Today in ${capitalizedCity} (10g, 1g) - Prices | WeeStox`,
-    description: `Check live ${metalName.toLowerCase()} price in ${capitalizedCity} today. Reported per-gram and multi-weight rates. Compare across all Indian cities with historical trends on WeeStox.`,
+    title,
+    description,
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      type: "website",
+      url: canonicalPath,
+      siteName: "WeeStox",
+      title,
+      description,
+    },
+    twitter: { card: "summary", title, description },
   };
 }
 
@@ -89,31 +93,18 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
     notFound();
   }
 
-  // Fetch city data
-  const city = await getCityBySlug(citySlug);
+  // Start independent lookups together so the first response is not serialized.
+  const [city, popularCities] = await Promise.all([
+    getCityBySlug(citySlug),
+    getPopularCities(),
+  ]);
   if (!city) {
     notFound();
   }
 
-  // Fetch all required data in parallel
-  const [popularCities, latestPrice, last10Days, historyData] =
-    await Promise.all([
-      getPopularCities(),
-      getLatestMetalPrice(city.id, metal),
-      getMetalLast10Days(city.id, metal).catch(() => ({ metal, cityId: city.id, data: [] })),
-      metalConfig.historyEnabled
-        ? getMetalHistoryData({
-            citySlug,
-            metal,
-            unit: metalConfig.defaultUnit,
-            purity: metal === "gold" ? metalConfig.defaultPurity : undefined,
-            duration: metalConfig.defaultDuration,
-          }).catch((err) => {
-            console.error(`Failed to fetch initial history data for ${metal}:`, err);
-            return null;
-          })
-        : Promise.resolve(null),
-    ]);
+  // Only the current quote blocks the useful above-the-fold response. Historical
+  // and regional data stream below through their own Suspense boundaries.
+  const latestPrice = await getLatestMetalPrice(city.id, metal);
 
   const isGold = metal === 'gold';
   const rate1g_24K = normalizedPrice(latestPrice.prices,'1g','24K');
@@ -130,11 +121,35 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
   const isUp = mainDirection === "up";
   const isDown = mainDirection === "down";
 
-  // Quick popular city chips to show in the hero bar
-  const quickHubCities = ["delhi", "mumbai", "chennai", "kolkata", "bangalore", "hyderabad", "ahmedabad", "pune"];
+  const canonicalPath = `/${metal}/${city.slug || citySlug}`;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}${canonicalPath}#webpage`,
+        url: `${SITE_URL}${canonicalPath}`,
+        name: `${metalConfig.displayName} Rate Today in ${city.name}`,
+        description: `Current ${metalConfig.displayName.toLowerCase()} rates in ${city.name}, recent history, and city comparisons.`,
+        dateModified: latestPrice.date,
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: metalConfig.displayName, item: `${SITE_URL}/${metal}` },
+          { "@type": "ListItem", position: 3, name: city.name, item: `${SITE_URL}${canonicalPath}` },
+        ],
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-canvas py-6 md:py-8 pb-20 overflow-x-clip">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
+      />
       <div className="container mx-auto">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center justify-between gap-4 mb-3 text-xs text-muted">
@@ -170,7 +185,7 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-muted max-w-2xl leading-relaxed">
-                Check today&apos;s real-time {metalConfig.displayName.toLowerCase()} rates per gram, 8g sovereign, 10g, and 100g bar in {city.name}. Multi-city comparison, intraday trend charts, and BIS hallmarking insights.
+                Check today&apos;s {metalConfig.displayName.toLowerCase()} rates per gram, 10 grams, 100 grams, and 1 kilogram in {city.name}. Compare major cities and review recent price history.
               </p>
             </div>
 
@@ -345,15 +360,21 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
                 <div className="text-[10px] text-quiet mt-1 capitalize">{mainDirection}</div>
               </div>
 
-              <div className="bg-panel/90 border border-line rounded-xl p-3.5 text-left">
-                <span className="text-[11px] font-medium text-muted block mb-1">
-                  Zakat Reference (595g)
-                </span>
-                <div className="text-lg sm:text-xl font-bold text-positive tabular-nums">
-                  {formatPrice(rateSilver1g === undefined ? undefined : rateSilver1g * 595)}
+              {metal === "silver" ? (
+                <div className="bg-panel/90 border border-line rounded-xl p-3.5 text-left">
+                  <span className="text-[11px] font-medium text-muted block mb-1">Zakat Reference (595g)</span>
+                  <div className="text-lg sm:text-xl font-bold text-positive tabular-nums">
+                    {formatPrice(rateSilver1g === undefined ? undefined : rateSilver1g * 595)}
+                  </div>
+                  <div className="text-[10px] text-quiet mt-1">Silver Nisab benchmark</div>
                 </div>
-                <div className="text-[10px] text-quiet mt-1">Nisab Threshold</div>
-              </div>
+              ) : (
+                <div className="bg-panel/90 border border-line rounded-xl p-3.5 text-left">
+                  <span className="text-[11px] font-medium text-muted block mb-1">Quote Basis</span>
+                  <div className="text-lg sm:text-xl font-bold text-ink">Per gram</div>
+                  <div className="text-[10px] text-quiet mt-1">Confirm seller purity specification</div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -384,27 +405,24 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
           {/* FULL WIDTH: Interactive Multi-Timeframe Historical Price Chart             */}
           {/* ========================================================================= */}
           {metalConfig.historyEnabled && (
-            <section className="bg-panel/90 border border-line rounded-2xl p-5 md:p-6 shadow-xl">
-              <HistoryChartSection key={metal+city.slug}
-                metal={metal}
-                citySlug={city?.slug || ""}
-                initialData={historyData?.data || []}
-                initialPurity={metal === "gold" ? metalConfig.defaultPurity : undefined}
-                initialUnit={metalConfig.defaultUnit}
-                initialDuration={metalConfig.defaultDuration}
-              />
-            </section>
+            <Suspense fallback={<div className="skeleton h-[28rem] rounded-2xl" aria-label="Loading historical prices" />}>
+              <MetalHistorySection metal={metal} cityId={city.id} citySlug={city.slug || citySlug} />
+            </Suspense>
           )}
 
           {/* ========================================================================= */}
           {/* FULL WIDTH: Major Indian Cities Rate Comparison Table                      */}
           {/* ========================================================================= */}
-          <Suspense fallback={<div className="skeleton h-48" />}><CityRatesSection cities={popularCities} metal={metal} citySlug={city.slug || citySlug || ''}/></Suspense>
+          <Suspense fallback={<div className="skeleton h-64 rounded-2xl" aria-label="Loading city comparison" />}>
+            <CityRatesSection cities={popularCities} metal={metal} citySlug={city.slug || citySlug} />
+          </Suspense>
 
           {/* ========================================================================= */}
           {/* FULL WIDTH: Last 10 Days Historical Trend Table                            */}
           {/* ========================================================================= */}
-          <Last10DaysTable data={last10Days} />
+          <Suspense fallback={<div className="skeleton h-72 rounded-2xl" aria-label="Loading recent prices" />}>
+            <MetalLast10DaysSection metal={metal} cityId={city.id} citySlug={city.slug || citySlug} />
+          </Suspense>
 
           {/* ========================================================================= */}
           {/* FULL WIDTH: Investor Guide, BIS Hallmarking Standards & FAQs               */}

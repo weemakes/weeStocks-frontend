@@ -1,7 +1,7 @@
 import { getLatestMetalPrice } from '../api';
 import type { City, Metal } from '../types';
 import { generateSlug } from '../utils/city';
-import { normalizedPrice } from '../utils/prices';
+import { normalizedChange, normalizedPrice } from '../utils/prices';
 import { CityComparisonTable } from './CityComparisonTable';
 
 export async function CityRatesSection({ cities, metal, citySlug }: { cities: City[]; metal: Metal; citySlug: string }) {
@@ -11,6 +11,7 @@ export async function CityRatesSection({ cities, metal, citySlug }: { cities: Ci
   const results = await Promise.allSettled(
     comparisonCities.map(async (city) => {
       const { prices } = await getLatestMetalPrice(city.id, metal);
+      const change = normalizedChange(prices, '10g', metal === 'gold' ? '24K' : undefined);
       return {
         id: city.id,
         name: city.name,
@@ -19,6 +20,8 @@ export async function CityRatesSection({ cities, metal, citySlug }: { cities: Ci
         price22K: normalizedPrice(prices, '10g', '22K'),
         price18K: normalizedPrice(prices, '10g', '18K'),
         singlePrice: normalizedPrice(prices, '10g'),
+        change: change?.value,
+        changeDirection: change?.direction,
       };
     })
   );

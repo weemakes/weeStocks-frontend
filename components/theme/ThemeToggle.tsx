@@ -5,6 +5,7 @@ import { Moon, Sun, Terminal } from 'lucide-react';
 
 type Theme = 'light' | 'dark' | 'system';
 const eventName = 'weestox-theme';
+const subscribeMounted = () => () => {};
 
 function readTheme(): Theme {
   try {
@@ -46,7 +47,8 @@ function subscribe(callback: () => void) {
 
 export default function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, readTheme, () => 'system' as Theme);
-  const isDark = isDarkMode(theme);
+  const mounted = useSyncExternalStore(subscribeMounted, () => true, () => false);
+  const isDark = mounted ? isDarkMode(theme) : false;
 
   const toggleTheme = () => {
     const nextTheme: Theme = isDark ? 'light' : 'dark';
@@ -56,7 +58,7 @@ export default function ThemeToggle() {
     } catch {}
 
     if (typeof document !== 'undefined' && 'startViewTransition' in document) {
-      (document as any).startViewTransition(() => {
+      (document as Document & { startViewTransition: (callback: () => void) => void }).startViewTransition(() => {
         applyTheme(nextTheme);
         window.dispatchEvent(new Event(eventName));
       });

@@ -38,22 +38,48 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const errorText = await response.text();
-      return NextResponse.json(
-        { status: 0, message: 'Backend error', error: errorText },
-        { status: response.status }
-      );
+      try {
+        const errorJson = await response.json();
+        return NextResponse.json(errorJson, { status: response.status });
+      } catch {
+        const errorText = await response.text();
+        return NextResponse.json(
+          {
+            status: 0,
+            statusCode: response.status,
+            message: 'Backend error',
+            error: errorText,
+            timestamp: new Date().toISOString(),
+            path: '/api/stocks',
+          },
+          { status: response.status }
+        );
+      }
     } catch (networkErr: any) {
       console.error(`[Stock Root API Proxy Error] ${primaryUrl}:`, networkErr);
       return NextResponse.json(
-        { status: 0, message: 'Backend connection failed', error: networkErr?.message },
+        {
+          status: 0,
+          statusCode: 502,
+          message: 'Backend connection failed',
+          error: networkErr?.message,
+          timestamp: new Date().toISOString(),
+          path: '/api/stocks',
+        },
         { status: 502 }
       );
     }
   } catch (err: any) {
     console.error('[Stock Root Route Handler Error]:', err);
     return NextResponse.json(
-      { status: 0, message: 'Internal server error', error: err?.message },
+      {
+        status: 0,
+        statusCode: 500,
+        message: 'Internal server error',
+        error: err?.message,
+        timestamp: new Date().toISOString(),
+        path: '/api/stocks',
+      },
       { status: 500 }
     );
   }
