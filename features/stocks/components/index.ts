@@ -7,5 +7,6 @@ export { default as StockTableView } from './StockTableView';
 export { default as StockCardView } from './StockCardView';
 export { default as StockDetailModal } from './StockDetailModal';
 export { default as StockDetailContent } from './StockDetailContent';
+export { default as StockDetailDashboard } from './StockDetailDashboard';
 export { default as StockCandleChart } from './StockCandleChart';
 export { default as CompanyLogo } from './CompanyLogo';

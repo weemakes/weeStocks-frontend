@@ -165,6 +165,118 @@ export interface StockFiltersConfig {
 }
 
 export interface StockMasterDetail {
+  what_changed_recently?: Array<{
+    title: string;
+    details: string;
+    date?: string;
+    type?: string;
+  }>;
+  corporate_actions?: Array<{
+    date?: string;
+    type?: string;
+    details?: string;
+  }>;
+  header?: {
+    symbol: string;
+    company_name: string;
+    exchange: string;
+    country: string;
+    price: number;
+    change: number;
+    change_pct: number;
+    market_status?: string;
+    market_status_label?: string;
+    shariah_badge?: string;
+    is_shariah_compliant?: boolean;
+  };
+  today_at_a_glance?: {
+    day_range?: { low: number; high: number; current: number };
+    fifty_two_week_range?: { low: number; high: number; position_pct: number };
+    volume?: number;
+    volume_20d_avg?: number;
+    volume_ratio?: number;
+    volume_diff_pct?: number;
+    free_float_pct?: number | null;
+    narrative_summary?: string;
+  };
+  price_performance?: {
+    return_1w_pct?: number | null;
+    return_1m_pct?: number | null;
+    return_3m_pct?: number | null;
+    return_6m_pct?: number | null;
+    return_1y_pct?: number | null;
+    return_3y_pct?: number | null;
+    distance_52w_high_pct?: number | null;
+    distance_52w_low_pct?: number | null;
+  };
+  shariah_audit?: {
+    status: string;
+    overall_result?: string;
+    badge_label?: string;
+    criteria_summary?: string;
+    methodology?: string;
+    criteria_breakdown?: Array<{
+      criteria: string;
+      name: string;
+      numerator?: number | null;
+      denominator?: number | null;
+      value_pct?: number | null;
+      threshold_pct?: number | null;
+      threshold_label?: string;
+      status: string;
+    }>;
+  };
+  valuation_and_sector_context?: {
+    company?: {
+      pe_ratio?: number | null;
+      forward_pe?: number | null;
+      price_to_book?: number | null;
+      ev_to_ebitda?: number | null;
+      peg_ratio?: number | null;
+      earnings_yield?: number | null;
+    };
+    sector_medians?: {
+      pe_ratio?: number | null;
+      forward_pe?: number | null;
+      price_to_book?: number | null;
+      ev_to_ebitda?: number | null;
+      peg_ratio?: number | null;
+      earnings_yield?: number | null;
+    };
+  };
+  growth_and_profitability?: {
+    cagr?: {
+      revenue_cagr_3y?: number | null;
+      revenue_cagr_5y?: number | null;
+      pat_cagr_3y?: number | null;
+      pat_cagr_5y?: number | null;
+    };
+    chart_series?: Array<{
+      period: string;
+      revenue?: number | string | null;
+      net_income?: number | string | null;
+      pat_margin_pct?: number | null;
+    }>;
+  };
+  financial_health_and_cash_flow?: {
+    net_debt?: number | null;
+    interest_coverage?: number | null;
+    cfo_to_pat_3y?: number | null;
+    net_debt_to_ebitda?: number | null;
+    health_status?: string;
+    cash_flow?: {
+      operating_cash_flow?: number | string | null;
+      free_cash_flow?: number | string | null;
+    };
+  };
+  technical_analysis?: {
+    rsi_14?: { value?: number | null; sentiment?: string; label?: string };
+    macd?: { macd_line?: number | null; signal_line?: number | null; histogram?: number | null; status?: string; label?: string };
+    atr_14?: { value?: number | null; sentiment?: string; label?: string };
+    cpr?: { top_central?: number | null; pivot?: number | null; bottom_central?: number | null; sentiment?: string; label?: string };
+    moving_averages?: Record<string, { value?: number | null; status?: string } | undefined>;
+  };
+  investor_faqs?: Array<{ question: string; answer: string }>;
   trader_insights: {
     market_tier: string;
     rank_in_country: number;

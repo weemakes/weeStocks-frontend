@@ -7,7 +7,6 @@ import {
   XCircle,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles,
   Check,
   X,
   Trophy,
@@ -92,7 +91,6 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       {stocks.map((stock) => {
         const isPositive = stock.changePercent >= 0;
-        const isZeroDebt = stock.shariah.debtRatioPercent === 0;
         const rank = stock.trader_indicators?.rank_in_country;
         const tier = stock.trader_indicators?.market_tier;
         const range52w = stock.trader_indicators?.range_52w_position;
@@ -111,7 +109,7 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
           <div
             key={stock.id}
             onClick={() => onSelectStock(stock)}
-            className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl p-4 transition-all hover:bg-slate-50/60 dark:hover:bg-slate-850/50 cursor-pointer flex flex-col justify-between group shadow-sm"
+            className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-sky-200 dark:hover:border-slate-700 rounded-2xl p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer flex flex-col justify-between group shadow-sm"
           >
             <div>
               {/* Header: Avatar, Ticker, Exchange, Rank & Status */}
@@ -132,11 +130,6 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
                         {stock.exchange}
                       </span>
                       {rank && getRankBadge(rank)}
-                      {isZeroDebt && (
-                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[9px] font-semibold rounded border border-emerald-500/20">
-                          <Sparkles className="w-2.5 h-2.5" /> 0-Debt
-                        </span>
-                      )}
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[190px]" title={stock.name}>
                       {stock.name}

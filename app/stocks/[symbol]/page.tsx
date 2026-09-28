@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { StockMasterDetail } from '@/features/stocks/types';
 import { getStockDetail } from '@/features/stocks/api';
-import StockDetailContent from '@/features/stocks/components/StockDetailContent';
+import StockDetailDashboard from '@/features/stocks/components/StockDetailDashboard';
 
 function StockDetailInner() {
   const params = useParams();
@@ -85,7 +85,7 @@ function StockDetailInner() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       {/* Top Trader Action Bar */}
       <div className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 py-3 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="mx-auto flex max-w-[1500px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
             <Link
@@ -148,7 +148,7 @@ function StockDetailInner() {
       </div>
 
       {/* Main Workstation Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="mx-auto max-w-[1500px] px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         {loading ? (
           <div className="py-36 flex flex-col items-center justify-center gap-3 text-slate-500">
             <Loader2 className="w-9 h-9 animate-spin text-sky-600 dark:text-sky-400" />
@@ -177,7 +177,7 @@ function StockDetailInner() {
             </Link>
           </div>
         ) : (
-          <StockDetailContent
+          <StockDetailDashboard
             key={detail.company.symbol}
             detail={detail}
             onSelectPeer={handleSelectPeer}

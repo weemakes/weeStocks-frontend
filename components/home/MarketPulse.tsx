@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Flame, ArrowUpRight, TrendingUp, Sparkles, Coins, Calculator } from 'lucide-react';
+import { Flame, ArrowUpRight, Sparkles, Coins, Calculator } from 'lucide-react';
 
 export interface MarketPulseData {
   featuredStock: {
@@ -12,6 +12,7 @@ export interface MarketPulseData {
     debtRatio: string;
     status: string;
     country: string;
+    logoUrl?: string | null;
   };
   gold: {
     price10g: string;
@@ -49,6 +50,7 @@ const DEFAULT_PULSE: MarketPulseData = {
     debtRatio: '1.39% • Net Cash',
     status: 'HALAL',
     country: 'India',
+    logoUrl: null,
   },
   gold: {
     price10g: '₹1,53,320',

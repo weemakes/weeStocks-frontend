@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { X, ExternalLink, Loader2, AlertTriangle } from 'lucide-react';
 import { StockItem, StockMasterDetail } from '../types';
 import { getStockDetail } from '../api';
-import StockDetailContent from './StockDetailContent';
+import StockDetailDashboard from './StockDetailDashboard';
 
 interface StockDetailModalProps {
   stock: StockItem | null;
@@ -129,7 +129,7 @@ export default function StockDetailModal({ stock, onClose, onSelectStock }: Stoc
               </button>
             </div>
           ) : (
-            <StockDetailContent
+            <StockDetailDashboard
               key={detail.company.symbol}
               detail={detail}
               onSelectPeer={(sym) => setCurrentSymbol(sym)}

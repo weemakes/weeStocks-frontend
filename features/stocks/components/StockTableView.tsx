@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   XCircle,
   ChevronRight,
-  Sparkles,
   Trophy,
 } from 'lucide-react';
 import { StockItem, StockSortField, SortDirection } from '../types';
@@ -213,7 +212,6 @@ export default function StockTableView({
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
             {stocks.map((stock) => {
               const isPositive = stock.changePercent >= 0;
-              const isZeroDebt = stock.shariah.debtRatioPercent === 0;
               const rank = stock.trader_indicators?.rank_in_country;
               const tier = stock.trader_indicators?.market_tier;
               const range52w = stock.trader_indicators?.range_52w_position;
@@ -257,11 +255,6 @@ export default function StockTableView({
                           <span className="text-[10px] font-semibold text-slate-400 uppercase">
                             {stock.exchange}
                           </span>
-                          {isZeroDebt && (
-                            <span className="hidden sm:inline-flex items-center gap-0.5 px-1 py-0.2 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[9px] font-semibold rounded border border-emerald-500/20">
-                              <Sparkles className="w-2.5 h-2.5" /> 0-Debt
-                            </span>
-                          )}
                         </div>
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[150px] sm:max-w-[220px]">
                           {stock.name}
