@@ -137,7 +137,7 @@ export default function StockMarketOverview({
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {overview.top_sectors.map((sec) => {
             const isSelected = selectedSector === sec.sector;
             const secCount = Number(sec.count) || 0;
@@ -152,7 +152,7 @@ export default function StockMarketOverview({
                 key={sec.sector}
                 type="button"
                 onClick={() => onSelectSector(isSelected ? '' : sec.sector)}
-                className={`flex flex-col p-2.5 rounded-xl border text-left transition-all group ${
+                className={`group flex flex-col rounded-xl border p-2 text-left transition-all ${
                   isSelected
                     ? 'border-sky-500 ring-2 ring-sky-500/20 bg-sky-500/10 dark:bg-sky-950/30'
                     : 'border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800/40'

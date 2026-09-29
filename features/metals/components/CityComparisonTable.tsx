@@ -146,7 +146,7 @@ export function CityComparisonTable({
                       ) : item.change === 0 ? (
                         <span className="text-slate-500 dark:text-slate-400 font-medium">Flat</span>
                       ) : (
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">Unavailable</span>
+                        <span className="text-slate-400 dark:text-slate-500 font-medium" aria-label="Change not reported">—</span>
                       )}
                     </td>
 

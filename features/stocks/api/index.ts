@@ -8,6 +8,7 @@ import type {
   MarketMoverItem,
   MarketOverviewData,
   StockFiltersConfig,
+  StockCorporateAction,
 } from '../types';
 
 // In browser / client environment, use relative URL to route proxy.
@@ -50,8 +51,10 @@ function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
   const pivot = pivotRows.find((row) => String(row.level || '').toLowerCase().includes('pivot'));
   const cpr = asRecord(technicals.cpr);
 
-  const delivery = Array.isArray(source.delivery_conviction)
-    ? source.delivery_conviction.map((item) => {
+  const deliverySource = Array.isArray(source.delivery_conviction)
+    ? source.delivery_conviction
+    : Array.isArray(source.delivery_report) ? source.delivery_report : [];
+  const delivery = deliverySource.map((item) => {
         const row = asRecord(item);
         return {
           date: String(row.date || ''),
@@ -59,41 +62,72 @@ function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
           delivery_quantity: toNumber(row.delivery_quantity ?? row.deliverable_quantity) ?? 0,
           delivery_percentage: toNumber(row.delivery_percentage ?? row.delivery_pct) ?? 0,
           conviction: row.conviction ? String(row.conviction) : undefined,
+          delivery_ratio: toNumber(row.delivery_ratio),
+          relative_strength: row.relative_strength ? String(row.relative_strength) : undefined,
         };
-      })
-    : [];
+      });
 
-  const quarterly = Array.isArray(source.quarterly_financials)
-    ? source.quarterly_financials.map((item) => {
+  const financialStatements = asRecord(source.financial_statements);
+  const quarterlySource = Array.isArray(source.quarterly_financials)
+    ? source.quarterly_financials
+    : Array.isArray(financialStatements.quarterly) ? financialStatements.quarterly : [];
+
+  const quarterly = quarterlySource.map((item) => {
         const row = asRecord(item);
         return {
           fiscal_year: toNumber(row.fiscal_year) ?? 0,
           fiscal_quarter: toNumber(row.fiscal_quarter) ?? 0,
           revenue: toNumber(row.revenue) ?? 0,
+          gross_profit: toNumber(row.gross_profit) ?? undefined,
           operating_income: toNumber(row.operating_income) ?? undefined,
           ebitda: toNumber(row.ebitda) ?? undefined,
           net_income: toNumber(row.net_income) ?? 0,
           diluted_eps: toNumber(row.diluted_eps) ?? undefined,
+          pbt: toNumber(row.pbt) ?? undefined,
+          tax_expense: toNumber(row.tax_expense) ?? undefined,
+          interest_expense: toNumber(row.interest_expense) ?? undefined,
+          revenue_yoy_pct: toNumber(row.revenue_yoy_pct) ?? undefined,
+          pat_yoy_pct: toNumber(row.pat_yoy_pct) ?? undefined,
+          ebitda_yoy_pct: toNumber(row.ebitda_yoy_pct) ?? undefined,
+          ebitda_margin_pct: toNumber(row.ebitda_margin_pct) ?? undefined,
+          pat_margin_pct: toNumber(row.pat_margin_pct) ?? undefined,
         };
-      })
-    : [];
+      });
 
-  const annualRows = Array.isArray(source.annual_financials)
-    ? source.annual_financials.map((item) => {
+  const annualSource = Array.isArray(source.annual_financials)
+    ? source.annual_financials
+    : Array.isArray(financialStatements.annual) ? financialStatements.annual : [];
+
+  const annualRows = annualSource.map((item) => {
         const row = asRecord(item);
         return {
           fiscal_year: toNumber(row.fiscal_year) ?? 0,
           revenue: toNumber(row.revenue) ?? 0,
+          gross_profit: toNumber(row.gross_profit) ?? undefined,
           operating_income: toNumber(row.operating_income) ?? undefined,
           ebitda: toNumber(row.ebitda) ?? undefined,
           net_income: toNumber(row.net_income) ?? 0,
           diluted_eps: toNumber(row.diluted_eps) ?? undefined,
           total_assets: toNumber(row.total_assets) ?? undefined,
+          total_liabilities: toNumber(row.total_liabilities) ?? undefined,
           total_debt: toNumber(row.total_debt) ?? undefined,
+          cash_and_equivalents: toNumber(row.cash_and_equivalents) ?? undefined,
+          operating_cash_flow: toNumber(row.operating_cash_flow) ?? undefined,
+          capex: toNumber(row.capex) ?? undefined,
           free_cash_flow: toNumber(row.free_cash_flow) ?? undefined,
+          equity_share_capital: toNumber(row.equity_share_capital) ?? undefined,
+          reserves_surplus: toNumber(row.reserves_surplus) ?? undefined,
+          interest_income: toNumber(row.interest_income) ?? undefined,
+          interest_expense: toNumber(row.interest_expense) ?? undefined,
+          pbt: toNumber(row.pbt) ?? undefined,
+          tax_expense: toNumber(row.tax_expense) ?? undefined,
+          revenue_yoy_pct: toNumber(row.revenue_yoy_pct) ?? undefined,
+          pat_yoy_pct: toNumber(row.pat_yoy_pct) ?? undefined,
+          ebitda_yoy_pct: toNumber(row.ebitda_yoy_pct) ?? undefined,
+          ebitda_margin_pct: toNumber(row.ebitda_margin_pct) ?? undefined,
+          pat_margin_pct: toNumber(row.pat_margin_pct) ?? undefined,
         };
-      })
-    : [];
+      });
   const annualByYear = new Map<number, (typeof annualRows)[number]>();
   for (const row of annualRows) {
     const current = annualByYear.get(row.fiscal_year);
@@ -101,12 +135,28 @@ function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
     const currentCompleteness = current
       ? Object.values(current).filter((value) => value !== undefined && value !== null).length
       : -1;
-    if (!current || completeness > currentCompleteness) annualByYear.set(row.fiscal_year, row);
+    if (!current) {
+      annualByYear.set(row.fiscal_year, row);
+      continue;
+    }
+    const primary = completeness > currentCompleteness ? row : current;
+    const secondary = primary === row ? current : row;
+    annualByYear.set(row.fiscal_year, mergeDefined(secondary, primary));
   }
 
-  const shareholding = Array.isArray(source.shareholding_pattern)
-    ? source.shareholding_pattern.map((item) => {
+  const shareholdingSource = Array.isArray(source.shareholding_pattern)
+    ? source.shareholding_pattern
+    : Array.isArray(source.shareholding) ? source.shareholding : [];
+  const shareholding = shareholdingSource.map((item) => {
         const row = asRecord(item);
+        const institutions = Array.isArray(row.top_institutions) ? row.top_institutions.map((institution) => {
+          const holder = asRecord(institution);
+          return {
+            name: String(holder.name || ''),
+            category: String(holder.category || ''),
+            holding_pct: toNumber(holder.holding_pct) ?? 0,
+          };
+        }).filter((holder) => holder.name) : [];
         return {
           quarter: String(row.quarter ?? row.quarter_ending ?? ''),
           promoter: toNumber(row.promoter ?? row.promoter_pct),
@@ -115,21 +165,43 @@ function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
           public: toNumber(row.public ?? row.public_pct),
           pledged: toNumber(row.pledged ?? row.promoter_pledged_pct),
           num_shareholders: toNumber(row.num_shareholders),
+          top_institutions: institutions,
         };
-      })
+      });
+
+  const corporateActions = Array.isArray(source.corporate_actions)
+    ? source.corporate_actions.map(normalizeCorporateAction)
     : [];
+
+  const thesisSection = asRecord(source.strengths_risks_thesis);
+  const legacyFlags = asRecord(source.flags);
+  const legacyThesis = asRecord(source.thesis);
 
   const peers = Array.isArray(source.peers)
     ? source.peers.map((item) => {
         const row = asRecord(item);
         return {
+          id: row.id ? String(row.id) : undefined,
           symbol: String(row.symbol || ''),
           company_name: String(row.company_name || ''),
+          logo_url: typeof row.logo_url === 'string' ? row.logo_url : null,
+          currency: row.currency ? String(row.currency) : undefined,
+          exchange: row.exchange ? String(row.exchange) : undefined,
+          is_current: Boolean(row.is_current),
           market_cap: toNumber(row.market_cap) ?? 0,
-          pe_ratio: toNumber(row.pe_ratio) ?? undefined,
-          price_to_book: toNumber(row.price_to_book) ?? undefined,
-          roe: toNumber(row.roe) ?? undefined,
-          roce: toNumber(row.roce) ?? undefined,
+          market_cap_cr: toNumber(row.market_cap_cr),
+          pe_ratio: toNumber(row.pe_ratio),
+          dividend_yield: toNumber(row.dividend_yield),
+          quarterly_sales: toNumber(row.quarterly_sales),
+          quarterly_sales_cr: toNumber(row.quarterly_sales_cr),
+          profit_after_tax: toNumber(row.profit_after_tax),
+          profit_after_tax_cr: toNumber(row.profit_after_tax_cr),
+          sales_growth_pct: toNumber(row.sales_growth_pct),
+          profit_growth_pct: toNumber(row.profit_growth_pct),
+          price_to_book: toNumber(row.price_to_book),
+          roe: toNumber(row.roe),
+          roce: toNumber(row.roce),
+          operating_margin: toNumber(row.operating_margin),
         };
       })
     : [];
@@ -158,7 +230,53 @@ function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
     quarterly_financials: quarterly,
     annual_financials: Array.from(annualByYear.values()).sort((a, b) => b.fiscal_year - a.fiscal_year),
     shareholding_pattern: shareholding,
+    corporate_actions: corporateActions,
+    flags: {
+      green_flags: stringArray(legacyFlags.green_flags ?? thesisSection.strengths ?? thesisSection.green_flags),
+      red_flags: stringArray(legacyFlags.red_flags ?? thesisSection.risks ?? thesisSection.red_flags),
+    },
+    thesis: {
+      bull_case: stringArray(legacyThesis.bull_case ?? thesisSection.bull_case),
+      bear_case: stringArray(legacyThesis.bear_case ?? thesisSection.bear_case),
+      flip_conditions: stringArray(legacyThesis.flip_conditions ?? thesisSection.flip_conditions),
+    },
     peers,
+  };
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+}
+
+function mergeDefined<T extends Record<string, unknown>>(fallback: T, preferred: T): T {
+  const merged = { ...fallback } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(preferred)) {
+    if (value !== undefined && value !== null) merged[key] = value;
+  }
+  return merged as T;
+}
+
+function normalizeCorporateAction(value: unknown): StockCorporateAction {
+  const row = asRecord(value);
+  const type = String(row.action_type ?? row.type ?? 'OTHER').toUpperCase();
+  return {
+    id: row.id ? String(row.id) : undefined,
+    type,
+    action_type: type,
+    announcement_date: row.announcement_date ? String(row.announcement_date) : null,
+    ex_date: row.ex_date ? String(row.ex_date) : row.date ? String(row.date) : null,
+    record_date: row.record_date ? String(row.record_date) : null,
+    dividend_amount: toNumber(row.dividend_amount),
+    split_ratio: row.split_ratio ? String(row.split_ratio) : null,
+    bonus_ratio: row.bonus_ratio ? String(row.bonus_ratio) : null,
+    notes: row.notes ? String(row.notes) : null,
+    details: row.details ? String(row.details) : row.notes ? String(row.notes) : null,
+    company_id: row.company_id ? String(row.company_id) : undefined,
+    symbol: row.symbol ? String(row.symbol) : undefined,
+    company_name: row.company_name ? String(row.company_name) : undefined,
+    country: row.country ? String(row.country) : undefined,
+    exchange: row.exchange ? String(row.exchange) : undefined,
+    logo_url: row.logo_url ? String(row.logo_url) : null,
   };
 }
 
@@ -273,10 +391,82 @@ export async function getStockDetail(identifier: string, country?: string): Prom
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    return normalizeStockDetail(json.data);
+    const detail = normalizeStockDetail(json.data);
+    if (!detail) return null;
+
+    // Older master-report deployments may omit these newer sections. Fetch only
+    // the missing datasets so a complete master response still costs one request.
+    const [shareholding, corporateActions] = await Promise.all([
+      detail.shareholding_pattern?.length ? Promise.resolve(null) : getStockShareholding(identifier, country),
+      detail.corporate_actions?.length ? Promise.resolve(null) : getStockCorporateActions(identifier, 20),
+    ]);
+    if (shareholding?.length) detail.shareholding_pattern = shareholding;
+    if (corporateActions?.length) detail.corporate_actions = corporateActions;
+    return detail;
   } catch (error) {
     console.error(`Failed to fetch stock detail for ${identifier}:`, error);
     return null;
+  }
+}
+
+/** GET /stocks/:identifier/corporate-actions */
+export async function getStockCorporateActions(identifier: string, limit: number = 20): Promise<StockCorporateAction[]> {
+  try {
+    const p = new URLSearchParams({ limit: String(limit) });
+    const res = await fetch(`${getBaseUrl()}/${encodeURIComponent(identifier)}/corporate-actions?${p}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data.map(normalizeCorporateAction) : [];
+  } catch (error) {
+    console.error(`Failed to fetch corporate actions for ${identifier}:`, error);
+    return [];
+  }
+}
+
+/** GET /stocks/corporate-actions/upcoming */
+export async function getUpcomingCorporateActions(country: string = 'all', limit: number = 50): Promise<StockCorporateAction[]> {
+  try {
+    const p = new URLSearchParams({ country, limit: String(limit) });
+    const res = await fetch(`${getBaseUrl()}/corporate-actions/upcoming?${p}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data.map(normalizeCorporateAction) : [];
+  } catch (error) {
+    console.error('Failed to fetch upcoming corporate actions:', error);
+    return [];
+  }
+}
+
+/** GET /stocks/:identifier/shareholding */
+export async function getStockShareholding(identifier: string, country?: string): Promise<NonNullable<StockMasterDetail['shareholding_pattern']>> {
+  try {
+    const p = new URLSearchParams();
+    if (country) p.set('country', country);
+    const qs = p.toString();
+    const res = await fetch(`${getBaseUrl()}/${encodeURIComponent(identifier)}/shareholding${qs ? `?${qs}` : ''}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const data = Array.isArray(json.data) ? json.data : Array.isArray(json.data?.shareholding) ? json.data.shareholding : [];
+    return data.map((item: unknown) => {
+      const row = asRecord(item);
+      const topInstitutions = Array.isArray(row.top_institutions) ? row.top_institutions.map((item) => {
+        const holder = asRecord(item);
+        return { name: String(holder.name || ''), category: String(holder.category || ''), holding_pct: toNumber(holder.holding_pct) ?? 0 };
+      }).filter((holder) => holder.name) : [];
+      return {
+        quarter: String(row.quarter ?? row.quarter_ending ?? ''),
+        promoter: toNumber(row.promoter ?? row.promoter_pct),
+        fii: toNumber(row.fii ?? row.fii_pct),
+        dii: toNumber(row.dii ?? row.dii_pct),
+        public: toNumber(row.public ?? row.public_pct),
+        pledged: toNumber(row.pledged ?? row.promoter_pledged_pct),
+        num_shareholders: toNumber(row.num_shareholders),
+        top_institutions: topInstitutions,
+      };
+    });
+  } catch (error) {
+    console.error(`Failed to fetch shareholding for ${identifier}:`, error);
+    return [];
   }
 }
 

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import type { MarketPulseData } from './MarketPulse';
 import CompanyLogo from '@/features/stocks/components/CompanyLogo';
+import GlobalMarketSearch from './GlobalMarketSearch';
 
 interface Props {
   data: MarketPulseData;
@@ -25,12 +26,7 @@ export default function HomeLanding({ data }: Props) {
           <span className="inline-flex rounded-full border border-sky-200 bg-sky-100/70 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-sky-700 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-300">Ethical intelligence for modern markets</span>
           <h1 className="mt-4 text-4xl font-black leading-[1.04] tracking-tight text-slate-950 dark:text-white sm:text-5xl">Research markets with clarity. <span className="text-sky-600">Invest with confidence.</span></h1>
           <p className="mt-4 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">Stocks, IPOs, precious metals and Shariah screening—intelligent tools in one trusted platform.</p>
-          <form action="/stocks" className="mt-5 flex max-w-xl items-center rounded-xl border border-slate-200 bg-white p-1 shadow-lg shadow-sky-900/5 dark:border-slate-700 dark:bg-slate-900">
-            <Search className="ml-3 h-4 w-4 shrink-0 text-slate-400" />
-            <input name="search" aria-label="Search markets" placeholder="Search stocks, IPOs, metals or tools…" className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-slate-400" />
-            <button className="rounded-lg bg-sky-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-sky-700">Search</button>
-          </form>
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] text-slate-500"><span>Popular:</span>{['RELIANCE', 'TCS', 'Gold 24K', 'Live IPO GMP'].map((label) => <span key={label} className="rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 dark:border-slate-700 dark:bg-slate-900">{label}</span>)}</div>
+          <GlobalMarketSearch />
           <div className="mt-5 flex flex-wrap gap-3"><Link href="/stocks" className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-sky-600/20 hover:bg-sky-700">Explore Markets <ArrowRight className="h-3.5 w-3.5" /></Link><Link href="/about" className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 bg-white px-5 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300">Check Shariah Compliance <ShieldCheck className="h-4 w-4" /></Link></div>
           <div className="mt-5 grid max-w-xl gap-2 sm:grid-cols-3"><TrustMini icon={<ShieldCheck />} title="AAOIFI Standard No. 21" /><TrustMini icon={<BarChart3 />} title="Live market intelligence" /><TrustMini icon={<Sparkles />} title="Stocks · IPOs · Metals" /></div>
         </div>

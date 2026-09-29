@@ -7,7 +7,7 @@ type HoldingKey = 'promoter' | 'fii' | 'dii' | 'public';
 type Filter = 'all' | HoldingKey;
 type Frequency = 'annual' | 'quarterly';
 type ViewMode = 'chart' | 'table';
-type HoldingRow = { quarter: string; promoter: number | null; fii: number | null; dii: number | null; public: number | null; pledged?: number | null; num_shareholders?: number | null };
+type HoldingRow = { quarter: string; promoter: number | null; fii: number | null; dii: number | null; public: number | null; pledged?: number | null; num_shareholders?: number | null; top_institutions?: Array<{ name: string; category: string; holding_pct: number }> };
 
 const categories: Array<{ key: HoldingKey; label: string; shortLabel: string; color: string; className: string }> = [
   { key: 'promoter', label: 'Promoters', shortLabel: 'Promoters', color: '#0284c7', className: 'bg-sky-600' },
@@ -32,6 +32,7 @@ export default function ShareholdingCharts({ rows }: { rows: HoldingRow[] }) {
   const [view, setView] = useState<ViewMode>('chart');
   const [filter, setFilter] = useState<Filter>('all');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [showAllHolders, setShowAllHolders] = useState(false);
   const selectedRows = frequency === 'annual' ? annualRows : quarterlyRows;
   const history = [...selectedRows].reverse();
   const latest = selectedRows[0]; const previous = selectedRows[1];
@@ -49,6 +50,7 @@ export default function ShareholdingCharts({ rows }: { rows: HoldingRow[] }) {
   const hovered = hoveredIndex == null ? null : history[hoveredIndex];
   const institutional = Number(latest.fii || 0) + Number(latest.dii || 0);
   const latestShareholders = rows.find((row) => row.num_shareholders != null)?.num_shareholders;
+  const topInstitutions = latest.top_institutions || [];
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-2 dark:border-slate-800 dark:bg-slate-950/40"><div className="px-2"><strong className="block text-xs">{frequency === 'annual' ? 'Annual ownership snapshots' : 'Quarterly ownership history'}</strong><span className="text-[9px] text-slate-400">Latest valid period · {periodLabel(latest.quarter, true)}</span></div><div className="flex flex-wrap gap-2"><Toggle values={['annual', 'quarterly']} selected={frequency} onSelect={(item) => { setFrequency(item as Frequency); setHoveredIndex(null); }} /><Toggle values={['chart', 'table']} selected={view} dark onSelect={(item) => setView(item as ViewMode)} /></div></div>
@@ -61,6 +63,7 @@ export default function ShareholdingCharts({ rows }: { rows: HoldingRow[] }) {
     </div> : <OwnershipTable history={history} latest={latest} previous={previous} />}
 
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-5"><Metric label="Institutional holding" value={formatSafePct(institutional, false)} /><Metric label="Public holding" value={formatSafePct(latest.public, false)} /><Metric label="Periods available" value={String(selectedRows.length)} /><Metric label="Promoter pledged" value={formatSafePct(latest.pledged, false)} /><Metric label="Shareholders" value={latestShareholders == null ? '—' : new Intl.NumberFormat('en-IN', { notation: 'compact', maximumFractionDigits: 2 }).format(latestShareholders)} /></div>
+    {topInstitutions.length > 0 && <div className="rounded-xl border border-slate-200 dark:border-slate-800"><div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-800"><div><h3 className="text-xs font-black">Top reported holders</h3><p className="mt-0.5 text-[9px] text-slate-400">Largest named holdings disclosed for {periodLabel(latest.quarter, true)}</p></div>{topInstitutions.length > 8 && <button type="button" onClick={() => setShowAllHolders((value) => !value)} className="shrink-0 text-[10px] font-bold text-sky-600 hover:text-sky-700">{showAllHolders ? 'Show less' : `View all ${topInstitutions.length}`}</button>}</div><div className="grid divide-y divide-slate-100 md:grid-cols-2 md:divide-x md:divide-y-0 dark:divide-slate-800">{(showAllHolders ? topInstitutions : topInstitutions.slice(0, 8)).map((holder, index) => <div key={`${holder.name}-${index}`} className="flex items-center justify-between gap-4 px-4 py-3"><div className="min-w-0"><p className="truncate text-[11px] font-bold text-slate-900 dark:text-white" title={holder.name}>{holder.name}</p><span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{holder.category}</span></div><strong className="shrink-0 text-xs tabular-nums text-sky-600">{formatSafePct(holder.holding_pct, false)}</strong></div>)}</div></div>}
     {frequency === 'annual' && <p className="text-[9px] text-slate-400">Annual view uses the latest valid reported quarter available in each calendar year.</p>}
   </div>;
 }

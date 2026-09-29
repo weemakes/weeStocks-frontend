@@ -228,7 +228,7 @@ function StocksPageContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 py-6 md:py-8 pb-20 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-4 lg:px-5">
         {/* Breadcrumb & Header Title */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div>

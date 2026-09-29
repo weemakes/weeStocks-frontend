@@ -11,7 +11,6 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles,
 } from 'lucide-react';
 import ThemeToggle from '../theme/ThemeToggle';
 
@@ -107,58 +106,17 @@ export default function Navigation() {
               Home
             </Link>
 
-            {/* Stocks Dropdown */}
-            <div
-              className="relative"
-              onMouseEnter={() => setActiveDropdown('stocks')}
-              onMouseLeave={() => setActiveDropdown(null)}
+            <Link
+              href="/stocks"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${
+                isActive('/stocks')
+                  ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+              }`}
             >
-              <Link
-                href="/stocks"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${
-                  isActive('/stocks')
-                    ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
-                }`}
-              >
-                <span>Stocks</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Live Screener" />
-                <ChevronDown className="w-3 h-3 opacity-60" />
-              </Link>
-
-              {activeDropdown === 'stocks' && (
-                <div className="absolute top-full left-0 pt-1 z-30">
-                  <div className="w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-2 text-xs divide-y divide-slate-100 dark:divide-slate-800/60 animate-fade-in">
-                    <div className="pb-1.5 space-y-0.5">
-                      <Link
-                        href="/stocks"
-                        className="block px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-                      >
-                        <div className="font-semibold">Halal Stock Screener</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400">AAOIFI 21 Shariah audit</div>
-                      </Link>
-                      <Link
-                        href="/stocks?preset=zero_debt"
-                        className="block px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-                      >
-                        <div className="font-semibold">Zero-Debt Giants</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Net-cash balance sheets</div>
-                      </Link>
-                    </div>
-                    <div className="pt-1.5 space-y-0.5">
-                      <Link
-                        href="/stocks?preset=high_dividend"
-                        className="block px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-                      >
-                        <div className="font-semibold">High Dividend Halal</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Purification &lt; 1%</div>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
+              <span>Stocks</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Live Screener" />
+            </Link>
             {/* Metals Dropdown */}
             <div
               className="relative"

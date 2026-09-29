@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, History, Loader2, Table2, X } from "lucide-react";
 import type { IPOGmpHistoryData, IPOGmpHistoryItem } from "../types";
+import { getEstimatedProfit, getGMPMovement } from "./gmpHistoryUtils";
 
 type Range = "3d" | "7d" | "all";
 
@@ -10,6 +11,7 @@ interface GMPHistoryModalProps {
   slug: string;
   companyName: string;
   initialData?: IPOGmpHistoryData | null;
+  lotSize?: number | null;
 }
 
 function formatSnapshotDate(value: string) {
@@ -20,13 +22,7 @@ function formatSnapshotDate(value: string) {
 }
 
 function TrendBadge({ item, previous }: { item: IPOGmpHistoryItem; previous?: IPOGmpHistoryItem }) {
-  const trend = item.gmp_trend || (previous
-    ? item.gmp_value > previous.gmp_value
-      ? "up"
-      : item.gmp_value < previous.gmp_value
-      ? "down"
-      : "flat"
-    : "flat");
+  const trend = getGMPMovement(item, previous);
 
   if (trend === "up") {
     return <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400"><ArrowUp className="h-3 w-3" />Up</span>;
@@ -38,6 +34,7 @@ function TrendBadge({ item, previous }: { item: IPOGmpHistoryItem; previous?: IP
 }
 
 function HistoryChart({ history }: { history: IPOGmpHistoryItem[] }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const width = 720;
   const height = 250;
   const paddingX = 44;
@@ -55,9 +52,10 @@ function HistoryChart({ history }: { history: IPOGmpHistoryItem[] }) {
   }));
   const line = points.map((point) => `${point.x},${point.y}`).join(" ");
   const area = `${paddingX},${height - paddingY} ${line} ${width - paddingX},${height - paddingY}`;
+  const hovered = hoveredIndex == null ? null : points[hoveredIndex];
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950/60">
+    <div className="relative overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950/60">
       <svg viewBox={`0 0 ${width} ${height}`} className="h-64 min-w-[620px] w-full" role="img" aria-label="Daily grey market premium history chart">
         <defs>
           <linearGradient id="gmp-history-fill" x1="0" y1="0" x2="0" y2="1">
@@ -79,18 +77,21 @@ function HistoryChart({ history }: { history: IPOGmpHistoryItem[] }) {
         <polyline points={line} fill="none" stroke="#10b981" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
         {points.map(({ x, y, item }, index) => (
           <g key={item.snapshot_date}>
-            <circle cx={x} cy={y} r="4" fill="#10b981"><title>{`${formatSnapshotDate(item.snapshot_date)}: ₹${item.gmp_value}`}</title></circle>
+            {hoveredIndex === index && <line x1={x} x2={x} y1={paddingY} y2={height - paddingY} stroke="#64748b" strokeDasharray="3 3" opacity="0.6" />}
+            <circle cx={x} cy={y} r={hoveredIndex === index ? 6 : 4} fill="#10b981" stroke="white" strokeWidth="2" className="cursor-pointer" tabIndex={0} onMouseEnter={() => setHoveredIndex(index)} onMouseLeave={() => setHoveredIndex(null)} onFocus={() => setHoveredIndex(index)} onBlur={() => setHoveredIndex(null)} aria-label={`${formatSnapshotDate(item.snapshot_date)}, GMP ₹${item.gmp_value}`} />
+            <rect x={x - Math.max(16, usableWidth / Math.max(history.length, 1) / 2)} y={paddingY} width={Math.max(32, usableWidth / Math.max(history.length, 1))} height={usableHeight} fill="transparent" className="cursor-crosshair" onMouseEnter={() => setHoveredIndex(index)} onMouseLeave={() => setHoveredIndex(null)} />
             {(index === 0 || index === points.length - 1 || points.length <= 7) && (
               <text x={x} y={height - 8} textAnchor="middle" className="fill-slate-500 text-[10px]">{formatSnapshotDate(item.snapshot_date).replace(/ \d{4}$/, "")}</text>
             )}
           </g>
         ))}
       </svg>
+      {hovered && <div className="pointer-events-none absolute z-10 min-w-40 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-xl dark:border-slate-700 dark:bg-slate-900" style={{ left: `${Math.max(13, Math.min(87, (hovered.x / width) * 100))}%`, top: `${(hovered.y / height) * 100}%`, transform: hovered.y < 112 ? 'translate(-50%, 14px)' : 'translate(-50%, calc(-100% - 14px))' }}><p className="font-bold text-slate-900 dark:text-white">{formatSnapshotDate(hovered.item.snapshot_date)}</p><div className="mt-1 flex justify-between gap-5"><span className="text-slate-500">GMP</span><strong className="text-emerald-600">{hovered.item.gmp_value > 0 ? '+' : ''}₹{hovered.item.gmp_value}</strong></div><div className="flex justify-between gap-5"><span className="text-slate-500">Premium</span><strong>{hovered.item.gmp_percentage == null ? '—' : `${hovered.item.gmp_percentage.toFixed(2)}%`}</strong></div><div className="flex justify-between gap-5"><span className="text-slate-500">Subscription</span><strong>{hovered.item.subscription_display || '—'}</strong></div></div>}
     </div>
   );
 }
 
-export function GMPHistoryModal({ slug, companyName, initialData = null }: GMPHistoryModalProps) {
+export function GMPHistoryModal({ slug, companyName, initialData = null, lotSize }: GMPHistoryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [range, setRange] = useState<Range>("all");
   const [data, setData] = useState<IPOGmpHistoryData | null>(initialData);
@@ -166,13 +167,14 @@ export function GMPHistoryModal({ slug, companyName, initialData = null }: GMPHi
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full min-w-[650px] text-left text-xs">
-                        <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-400"><tr><th className="px-4 py-2.5">Date</th><th className="px-4 py-2.5 text-right">GMP</th><th className="px-4 py-2.5 text-right">Premium</th><th className="px-4 py-2.5 text-center">Subscription</th><th className="px-4 py-2.5 text-center">Trend</th></tr></thead>
+                        <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900 dark:text-slate-400"><tr><th className="px-4 py-2.5">Date</th><th className="px-4 py-2.5 text-right">GMP</th><th className="px-4 py-2.5 text-right">Premium</th><th className="px-4 py-2.5 text-right">Est. profit / lot</th><th className="px-4 py-2.5 text-center">Subscription</th><th className="px-4 py-2.5 text-center">Movement</th></tr></thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                           {[...history].reverse().map((item, index, reversed) => (
                             <tr key={item.snapshot_date}>
                               <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">{formatSnapshotDate(item.snapshot_date)}</td>
                               <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">{item.gmp_value > 0 ? "+" : ""}₹{item.gmp_value}</td>
                               <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">{item.gmp_percentage == null ? "—" : `${item.gmp_percentage.toFixed(2)}%`}</td>
+                              <td className="px-4 py-3 text-right font-semibold tabular-nums text-slate-700 dark:text-slate-200">{getEstimatedProfit(item.gmp_value, lotSize) == null ? "—" : `${getEstimatedProfit(item.gmp_value, lotSize)! >= 0 ? '+' : ''}₹${getEstimatedProfit(item.gmp_value, lotSize)!.toLocaleString('en-IN')}`}</td>
                               <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{item.subscription_display || "—"}</td>
                               <td className="px-4 py-3 text-center"><TrendBadge item={item} previous={reversed[index + 1]} /></td>
                             </tr>

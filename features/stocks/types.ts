@@ -164,6 +164,56 @@ export interface StockFiltersConfig {
   sectors: string[];
 }
 
+export interface StockInstitutionHolding {
+  name: string;
+  category: string;
+  holding_pct: number;
+}
+
+export interface StockPeer {
+  id?: string;
+  symbol: string;
+  company_name: string;
+  logo_url?: string | null;
+  currency?: string;
+  exchange?: string;
+  is_current?: boolean;
+  market_cap: number;
+  market_cap_cr?: number | null;
+  pe_ratio?: number | null;
+  dividend_yield?: number | null;
+  quarterly_sales?: number | null;
+  quarterly_sales_cr?: number | null;
+  profit_after_tax?: number | null;
+  profit_after_tax_cr?: number | null;
+  sales_growth_pct?: number | null;
+  profit_growth_pct?: number | null;
+  price_to_book?: number | null;
+  roe?: number | null;
+  roce?: number | null;
+  operating_margin?: number | null;
+}
+
+export interface StockCorporateAction {
+  id?: string;
+  type: string;
+  action_type?: string;
+  announcement_date?: string | null;
+  ex_date?: string | null;
+  record_date?: string | null;
+  dividend_amount?: number | null;
+  split_ratio?: string | null;
+  bonus_ratio?: string | null;
+  notes?: string | null;
+  details?: string | null;
+  company_id?: string;
+  symbol?: string;
+  company_name?: string;
+  country?: string;
+  exchange?: string;
+  logo_url?: string | null;
+}
+
 export interface StockMasterDetail {
   what_changed_recently?: Array<{
     title: string;
@@ -171,11 +221,7 @@ export interface StockMasterDetail {
     date?: string;
     type?: string;
   }>;
-  corporate_actions?: Array<{
-    date?: string;
-    type?: string;
-    details?: string;
-  }>;
+  corporate_actions?: StockCorporateAction[];
   header?: {
     symbol: string;
     company_name: string;
@@ -251,6 +297,12 @@ export interface StockMasterDetail {
       pat_cagr_3y?: number | null;
       pat_cagr_5y?: number | null;
     };
+    margins?: {
+      roe?: number | null;
+      roce?: number | null;
+      operating_margin?: number | null;
+      net_margin?: number | null;
+    };
     chart_series?: Array<{
       period: string;
       revenue?: number | string | null;
@@ -266,6 +318,7 @@ export interface StockMasterDetail {
     health_status?: string;
     cash_flow?: {
       operating_cash_flow?: number | string | null;
+      capex?: number | string | null;
       free_cash_flow?: number | string | null;
     };
   };
@@ -370,26 +423,53 @@ export interface StockMasterDetail {
     traded_quantity: number;
     delivery_quantity: number;
     conviction?: string;
+    delivery_ratio?: number | null;
+    relative_strength?: string;
   }>;
   quarterly_financials?: Array<{
     fiscal_year: number;
     fiscal_quarter: number;
     revenue: number;
+    gross_profit?: number;
     operating_income?: number;
     ebitda?: number;
     net_income: number;
     diluted_eps?: number;
+    pbt?: number;
+    tax_expense?: number;
+    interest_expense?: number;
+    revenue_yoy_pct?: number;
+    pat_yoy_pct?: number;
+    ebitda_yoy_pct?: number;
+    ebitda_margin_pct?: number;
+    pat_margin_pct?: number;
   }>;
   annual_financials?: Array<{
     fiscal_year: number;
     revenue: number;
+    gross_profit?: number;
     operating_income?: number;
     ebitda?: number;
     net_income: number;
     diluted_eps?: number;
     total_assets?: number;
+    total_liabilities?: number;
     total_debt?: number;
+    cash_and_equivalents?: number;
+    operating_cash_flow?: number;
+    capex?: number;
     free_cash_flow?: number;
+    equity_share_capital?: number;
+    reserves_surplus?: number;
+    interest_income?: number;
+    interest_expense?: number;
+    pbt?: number;
+    tax_expense?: number;
+    revenue_yoy_pct?: number;
+    pat_yoy_pct?: number;
+    ebitda_yoy_pct?: number;
+    ebitda_margin_pct?: number;
+    pat_margin_pct?: number;
   }>;
   shareholding_pattern?: Array<{
     quarter: string;
@@ -399,16 +479,9 @@ export interface StockMasterDetail {
     public: number | null;
     pledged?: number | null;
     num_shareholders?: number | null;
+    top_institutions?: StockInstitutionHolding[];
   }>;
-  peers?: Array<{
-    symbol: string;
-    company_name: string;
-    market_cap: number;
-    pe_ratio?: number;
-    price_to_book?: number;
-    roe?: number;
-    roce?: number;
-  }>;
+  peers?: StockPeer[];
   shariah_compliance: {
     status: string;
     score?: number;

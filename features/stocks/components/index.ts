@@ -10,3 +10,5 @@ export { default as StockDetailContent } from './StockDetailContent';
 export { default as StockDetailDashboard } from './StockDetailDashboard';
 export { default as StockCandleChart } from './StockCandleChart';
 export { default as CompanyLogo } from './CompanyLogo';
+export { default as CorporateActionsSection } from './CorporateActionsSection';
+export { default as FinancialStatements } from './FinancialStatements';

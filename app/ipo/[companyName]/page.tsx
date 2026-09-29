@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Clock,
   ShieldCheck,
-  XCircle,
   FileText,
   ExternalLink,
   Building2,
@@ -106,31 +105,6 @@ function getStatusBadge(status: string | null | undefined) {
       return 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-700/40 dark:text-slate-400 dark:border-slate-700/60';
     default:
       return 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
-  }
-}
-
-function getHalalBadge(status: string | null | undefined) {
-  switch (status?.toLowerCase()) {
-    case 'halal':
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 text-xs font-bold dark:border-emerald-500/30">
-          <ShieldCheck className="w-3.5 h-3.5" /> 100% Halal
-        </span>
-      );
-    case 'doubtful':
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 text-xs font-bold dark:border-amber-500/30">
-          <AlertTriangle className="w-3.5 h-3.5" /> Under Review
-        </span>
-      );
-    case 'not_halal':
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 text-xs font-bold dark:border-rose-500/30">
-          <XCircle className="w-3.5 h-3.5" /> Non-Compliant
-        </span>
-      );
-    default:
-      return null;
   }
 }
 
@@ -283,7 +257,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                     >
                       {profile.type || profile.listing_at || 'IPO'}
                     </span>
-                    {getHalalBadge(halal_screening?.status)}
+                    {/* IPO compliance badge is hidden until screening data is finalized. */}
                   </div>
 
                   <p className="text-xs text-slate-500 dark:text-slate-400 max-w-3xl leading-relaxed">
@@ -423,7 +397,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 text-left shadow-xs">
               <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mb-1">Est. Profit / Lot</span>
               <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                {estimates?.est_profit_display || (estimates?.est_profit_per_lot ? `₹${estimates.est_profit_per_lot.toLocaleString('en-IN')}` : '₹0')}
+                {estimates?.est_profit_display || (estimates?.est_profit_per_lot != null ? `₹${estimates.est_profit_per_lot.toLocaleString('en-IN')}` : gmp?.value != null && issue_details?.lot_size ? `${gmp.value >= 0 ? '+' : ''}₹${(gmp.value * issue_details.lot_size).toLocaleString('en-IN')}` : '–')}
               </div>
               <div className="text-[10px] text-slate-500 mt-1">Per Retail Application</div>
             </div>
@@ -460,7 +434,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
           </div>
 
           <div className="space-y-6">
-            <GMPHistorySection slug={profile.slug} companyName={profile.company_name} rating={gmp?.rating ?? 1} data={historyResponse?.data ?? null} />
+            <GMPHistorySection slug={profile.slug} companyName={profile.company_name} rating={gmp?.rating ?? 1} data={historyResponse?.data ?? null} lotSize={issue_details?.lot_size} />
             {/* ========================================================================= */}
             {/* ROW 1: TWO TABLES SIDE-BY-SIDE (Chittorgarh Style)                        */}
             {/* Left: IPO Details | Right: IPO Timeline (Timetable)                       */}
@@ -1095,7 +1069,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                       Shariah Compliance Screening (AAOIFI Standard 21)
                     </h2>
                   </div>
-                  {getHalalBadge(halal_screening.status)}
+                  {/* IPO compliance badge is hidden until screening data is finalized. */}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
