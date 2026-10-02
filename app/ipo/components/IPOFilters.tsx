@@ -108,7 +108,7 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
   );
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 md:p-4 mb-5 shadow-lg space-y-3">
+    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-3 md:p-4 mb-5 shadow-sm dark:shadow-lg space-y-3">
       {/* Top Row: Search + Category + Status + Sort Dropdowns */}
       <div className="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center justify-between">
         {/* Search Bar */}
@@ -119,11 +119,11 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
             placeholder="Search IPO by company name (e.g. Injecto, Quanto, Jindal)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-14 py-2 bg-slate-950/80 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-all"
+            className="w-full pl-9 pr-14 py-2 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 transition-all"
           />
           <button
             type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 rounded border border-sky-500/30 transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 hover:bg-sky-100 dark:hover:bg-sky-500/20 rounded border border-sky-200 dark:border-sky-500/30 transition-colors"
           >
             Search
           </button>
@@ -135,7 +135,7 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
           <select
             value={currentParams.category || 'all'}
             onChange={(e) => updateParam('category', e.target.value)}
-            className="px-2.5 py-1.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs font-medium text-slate-300 focus:outline-none focus:border-sky-500"
+            className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500"
           >
             {categoryOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -148,7 +148,7 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
           <select
             value={currentParams.status || 'all'}
             onChange={(e) => updateParam('status', e.target.value)}
-            className="px-2.5 py-1.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs font-medium text-slate-300 focus:outline-none focus:border-sky-500"
+            className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500"
           >
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -161,7 +161,7 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
           <select
             value={currentParams.sort || 'newest'}
             onChange={(e) => updateParam('sort', e.target.value)}
-            className="px-2.5 py-1.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs font-medium text-slate-300 focus:outline-none focus:border-sky-500"
+            className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500"
           >
             {sortOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -175,7 +175,7 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
             <button
               onClick={handleResetAll}
               title="Reset all filters"
-              className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -184,9 +184,9 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
       </div>
 
       {/* Bottom Row: StockeZee-style Preset Tabs + Count */}
-      <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-800/80 overflow-x-auto no-scrollbar">
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">
             Quick Views:
           </span>
           {PRESET_TABS.map((tab) => {
@@ -197,8 +197,8 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
                 onClick={() => handlePresetSelect(tab)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
                   active
-                    ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40 shadow-xs font-semibold'
-                    : 'bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-300'
+                    ? 'bg-sky-50 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/40 shadow-xs font-semibold'
+                    : 'bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-slate-300'
                 }`}
               >
                 {tab.label}
@@ -207,8 +207,8 @@ export default function IPOFilters({ currentParams, totalResults }: IPOFiltersPr
           })}
         </div>
 
-        <div className="text-xs text-slate-400 shrink-0 font-medium tabular-nums pl-2">
-          Total: <span className="text-slate-100 font-bold">{totalResults}</span> IPOs
+        <div className="text-xs text-slate-500 dark:text-slate-400 shrink-0 font-medium tabular-nums pl-2">
+          Total: <span className="text-slate-900 dark:text-slate-100 font-bold">{totalResults}</span> IPOs
         </div>
       </div>
     </div>

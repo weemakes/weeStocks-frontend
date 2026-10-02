@@ -1,24 +1,15 @@
 export type ComplianceStatus = 'compliant' | 'non_compliant' | 'doubtful';
 
 export interface ShariahCriteria {
-  // Business activity screening (impermissible revenue <= 5%)
   businessActivityStatus: 'pass' | 'fail';
-  nonHalalRevenuePercent: number; // e.g. 0%, 2.1%
+  nonHalalRevenuePercent: number;
   nonHalalRevenueSource?: string;
-
-  // Debt screening (interest-bearing debt / 36-month avg market cap <= 33%)
-  debtRatioPercent: number; // e.g. 14.5%
+  debtRatioPercent: number;
   debtRatioStatus: 'pass' | 'fail';
-
-  // Liquidity screening (interest-bearing securities + cash / market cap <= 33%)
-  cashAndSecuritiesRatioPercent: number; // e.g. 18.2%
+  cashAndSecuritiesRatioPercent: number;
   cashRatioStatus: 'pass' | 'fail';
-
-  // Receivables screening (accounts receivable / market cap <= 50% or total assets)
   receivablesRatioPercent?: number;
-
-  // Dividend purification ratio (% of dividend that must be purified)
-  purificationPercent: number; // e.g. 0.35%
+  purificationPercent: number;
 }
 
 export interface FundamentalMetrics {
@@ -27,8 +18,8 @@ export interface FundamentalMetrics {
   roePercent: number;
   rocePercent: number;
   debtToEquity: number;
-  freeCashFlowCr: number; // in Crores
-  dividendYield: number; // in %
+  freeCashFlowCr: number;
+  dividendYield: number;
   week52High: number;
   week52Low: number;
 }
@@ -37,21 +28,38 @@ export interface StockItem {
   id: string;
   symbol: string;
   name: string;
-  exchange: 'NSE' | 'BSE' | 'NSE & BSE';
+  logo_url?: string | null;
+  exchange: string;
+  country?: string;
+  currency?: string;
+  currencySymbol?: string;
   sector: string;
   industry: string;
   price: number;
   change: number;
   changePercent: number;
-  marketCapCr: number; // Market Cap in INR Crores
+  volume?: number;
+  marketCapCr: number;
   marketCapCategory: 'Large Cap' | 'Mid Cap' | 'Small Cap';
-  halalScore: number; // 0 to 100
+  halalScore: number;
   complianceStatus: ComplianceStatus;
   statusReason: string;
   shariah: ShariahCriteria;
   fundamentals: FundamentalMetrics;
   lastUpdated: string;
   isNifty50?: boolean;
+  rawMarketCap?: number;
+  trader_indicators?: {
+    market_tier?: string;
+    rank_in_country?: number;
+    is_top_ten?: boolean;
+    range_52w_position?: number | null;
+    distance_52w_high_pct?: number | null;
+    distance_52w_low_pct?: number | null;
+    delivery_pct?: number | null;
+    momentum_status?: string;
+    cpr_nature?: string | null;
+  };
 }
 
 export type StockSortField = 
@@ -61,6 +69,615 @@ export type StockSortField =
   | 'marketCapCr' 
   | 'halalScore' 
   | 'debtRatio' 
-  | 'purification';
+  | 'purification' 
+  | 'pe_ratio'
+  | 'volume';
 
 export type SortDirection = 'asc' | 'desc';
+
+// ==========================================
+// Multi-Market Live Backend API Models
+// ==========================================
+
+export interface StockCountry {
+  country: string;
+  code: string;
+  flag: string;
+  exchange: string;
+  currency: string;
+  currency_symbol: string;
+  total_companies: number;
+  is_active: boolean;
+}
+
+export interface StockListItem {
+  id: string;
+  symbol: string;
+  isin?: string | null;
+  company_name: string;
+  logo_url?: string | null;
+  exchange: string;
+  country: string;
+  currency: string;
+  sector?: string | null;
+  industry?: string | null;
+  latest_price: number;
+  change: number;
+  change_percentage: number;
+  volume: number;
+  market_date?: string;
+  trader_indicators?: {
+    market_tier?: string;
+    rank_in_country?: number;
+    is_top_ten?: boolean;
+    range_52w_position?: number | null;
+    distance_52w_high_pct?: number | null;
+    distance_52w_low_pct?: number | null;
+    delivery_pct?: number | null;
+    momentum_status?: string;
+    cpr_nature?: string | null;
+  };
+  metrics?: {
+    market_cap?: number;
+    pe_ratio?: number;
+    price_to_book?: number;
+    dividend_yield?: number;
+    roe?: number;
+    fifty_two_week_high?: number;
+    fifty_two_week_low?: number;
+  };
+  shariah_compliance?: {
+    status: 'HALAL' | 'NON_HALAL' | 'DOUBTFUL' | 'PASS' | 'FAIL';
+    score?: number;
+    is_sector_compliant?: boolean;
+    is_debt_compliant?: boolean;
+    debt_to_market_cap?: number;
+    methodology?: string;
+    notes?: string[] | string;
+  };
+}
+
+export interface StockFilterPreset {
+  id: string;
+  label: string;
+  description?: string;
+  category?: string;
+  icon?: string;
+}
+
+export interface StockSortOption {
+  id: string;
+  label: string;
+  default_order?: 'ASC' | 'DESC';
+}
+
+export interface StockMarketTier {
+  id: string;
+  label: string;
+}
+
+export interface StockFiltersConfig {
+  country: string;
+  presets: StockFilterPreset[];
+  sort_options: StockSortOption[];
+  market_tiers: StockMarketTier[];
+  sectors: string[];
+}
+
+export interface StockInstitutionHolding {
+  name: string;
+  category: string;
+  holding_pct: number;
+}
+
+export interface StockPeer {
+  id?: string;
+  symbol: string;
+  company_name: string;
+  logo_url?: string | null;
+  currency?: string;
+  exchange?: string;
+  is_current?: boolean;
+  market_cap: number;
+  market_cap_cr?: number | null;
+  pe_ratio?: number | null;
+  dividend_yield?: number | null;
+  quarterly_sales?: number | null;
+  quarterly_sales_cr?: number | null;
+  profit_after_tax?: number | null;
+  profit_after_tax_cr?: number | null;
+  sales_growth_pct?: number | null;
+  profit_growth_pct?: number | null;
+  price_to_book?: number | null;
+  roe?: number | null;
+  roce?: number | null;
+  operating_margin?: number | null;
+}
+
+export interface StockCorporateAction {
+  id?: string;
+  type: string;
+  action_type?: string;
+  announcement_date?: string | null;
+  ex_date?: string | null;
+  record_date?: string | null;
+  dividend_amount?: number | null;
+  split_ratio?: string | null;
+  bonus_ratio?: string | null;
+  notes?: string | null;
+  details?: string | null;
+  company_id?: string;
+  symbol?: string;
+  company_name?: string;
+  country?: string;
+  exchange?: string;
+  logo_url?: string | null;
+}
+
+export interface StockMasterDetail {
+  what_changed_recently?: Array<{
+    title: string;
+    details: string;
+    date?: string;
+    type?: string;
+  }>;
+  corporate_actions?: StockCorporateAction[];
+  header?: {
+    symbol: string;
+    company_name: string;
+    exchange: string;
+    country: string;
+    price: number;
+    change: number;
+    change_pct: number;
+    market_status?: string;
+    market_status_label?: string;
+    shariah_badge?: string;
+    is_shariah_compliant?: boolean;
+  };
+  today_at_a_glance?: {
+    day_range?: { low: number; high: number; current: number };
+    fifty_two_week_range?: { low: number; high: number; position_pct: number };
+    volume?: number;
+    volume_20d_avg?: number;
+    volume_ratio?: number;
+    volume_diff_pct?: number;
+    free_float_pct?: number | null;
+    narrative_summary?: string;
+  };
+  price_performance?: {
+    return_1w_pct?: number | null;
+    return_1m_pct?: number | null;
+    return_3m_pct?: number | null;
+    return_6m_pct?: number | null;
+    return_1y_pct?: number | null;
+    return_3y_pct?: number | null;
+    distance_52w_high_pct?: number | null;
+    distance_52w_low_pct?: number | null;
+  };
+  shariah_audit?: {
+    status: string;
+    overall_result?: string;
+    badge_label?: string;
+    criteria_summary?: string;
+    methodology?: string;
+    criteria_breakdown?: Array<{
+      criteria: string;
+      name: string;
+      numerator?: number | null;
+      denominator?: number | null;
+      value_pct?: number | null;
+      threshold_pct?: number | null;
+      threshold_label?: string;
+      status: string;
+    }>;
+  };
+  valuation_and_sector_context?: {
+    company?: {
+      pe_ratio?: number | null;
+      forward_pe?: number | null;
+      price_to_book?: number | null;
+      ev_to_ebitda?: number | null;
+      peg_ratio?: number | null;
+      earnings_yield?: number | null;
+    };
+    sector_medians?: {
+      pe_ratio?: number | null;
+      forward_pe?: number | null;
+      price_to_book?: number | null;
+      ev_to_ebitda?: number | null;
+      peg_ratio?: number | null;
+      earnings_yield?: number | null;
+    };
+  };
+  growth_and_profitability?: {
+    cagr?: {
+      revenue_cagr_3y?: number | null;
+      revenue_cagr_5y?: number | null;
+      pat_cagr_3y?: number | null;
+      pat_cagr_5y?: number | null;
+    };
+    margins?: {
+      roe?: number | null;
+      roce?: number | null;
+      operating_margin?: number | null;
+      net_margin?: number | null;
+    };
+    chart_series?: Array<{
+      period: string;
+      revenue?: number | string | null;
+      net_income?: number | string | null;
+      pat_margin_pct?: number | null;
+    }>;
+  };
+  financial_health_and_cash_flow?: {
+    net_debt?: number | null;
+    interest_coverage?: number | null;
+    cfo_to_pat_3y?: number | null;
+    net_debt_to_ebitda?: number | null;
+    health_status?: string;
+    cash_flow?: {
+      operating_cash_flow?: number | string | null;
+      capex?: number | string | null;
+      free_cash_flow?: number | string | null;
+    };
+  };
+  technical_analysis?: {
+    rsi_14?: { value?: number | null; sentiment?: string; label?: string };
+    macd?: { macd_line?: number | null; signal_line?: number | null; histogram?: number | null; status?: string; label?: string };
+    atr_14?: { value?: number | null; sentiment?: string; label?: string };
+    cpr?: { top_central?: number | null; pivot?: number | null; bottom_central?: number | null; sentiment?: string; label?: string };
+    moving_averages?: Record<string, { value?: number | null; status?: string } | undefined>;
+  };
+  investor_faqs?: Array<{ question: string; answer: string }>;
+  trader_insights: {
+    market_tier: string;
+    rank_in_country: number;
+    is_top_ten: boolean;
+    momentum_status: string;
+    range_52w_position: number;
+    distance_52w_high_pct: number;
+    distance_52w_low_pct: number;
+    cpr_nature?: string | null;
+  };
+  company: {
+    id: string;
+    symbol: string;
+    name: string;
+    country: string;
+    exchange: string;
+    currency: string;
+    sector: string;
+    industry: string;
+    sub_industry?: string;
+    website?: string;
+    logo_url?: string;
+    description?: string;
+  };
+  quote: {
+    price: number;
+    previous_close: number;
+    change: number;
+    change_percentage: number;
+    day_high: number;
+    day_low: number;
+    volume: number;
+    date?: string;
+  };
+  metrics: {
+    market_cap: number;
+    enterprise_value?: number;
+    pe_ratio?: number;
+    forward_pe?: number;
+    price_to_book?: number;
+    peg_ratio?: number;
+    eps?: number;
+    forward_eps?: number;
+    roe?: number;
+    roa?: number;
+    roce?: number;
+    debt_to_equity?: number;
+    dividend_yield?: number;
+    face_value?: number;
+    fifty_two_week_high?: number;
+    fifty_two_week_low?: number;
+  };
+  scores: {
+    overall: number;
+    valuation: number;
+    profitability: number;
+    financial_health: number;
+  };
+  flags: {
+    green_flags: string[];
+    red_flags: string[];
+  };
+  thesis: {
+    bull_case: string[];
+    bear_case: string[];
+    flip_conditions: string[];
+  };
+  technicals: {
+    reference_date?: string;
+    current_price?: number;
+    classical_pivots?: {
+      pivot: number;
+      r1: number;
+      r2: number;
+      r3: number;
+      s1: number;
+      s2: number;
+      s3: number;
+    };
+    cpr?: {
+      tc: number;
+      pivot: number;
+      bc: number;
+      nature?: string;
+    };
+    moving_averages?: Record<string, number>;
+  };
+  delivery_conviction?: Array<{
+    date: string;
+    delivery_percentage: number;
+    traded_quantity: number;
+    delivery_quantity: number;
+    conviction?: string;
+    delivery_ratio?: number | null;
+    relative_strength?: string;
+  }>;
+  quarterly_financials?: Array<{
+    fiscal_year: number;
+    fiscal_quarter: number;
+    revenue: number;
+    gross_profit?: number;
+    operating_income?: number;
+    ebitda?: number;
+    net_income: number;
+    diluted_eps?: number;
+    pbt?: number;
+    tax_expense?: number;
+    interest_expense?: number;
+    revenue_yoy_pct?: number;
+    pat_yoy_pct?: number;
+    ebitda_yoy_pct?: number;
+    ebitda_margin_pct?: number;
+    pat_margin_pct?: number;
+  }>;
+  annual_financials?: Array<{
+    fiscal_year: number;
+    revenue: number;
+    gross_profit?: number;
+    operating_income?: number;
+    ebitda?: number;
+    net_income: number;
+    diluted_eps?: number;
+    total_assets?: number;
+    total_liabilities?: number;
+    total_debt?: number;
+    cash_and_equivalents?: number;
+    operating_cash_flow?: number;
+    capex?: number;
+    free_cash_flow?: number;
+    equity_share_capital?: number;
+    reserves_surplus?: number;
+    interest_income?: number;
+    interest_expense?: number;
+    pbt?: number;
+    tax_expense?: number;
+    revenue_yoy_pct?: number;
+    pat_yoy_pct?: number;
+    ebitda_yoy_pct?: number;
+    ebitda_margin_pct?: number;
+    pat_margin_pct?: number;
+  }>;
+  shareholding_pattern?: Array<{
+    quarter: string;
+    promoter: number | null;
+    fii: number | null;
+    dii: number | null;
+    public: number | null;
+    pledged?: number | null;
+    num_shareholders?: number | null;
+    top_institutions?: StockInstitutionHolding[];
+  }>;
+  peers?: StockPeer[];
+  shariah_compliance: {
+    status: string;
+    score?: number;
+    is_sector_compliant?: boolean;
+    is_debt_compliant?: boolean;
+    is_cash_compliant?: boolean | null;
+    debt_to_market_cap?: number;
+    cash_to_market_cap?: number;
+    methodology?: string;
+    notes?: string | string[];
+  };
+  chart: Array<{
+    date: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  }>;
+}
+
+export interface StockListResponse {
+  status: number;
+  message: string;
+  data: StockListItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface StockDetailData {
+  profile: {
+    id: string;
+    symbol: string;
+    isin?: string | null;
+    company_name: string;
+    logo_url?: string | null;
+    exchange: string;
+    country: string;
+    currency: string;
+    sector?: string | null;
+    industry?: string | null;
+    website?: string | null;
+    description?: string | null;
+    quote_type?: string;
+    status?: string;
+  };
+  quote: {
+    price: number | string;
+    previous_close?: number | string;
+    change: number | string;
+    change_percentage: number | string;
+    open?: number | string;
+    day_high?: number | string;
+    day_low?: number | string;
+    volume?: number | string;
+    date?: string;
+  };
+  metrics?: {
+    market_cap?: number | string;
+    enterprise_value?: number | string;
+    pe_ratio?: number | string;
+    forward_pe?: number | string;
+    price_to_book?: number | string;
+    peg_ratio?: number | string;
+    eps?: number | string;
+    forward_eps?: number | string;
+    roe?: number | string;
+    roa?: number | string;
+    dividend_yield?: number | string;
+    fifty_two_week_high?: number | string;
+    fifty_two_week_low?: number | string;
+  };
+  financial_summary?: {
+    fiscal_year?: number;
+    period_type?: string;
+    revenue?: number | string;
+    net_income?: number | string;
+    total_assets?: number | string;
+    total_debt?: number | string;
+    cash_and_equivalents?: number | string;
+  };
+  shariah_compliance?: {
+    status: 'HALAL' | 'NON_HALAL' | 'DOUBTFUL';
+    debt_to_market_cap?: number | string;
+    cash_to_market_cap?: number | string;
+    notes?: string[];
+  };
+}
+
+export interface StockCandle {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface StockChartData {
+  symbol: string;
+  company_name: string;
+  currency: string;
+  range: string;
+  total_candles: number;
+  candles: StockCandle[];
+}
+
+export interface FinancialSnapshot {
+  id: string;
+  fiscal_year: number;
+  period_type: 'ANNUAL' | 'QUARTERLY';
+  income_statement?: {
+    revenue?: number | string;
+    gross_profit?: number | string;
+    operating_income?: number | string;
+    net_income?: number | string;
+    interest_income?: number | string;
+    interest_expense?: number | string;
+  };
+  balance_sheet?: {
+    total_assets?: number | string;
+    total_liabilities?: number | string;
+    total_debt?: number | string;
+    cash_and_equivalents?: number | string;
+  };
+  cash_flow?: {
+    operating_cash_flow?: number | string;
+    free_cash_flow?: number | string;
+  };
+}
+
+export interface StockFinancialsData {
+  symbol: string;
+  company_name: string;
+  currency: string;
+  snapshots: FinancialSnapshot[];
+}
+
+export interface StockHalalAuditData {
+  company: {
+    id: string;
+    symbol: string;
+    company_name: string;
+    logo_url?: string | null;
+    sector?: string;
+    industry?: string;
+    exchange: string;
+    country: string;
+  };
+  audit: {
+    status: 'HALAL' | 'NON_HALAL' | 'DOUBTFUL';
+    is_sector_compliant: boolean;
+    is_debt_compliant: boolean;
+    is_cash_compliant: boolean;
+    debt_to_market_cap: number | string;
+    cash_to_market_cap: number | string;
+    methodology: string;
+    notes: string[];
+  };
+}
+
+export interface MarketMoverItem {
+  id: string;
+  symbol: string;
+  company_name: string;
+  logo_url?: string | null;
+  country: string;
+  exchange: string;
+  currency: string;
+  sector?: string;
+  price: number | string;
+  previous_close?: number | string;
+  change: number | string;
+  change_percentage: number | string;
+  volume: number | string;
+  date?: string;
+}
+
+export interface MarketSectorOverview {
+  sector: string;
+  count: number | string;
+  percentage?: number | string;
+}
+
+export interface MarketOverviewData {
+  country: string;
+  total_stocks?: number | string;
+  summary?: Array<{
+    country: string;
+    total_companies: number | string;
+    companies_with_isin?: number | string;
+    companies_with_sector?: number | string;
+  }>;
+  top_sectors: MarketSectorOverview[];
+}

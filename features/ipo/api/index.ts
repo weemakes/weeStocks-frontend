@@ -1,4 +1,4 @@
-import type { IPOV2ListResponse, IPODetailV2Response, IPOQueryParams } from '../types';
+import type { IPOV2ListResponse, IPODetailV2Response, IPOGmpHistoryResponse, IPOQueryParams } from '../types';
 
 const API_BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
@@ -23,7 +23,7 @@ export async function getIPOList(params: IPOQueryParams = {}): Promise<IPOV2List
   const url = `${API_BASE_URL}/v2/ipos${queryString ? `?${queryString}` : ''}`;
   
   const response = await fetch(url, {
-    cache: 'no-store',
+    next: { revalidate: 15 },
     headers: {
       'User-Agent': 'WeeStox/1.0',
       'Accept': 'application/json',
@@ -46,7 +46,7 @@ export async function getIPODetail(slug: string): Promise<IPODetailV2Response> {
   const url = `${API_BASE_URL}/v2/ipos/${encodedSlug}`;
   
   const response = await fetch(url, {
-    cache: 'no-store',
+    next: { revalidate: 15 },
     headers: {
       'User-Agent': 'WeeStox/1.0',
       'Accept': 'application/json',
@@ -57,5 +57,43 @@ export async function getIPODetail(slug: string): Promise<IPODetailV2Response> {
     throw new Error(`Failed to fetch IPO detail for ${slug}: ${response.status} ${response.statusText}`);
   }
 
-  return response.json();
+  const payload = (await response.json()) as IPODetailV2Response;
+
+  // The detail endpoint currently exposes allotment fields inside `profile`,
+  // while list rows expose them at the item root. Normalize both supported
+  // response shapes so detail consumers always read one consistent contract.
+  if (payload.data?.profile) {
+    payload.data.is_allotment_out =
+      payload.data.is_allotment_out ?? payload.data.profile.is_allotment_out ?? false;
+    payload.data.allotment_declared_at =
+      payload.data.allotment_declared_at ?? payload.data.profile.allotment_declared_at ?? null;
+  }
+
+  return payload;
+}
+
+/**
+ * Fetch genuine daily GMP snapshots retained by the backend.
+ * GET /v2/ipos/:slug/gmp-history
+ */
+export async function getIPOGmpHistory(slug: string): Promise<IPOGmpHistoryResponse> {
+  const encodedSlug = encodeURIComponent(slug.trim());
+  const url = `${API_BASE_URL}/v2/ipos/${encodedSlug}/gmp-history`;
+  const response = await fetch(url, {
+    next: { revalidate: 900 },
+    headers: {
+      'User-Agent': 'WeeStox/1.0',
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch GMP history for ${slug}: ${response.status} ${response.statusText}`);
+  }
+
+  const payload = (await response.json()) as IPOGmpHistoryResponse;
+  if (payload.status === 0 || !Array.isArray(payload.data?.history)) {
+    throw new Error(payload.message || 'GMP history is unavailable');
+  }
+  return payload;
 }

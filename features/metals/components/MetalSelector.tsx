@@ -37,15 +37,15 @@ export function MetalSelector({ currentMetal, citySlug }: MetalSelectorProps) {
   };
 
   return (
-    <div className="inline-flex rounded-xl border border-slate-800 bg-slate-950/80 p-1">
+    <div className="inline-flex rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950/80 p-1">
       {metals.map((metal) => {
         const isActive = metal === currentMetal;
         const config = METAL_CONFIG[metal];
 
         const activeStyles = {
           gold: "bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 font-extrabold",
-          silver: "bg-slate-200 text-slate-950 shadow-lg shadow-slate-300/20 font-extrabold",
-          platinum: "bg-sky-400 text-slate-950 shadow-lg shadow-sky-400/20 font-extrabold",
+          silver: "bg-white dark:bg-slate-200 text-slate-950 shadow-md dark:shadow-lg shadow-slate-300/20 font-extrabold",
+          platinum: "bg-sky-500 text-white dark:bg-sky-400 dark:text-slate-950 shadow-lg shadow-sky-400/20 font-extrabold",
         }[metal];
 
         return (
@@ -57,7 +57,7 @@ export function MetalSelector({ currentMetal, citySlug }: MetalSelectorProps) {
               ${
                 isActive
                   ? activeStyles
-                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-900"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/80 dark:hover:bg-slate-900"
               }
             `}
           >

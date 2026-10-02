@@ -12,6 +12,7 @@ export interface IPOV2ListItem {
   id: number;
   slug: string;
   company_name: string;
+  logo_url?: string | null;
   status: 'Upcoming' | 'Open' | 'Closed' | 'Listed' | string;
   updated_on: string;
   type: string; // e.g. "BSE SME", "IPO", "NSE SME"
@@ -38,6 +39,11 @@ export interface IPOV2ListItem {
   has_anchor: boolean;
   halal_status: 'halal' | 'not_halal' | 'doubtful' | string | null;
   halal_score: number | null;
+  is_allotment_out?: boolean;
+  allotment_declared_at?: string | null;
+  registrar_name?: string | null;
+  registrar_url?: string | null;
+  allotment_url?: string | null;
 }
 
 export interface IPOV2Summary {
@@ -73,6 +79,8 @@ export interface IPOProfile {
   logo_url: string | null;
   type: string;
   status: string;
+  is_allotment_out?: boolean;
+  allotment_declared_at?: string | null;
   isin: string | null;
   sector: string | null;
   industry: string | null;
@@ -133,6 +141,32 @@ export interface IPODetailGmp {
   anchor_investor: string | null;
   snapshot_date: string | null;
   updated_on: string | null;
+}
+
+export interface IPOGmpHistoryItem {
+  snapshot_date: string;
+  gmp_value: number;
+  gmp_percentage: number | null;
+  gmp_previous: number | null;
+  gmp_high: number | null;
+  gmp_trend: 'up' | 'down' | 'flat' | string | null;
+  rating: number | null;
+  subscription_display: string | null;
+}
+
+export interface IPOGmpHistoryData {
+  ipo_id: number;
+  company_name: string;
+  slug: string;
+  price_band_upper: number | null;
+  days: number;
+  history: IPOGmpHistoryItem[];
+}
+
+export interface IPOGmpHistoryResponse {
+  status: number;
+  message: string;
+  data: IPOGmpHistoryData;
 }
 
 export interface IPOEstimates {
@@ -286,6 +320,8 @@ export interface IPODetailData {
   halal_screening: IPOHalalScreening | null;
   created_at: string;
   updated_at: string;
+  is_allotment_out?: boolean;
+  allotment_declared_at?: string | null;
 }
 
 export interface IPODetailV2Response {
