@@ -19,10 +19,10 @@ cp .env.example .env.local
 Edit `.env.local` and set your backend API URL:
 
 ```env
-BACKEND_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=https://webapi.weestox.com
 ```
 
-**Important**: Replace `http://localhost:3000` with your actual backend API URL.
+**Important**: Replace `https://webapi.weestox.com` with your actual backend API URL.
 
 ## Step 2: Install Dependencies
 
@@ -44,16 +44,16 @@ This will install:
 npm run dev
 ```
 
-The application will start at: **http://localhost:3000**
+The application will start at: **https://webapi.weestox.com**
 
 ## Step 4: Visit the Application
 
 Open your browser and navigate to:
 
-- **Homepage**: http://localhost:3000
-- **Gold in Agra**: http://localhost:3000/gold/agra
-- **Silver in Mumbai**: http://localhost:3000/silver/mumbai
-- **Platinum in Delhi**: http://localhost:3000/platinum/delhi
+- **Homepage**: https://webapi.weestox.com
+- **Gold in Agra**: https://webapi.weestox.com/gold/agra
+- **Silver in Mumbai**: https://webapi.weestox.com/silver/mumbai
+- **Platinum in Delhi**: https://webapi.weestox.com/platinum/delhi
 
 ## Expected Backend API Endpoints
 
@@ -87,10 +87,10 @@ If your backend isn't ready yet, you can:
 **Error**: `API request failed: Network error`
 
 **Solution**: 
-- Check `BACKEND_API_URL` in `.env.local`
+- Check `NEXT_PUBLIC_API_BASE_URL` in `.env.local`
 - Verify backend server is running
 - Check CORS settings on backend
-- Ensure backend accepts requests from `http://localhost:3000`
+- Ensure backend accepts requests from `https://webapi.weestox.com`
 
 ### Port Already in Use
 
@@ -248,7 +248,7 @@ Check the documentation:
 
 ### Environment Variables
 ```env
-BACKEND_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=https://webapi.weestox.com
 ```
 
 ### Routes

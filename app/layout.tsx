@@ -92,9 +92,8 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-canvas text-body antialiased selection:bg-sky-500/20 selection:text-accent">
         <JsonLd data={[getOrganizationSchema(), getWebSiteSchema()]} />
-        <a className="skip-link" href="#main-content">Skip to content</a>
         <Navigation />
-        <main id="main-content" className="flex-1 pt-[76px]">
+        <main id="main-content" className="flex-1 pt-[82px] sm:pt-[84px]">
           {children}
         </main>
         <Footer />

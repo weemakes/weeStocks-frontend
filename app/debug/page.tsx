@@ -52,11 +52,10 @@ export default function DebugPage() {
             <div className="space-y-6">
               {/* Summary */}
               <div
-                className={`p-4 rounded-xl border ${
-                  testResults.summary.includes("passed")
+                className={`p-4 rounded-xl border ${testResults.summary.includes("passed")
                     ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200"
                     : "bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200"
-                }`}
+                  }`}
               >
                 <h2 className="text-base md:text-lg font-semibold mb-2">
                   {testResults.summary}
@@ -83,11 +82,10 @@ export default function DebugPage() {
                           {test.test}
                         </span>
                         <span
-                          className={`font-semibold text-xs px-2 py-0.5 rounded-full ${
-                            test.status.includes("Pass")
+                          className={`font-semibold text-xs px-2 py-0.5 rounded-full ${test.status.includes("Pass")
                               ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30"
                               : "bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30"
-                          }`}
+                            }`}
                         >
                           {test.status}
                         </span>
@@ -122,7 +120,7 @@ export default function DebugPage() {
                     </li>
                     <li>
                       Check that <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">.env.local</code> has the correct{" "}
-                      <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">BACKEND_API_URL</code>
+                      <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">NEXT_PUBLIC_API_BASE_URL</code>
                     </li>
                     <li>Verify the backend endpoint <code className="bg-amber-100 dark:bg-slate-900 px-1 py-0.5 rounded font-mono">/cities/popular</code> exists</li>
                     <li>Check CORS settings on your backend</li>
