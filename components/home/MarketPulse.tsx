@@ -14,12 +14,35 @@ export interface MarketPulseData {
     country: string;
     logoUrl?: string | null;
   };
+  stocksList?: Array<{
+    symbol: string;
+    name: string;
+    sector?: string;
+    price: string;
+    change: string;
+    changePct: number;
+    debtRatio: string;
+    status: string;
+    purification?: string;
+    country?: string;
+    logoUrl?: string | null;
+  }>;
   gold: {
     price10g: string;
     changeDisplay: string;
     isPositive: boolean;
     city: string;
   };
+  metalsList?: Array<{
+    name: string;
+    shortName: string;
+    rateDisplay: string;
+    changeDisplay: string;
+    isPositive: boolean;
+    unit: string;
+    purity: string;
+    href: string;
+  }>;
   topIpo: {
     name: string;
     slug: string;
@@ -28,6 +51,14 @@ export interface MarketPulseData {
     gmpDisplay: string;
     gmpPercentage: number | null;
   };
+  iposList?: Array<{
+    name: string;
+    slug: string;
+    status: string;
+    category?: string;
+    gmpDisplay: string;
+    gmpPercentage: number | null;
+  }>;
   zakatNisab: {
     silverRatePerGram: string;
     silverNisabValue: string;

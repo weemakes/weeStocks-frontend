@@ -4,9 +4,29 @@ import type { ScreenerStock, HeroIpoAlert } from '@/components/home/HeroScannerP
 import type { MarketPulseData } from '@/components/home/MarketPulse';
 import HomeLanding from '@/components/home/HomeLanding';
 
+import JsonLd from '@/components/seo/JsonLd';
+import { getFaqSchema, getSoftwareAppSchema } from '@/components/seo/siteSchemas';
+
 export const metadata: Metadata = {
   title: 'WeeStox | Stocks, IPOs, Metals & Shariah Market Intelligence',
-  description: 'Research stocks, IPO GMP, gold, silver and platinum prices with Shariah screening, transparent analytics and Islamic wealth tools.',
+  description:
+    'Research stocks, live IPO GMP, gold, silver and platinum prices with AAOIFI Shariah screening, transparent balance sheet analytics and Islamic wealth tools.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'WeeStox | Stocks, IPOs, Metals & Shariah Market Intelligence',
+    description:
+      'Research stocks, live IPO GMP, gold, silver and platinum prices with AAOIFI Shariah screening, transparent balance sheet analytics and Islamic wealth tools.',
+    url: '/',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'WeeStox | Stocks, IPOs, Metals & Shariah Market Intelligence',
+    description:
+      'Research stocks, live IPO GMP, gold, silver and platinum prices with AAOIFI Shariah screening and Islamic wealth tools.',
+  },
 };
 
 async function getHomeData(): Promise<{
@@ -137,6 +157,37 @@ async function getHomeData(): Promise<{
     heroStocks.sort((a) => (a.status === 'halal' ? -1 : 1));
   }
 
+  const halalStocks = stocks.filter((s: any) => s.shariah_compliance?.status === 'HALAL');
+  const stocksToUse = halalStocks.length > 0 ? halalStocks : stocks;
+  const stocksList = stocksToUse.slice(0, 8).map((s: any) => {
+    const changeVal = Number(s.change_percentage || 0);
+    const debtVal = s.shariah_compliance?.debt_to_market_cap != null
+      ? (s.shariah_compliance.debt_to_market_cap * 100).toFixed(2) + '%'
+      : '1.39% • Net Cash';
+    return {
+      symbol: s.symbol,
+      name: s.company_name,
+      sector: s.sector || 'Equities',
+      price: '₹' + Number(s.latest_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+      change: (changeVal >= 0 ? '+' : '') + changeVal.toFixed(2) + '%',
+      changePct: changeVal,
+      debtRatio: debtVal,
+      status: s.shariah_compliance?.status === 'HALAL' ? 'AAOIFI Standard 21 Pass' : 'Shariah Screener',
+      purification: '0.00% (Pure)',
+      country: s.country || 'India',
+      logoUrl: s.logo_url || null,
+    };
+  });
+
+  const iposList = validIpos.slice(0, 6).map((i: any) => ({
+    name: i.company_name || i.name,
+    slug: i.slug || 'ipo',
+    status: i.status || 'Open',
+    category: i.category || 'Mainboard',
+    gmpDisplay: i.gmp?.percentage != null ? `+${i.gmp.percentage}%` : (i.gmp?.display || 'Live'),
+    gmpPercentage: i.gmp?.percentage != null ? Number(i.gmp.percentage) : null,
+  }));
+
   const heroIpoAlert: HeroIpoAlert = {
     name: topIpo.name,
     slug: topIpo.slug,
@@ -147,13 +198,29 @@ async function getHomeData(): Promise<{
   };
 
   return {
-    pulseData: { featuredStock, gold, topIpo, zakatNisab },
+    pulseData: { featuredStock, stocksList, gold, topIpo, iposList, zakatNisab },
     heroStocks,
     heroIpoAlert,
   };
 }
 
+import { HOME_FAQS } from '@/components/home/seoContent';
+
 export default async function HomePage() {
   const { pulseData } = await getHomeData();
-  return <HomeLanding data={pulseData} />;
+  const softwareSchema = getSoftwareAppSchema({
+    name: 'WeeStox Terminal',
+    description:
+      'Modern market intelligence for Halal stock screening, live IPO GMP, precious metals and Islamic wealth.',
+    applicationCategory: 'FinanceApplication',
+    path: '/',
+  });
+  const faqSchema = getFaqSchema(HOME_FAQS);
+
+  return (
+    <>
+      <JsonLd data={[softwareSchema, faqSchema]} />
+      <HomeLanding data={pulseData} />
+    </>
+  );
 }

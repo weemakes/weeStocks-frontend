@@ -69,17 +69,17 @@ export default function GlobalMarketSearch() {
     else if (query.trim()) router.push(`/stocks?search=${encodeURIComponent(query.trim())}`);
   };
 
-  return <div ref={wrapperRef} className="relative mt-5 max-w-xl">
+  return <div ref={wrapperRef} className="relative mt-3.5 max-w-xl sm:mt-4">
     <form onSubmit={submit} className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-lg shadow-sky-900/5 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 dark:border-slate-700 dark:bg-slate-900 dark:focus-within:ring-sky-950">
       <Search className="ml-3 h-4 w-4 shrink-0 text-slate-400" />
-      <input value={query} onChange={(event) => { const value = event.target.value; setQuery(value); if (!value.trim()) { setResults([]); setOpen(false); setLoading(false); } }} onFocus={() => query.trim() && setOpen(true)} aria-label="Search markets" placeholder="Search stocks, IPOs or metals…" className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-slate-400" />
+      <input value={query} onChange={(event) => { const value = event.target.value; setQuery(value); if (!value.trim()) { setResults([]); setOpen(false); setLoading(false); } }} onFocus={() => query.trim() && setOpen(true)} aria-label="Search markets" placeholder="Search stocks, IPOs or metals…" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-slate-400 sm:py-2.5" />
       {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin text-sky-500" />}
-      <button type="submit" className="rounded-lg bg-sky-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-sky-700">Search</button>
+      <button type="submit" className="rounded-lg bg-sky-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-sky-700 sm:px-4 sm:py-2.5">Search</button>
     </form>
     {open && query.trim() && <div role="listbox" className="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
       {results.map((result) => <Link key={result.id} href={result.href} role="option" onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-sky-50 dark:hover:bg-sky-950/30"><ResultIcon result={result} /><span className="min-w-0 flex-1"><strong className="block truncate text-xs text-slate-900 dark:text-white">{result.title}</strong><span className="block truncate text-[10px] text-slate-500">{result.subtitle}</span></span><span className="rounded bg-slate-100 px-2 py-1 text-[8px] font-bold uppercase text-slate-500 dark:bg-slate-800">{result.type}</span></Link>)}
       {!loading && results.length === 0 && <p className="px-4 py-5 text-center text-xs text-slate-500">No matching stocks, IPOs or metals found.</p>}
     </div>}
-    <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] text-slate-500"><span>Popular:</span>{popular.map((item) => <Link key={item.label} href={item.href} className="rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-sky-950">{item.label}</Link>)}</div>
+    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 sm:mt-3 sm:gap-2"><span>Popular:</span>{popular.map((item) => <Link key={item.label} href={item.href} className="rounded-full border border-slate-200 bg-white/80 px-2.5 py-0.5 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-sky-950">{item.label}</Link>)}</div>
   </div>;
 }
