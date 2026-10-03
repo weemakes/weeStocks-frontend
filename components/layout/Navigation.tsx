@@ -40,25 +40,24 @@ export default function Navigation() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
       {/* 1. Real-Time Streaming Market Ticker Tape */}
-      <div className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200/70 dark:border-slate-800/70 text-[11px] py-1 px-4 overflow-hidden select-none">
+      <div className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200/70 dark:border-slate-800/70 text-[11px] py-1 px-3 sm:px-4 overflow-hidden select-none">
         <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-1.5 shrink-0 pr-2.5 sm:pr-3 border-r border-slate-200 dark:border-slate-800">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Market Pulse
+              <span className="hidden sm:inline">Market </span>Pulse
             </span>
           </div>
 
-          <div className="overflow-hidden whitespace-nowrap flex-1 ml-3 relative">
+          <div className="overflow-hidden whitespace-nowrap flex-1 ml-2.5 sm:ml-3 relative">
             <div className="flex items-center gap-6 animate-ticker">
               {MARKET_TICKER.concat(MARKET_TICKER).map((item, idx) => (
                 <div key={`${item.name}-${idx}`} className="inline-flex items-center gap-1.5 shrink-0">
                   <span className="font-semibold text-slate-700 dark:text-slate-300">{item.name}</span>
                   <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">{item.value}</span>
                   <span
-                    className={`inline-flex items-center text-[10px] font-bold tabular-nums ${
-                      item.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                    }`}
+                    className={`inline-flex items-center text-[10px] font-bold tabular-nums ${item.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      }`}
                   >
                     {item.up ? <ArrowUpRight className="w-2.5 h-2.5" /> : <ArrowDownRight className="w-2.5 h-2.5" />}
                     {item.change}
@@ -97,22 +96,20 @@ export default function Navigation() {
           <nav className="hidden lg:flex items-center gap-1 text-[13px] font-medium">
             <Link
               href="/"
-              className={`px-2.5 py-1.5 rounded-lg transition-colors ${
-                isActive('/') && pathname === '/'
+              className={`px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/') && pathname === '/'
                   ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
-              }`}
+                }`}
             >
               Home
             </Link>
 
             <Link
               href="/stocks"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${
-                isActive('/stocks')
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/stocks')
                   ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
-              }`}
+                }`}
             >
               <span>Stocks</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Live Screener" />
@@ -124,11 +121,10 @@ export default function Navigation() {
               onMouseLeave={() => setActiveDropdown(null)}
             >
               <button
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                  isActive('/gold') || isActive('/silver') || isActive('/platinum')
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${isActive('/gold') || isActive('/silver') || isActive('/platinum')
                     ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
-                }`}
+                  }`}
               >
                 <span>Metals</span>
                 <ChevronDown className="w-3 h-3 opacity-60" />
@@ -166,11 +162,10 @@ export default function Navigation() {
             {/* IPOs */}
             <Link
               href="/ipo"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${
-                isActive('/ipo')
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/ipo')
                   ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
-              }`}
+                }`}
             >
               <span>IPOs</span>
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" title="Live GMP" />
@@ -179,11 +174,10 @@ export default function Navigation() {
             {/* Zakat */}
             <Link
               href="/zakat"
-              className={`px-2.5 py-1.5 rounded-lg transition-colors ${
-                isActive('/zakat')
+              className={`px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/zakat')
                   ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
-              }`}
+                }`}
             >
               Zakat
             </Link>
@@ -191,11 +185,10 @@ export default function Navigation() {
             {/* About */}
             <Link
               href="/about"
-              className={`px-2.5 py-1.5 rounded-lg transition-colors ${
-                isActive('/about')
+              className={`px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/about')
                   ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
-              }`}
+                }`}
             >
               About
             </Link>
@@ -203,19 +196,6 @@ export default function Navigation() {
 
           {/* Right Controls: De-congested & Balanced */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Compact Search Trigger */}
-            <Link
-              href="/stocks"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200/70 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all"
-              title="Search stocks (Ctrl+K)"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Search</span>
-              <kbd className="hidden sm:inline px-1.5 py-0.2 text-[9px] font-bold text-slate-400 dark:text-slate-400 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded">
-                ⌘K
-              </kbd>
-            </Link>
-
             {/* Single Animated Hacker Theme Toggle */}
             <ThemeToggle />
 
@@ -297,6 +277,18 @@ export default function Navigation() {
             >
               About &amp; Methodology
             </Link>
+
+            {/* Mobile Screener CTA */}
+            <div className="pt-2">
+              <Link
+                href="/stocks"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-sm transition-all"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>Launch Shariah Screener</span>
+              </Link>
+            </div>
           </div>
         )}
       </div>
