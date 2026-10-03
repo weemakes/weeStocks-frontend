@@ -82,9 +82,7 @@ export default function Navigation() {
                 <span className="text-base font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
                   WeeStox
                 </span>
-                <span className="px-1.5 py-0.2 bg-sky-500/10 dark:bg-sky-400/10 text-sky-600 dark:text-sky-400 text-[9px] font-bold rounded uppercase tracking-wider border border-sky-500/20">
-                  Terminal
-                </span>
+
               </div>
               <span className="text-[9px] text-slate-500 dark:text-slate-400 -mt-0.5 tracking-tight hidden xl:inline">
                 Halal &amp; Ethical Financial Intelligence
@@ -97,8 +95,8 @@ export default function Navigation() {
             <Link
               href="/"
               className={`px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/') && pathname === '/'
-                  ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+                ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
                 }`}
             >
               Home
@@ -107,8 +105,8 @@ export default function Navigation() {
             <Link
               href="/stocks"
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/stocks')
-                  ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+                ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
                 }`}
             >
               <span>Stocks</span>
@@ -122,8 +120,8 @@ export default function Navigation() {
             >
               <button
                 className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${isActive('/gold') || isActive('/silver') || isActive('/platinum')
-                    ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+                  ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
                   }`}
               >
                 <span>Metals</span>
@@ -163,8 +161,8 @@ export default function Navigation() {
             <Link
               href="/ipo"
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/ipo')
-                  ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+                ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
                 }`}
             >
               <span>IPOs</span>
@@ -175,8 +173,8 @@ export default function Navigation() {
             <Link
               href="/zakat"
               className={`px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/zakat')
-                  ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+                ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
                 }`}
             >
               Zakat
@@ -186,8 +184,8 @@ export default function Navigation() {
             <Link
               href="/about"
               className={`px-2.5 py-1.5 rounded-lg transition-colors ${isActive('/about')
-                  ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
+                ? 'text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900'
                 }`}
             >
               About

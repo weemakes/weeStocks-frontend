@@ -94,7 +94,7 @@ export default function RootLayout({
         <JsonLd data={[getOrganizationSchema(), getWebSiteSchema()]} />
         <a className="skip-link" href="#main-content">Skip to content</a>
         <Navigation />
-        <main id="main-content" className="flex-1 pt-[76px]">
+        <main id="main-content" className="flex-1 pt-[88px] sm:pt-[92px] lg:pt-[84px]">
           {children}
         </main>
         <Footer />

@@ -157,8 +157,14 @@ async function getHomeData(): Promise<{
     heroStocks.sort((a) => (a.status === 'halal' ? -1 : 1));
   }
 
-  const halalStocks = stocks.filter((s: any) => s.shariah_compliance?.status === 'HALAL');
-  const stocksToUse = halalStocks.length > 0 ? halalStocks : stocks;
+  const halalStocks = stocks.filter((s: any) => {
+    const status = (s.shariah_compliance?.status || '').toUpperCase();
+    const sector = (s.sector || '').toLowerCase();
+    const name = (s.company_name || s.name || '').toLowerCase();
+    if (sector.includes('bank') || sector.includes('finance') || name.includes('bank')) return false;
+    return status === 'HALAL' || status === 'COMPLIANT';
+  });
+  const stocksToUse = halalStocks;
   const stocksList = stocksToUse.slice(0, 8).map((s: any) => {
     const changeVal = Number(s.change_percentage || 0);
     const debtVal = s.shariah_compliance?.debt_to_market_cap != null
@@ -172,7 +178,7 @@ async function getHomeData(): Promise<{
       change: (changeVal >= 0 ? '+' : '') + changeVal.toFixed(2) + '%',
       changePct: changeVal,
       debtRatio: debtVal,
-      status: s.shariah_compliance?.status === 'HALAL' ? 'AAOIFI Standard 21 Pass' : 'Shariah Screener',
+      status: 'AAOIFI Standard 21 Pass',
       purification: '0.00% (Pure)',
       country: s.country || 'India',
       logoUrl: s.logo_url || null,
