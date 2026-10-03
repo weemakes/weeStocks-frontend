@@ -1920,8 +1920,8 @@ select:focus-visible {
 
 @keyframes slideUpFade {
   0% {
-    opacity: 0.15;
-    transform: translateY(6px) scale(0.99);
+    opacity: 0;
+    transform: translateY(4px);
   }
   100% {
     opacity: 1;
@@ -1930,7 +1930,8 @@ select:focus-visible {
 }
 
 .animate-slide-up-fade {
-  animation: slideUpFade 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
 }
 
 @keyframes pulseGlow {

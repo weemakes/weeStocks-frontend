@@ -343,6 +343,7 @@ export default function HomeLanding({ data }: Props) {
 
   // Rotation indices
   const [stockIdx, setStockIdx] = useState(0);
+  const [stockFading, setStockFading] = useState(false);
   const [metalIdx, setMetalIdx] = useState(0);
   const [ipoIdx, setIpoIdx] = useState(0);
   const [nisabIdx, setNisabIdx] = useState(0);
@@ -352,12 +353,16 @@ export default function HomeLanding({ data }: Props) {
   const [pausedMetal, setPausedMetal] = useState(false);
   const [pausedIpo, setPausedIpo] = useState(false);
 
-  // Stock timer (every 3.6s)
+  // Silky smooth stock timer (every 2.8s with graceful 220ms crossfade)
   useEffect(() => {
-    if (pausedStock) return;
+    if (pausedStock || stocksList.length <= 1) return;
     const t = setInterval(() => {
-      setStockIdx((i) => (i + 1) % stocksList.length);
-    }, 3600);
+      setStockFading(true);
+      setTimeout(() => {
+        setStockIdx((i) => (i + 1) % stocksList.length);
+        setStockFading(false);
+      }, 220);
+    }, 2800);
     return () => clearInterval(t);
   }, [pausedStock, stocksList.length]);
 
@@ -395,7 +400,7 @@ export default function HomeLanding({ data }: Props) {
 
   return (
     <div className="overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <section className="relative flex flex-col justify-center border-b border-slate-200 bg-gradient-to-br from-sky-50/80 via-white to-emerald-50/60 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/20 min-h-[calc(100vh-84px)] min-h-[calc(100svh-84px)] lg:min-h-[calc(100vh-84px)]">
+      <section className="relative flex flex-col justify-center border-b border-slate-200 bg-gradient-to-br from-sky-50/80 via-white to-emerald-50/60 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/20 min-h-[calc(100vh-82px)] min-h-[calc(100svh-82px)] lg:min-h-[calc(100vh-82px)]">
         {/* Subtle Background Blueprint Grid */}
         <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,#dbeafe_1px,transparent_1px),linear-gradient(to_bottom,#dbeafe_1px,transparent_1px)] [background-size:44px_44px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)] dark:opacity-10" />
 
@@ -529,9 +534,16 @@ export default function HomeLanding({ data }: Props) {
                           <button
                             key={idx}
                             type="button"
-                            onClick={() => setStockIdx(idx)}
+                            onClick={() => {
+                              if (idx === stockIdx) return;
+                              setStockFading(true);
+                              setTimeout(() => {
+                                setStockIdx(idx);
+                                setStockFading(false);
+                              }, 180);
+                            }}
                             className={`h-1.5 rounded-full transition-all duration-300 ${
-                              idx === stockIdx ? 'w-3.5 bg-sky-500' : 'w-1.5 bg-slate-200 dark:bg-slate-700'
+                              idx === stockIdx ? 'w-3.5 bg-sky-500 shadow-xs shadow-sky-500/50' : 'w-1.5 bg-slate-200 dark:bg-slate-700'
                             }`}
                             aria-label={`Stock ${idx + 1}`}
                           />
@@ -543,7 +555,13 @@ export default function HomeLanding({ data }: Props) {
                       href={`/stocks/${currentStock.symbol}?country=${encodeURIComponent(currentStock.country || 'India')}`}
                       className="mt-2.5 block group"
                     >
-                      <div key={currentStock.symbol} className="animate-slide-up-fade">
+                      <div
+                        className={`transition-all duration-300 ease-out will-change-transform ${
+                          stockFading
+                            ? 'opacity-0 -translate-y-1'
+                            : 'opacity-100 translate-y-0'
+                        }`}
+                      >
                         {/* Row 1: Full-width Company Identity (Never gets squished by chart!) */}
                         <div className="flex items-center gap-2.5 min-w-0">
                           <CompanyLogo symbol={currentStock.symbol} name={currentStock.name} size="sm" />
@@ -804,9 +822,16 @@ export default function HomeLanding({ data }: Props) {
                         <button
                           key={idx}
                           type="button"
-                          onClick={() => setStockIdx(idx)}
+                          onClick={() => {
+                            if (idx === stockIdx) return;
+                            setStockFading(true);
+                            setTimeout(() => {
+                              setStockIdx(idx);
+                              setStockFading(false);
+                            }, 180);
+                          }}
                           className={`h-1.5 rounded-full transition-all duration-300 ${
-                            idx === stockIdx ? 'w-3.5 bg-sky-500' : 'w-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
+                            idx === stockIdx ? 'w-3.5 bg-sky-500 shadow-xs shadow-sky-500/50' : 'w-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
                           }`}
                           aria-label={`Stock ${idx + 1}`}
                         />
@@ -819,7 +844,13 @@ export default function HomeLanding({ data }: Props) {
                   href={`/stocks/${currentStock.symbol}?country=${encodeURIComponent(currentStock.country || 'India')}`}
                   className="mt-3.5 block group"
                 >
-                  <div key={currentStock.symbol} className="animate-slide-up-fade grid grid-cols-[1fr_auto] items-center gap-3">
+                  <div
+                    className={`grid grid-cols-[1fr_auto] items-center gap-3 transition-all duration-300 ease-out will-change-transform ${
+                      stockFading
+                        ? 'opacity-0 -translate-y-1'
+                        : 'opacity-100 translate-y-0'
+                    }`}
+                  >
                     <div>
                       <div className="flex items-center gap-2.5">
                         <CompanyLogo symbol={currentStock.symbol} name={currentStock.name} size="md" />

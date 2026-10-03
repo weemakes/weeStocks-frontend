@@ -84,8 +84,8 @@ function StockDetailInner() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       {/* Top Trader Action Bar */}
-      <div className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 py-3 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-[1500px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="sticky top-14 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div className="mx-auto flex max-w-[1500px] px-4 py-2.5 sm:px-6 lg:px-8 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
             <Link

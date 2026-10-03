@@ -18,7 +18,7 @@ This page will show:
 
 ## Backend API Requirements
 
-Your backend must be running on `http://localhost:3000` (or the URL in `.env.local`) and provide these endpoints:
+Your backend must be running on `https://webapi.weestox.com` (or the URL in `.env.local`) and provide these endpoints:
 
 ### 1. Get Popular Cities
 ```
@@ -186,7 +186,7 @@ python manage.py runserver
 
 **Solution:** Update `.env.local`
 ```env
-BACKEND_API_URL=http://localhost:8000  # or whatever port your backend uses
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000  # or whatever port your backend uses
 ```
 
 Then restart the frontend:
@@ -247,19 +247,19 @@ Test each endpoint with curl:
 
 ```bash
 # Test popular cities
-curl http://localhost:3000/cities/popular
+curl https://webapi.weestox.com/cities/popular
 
 # Test city search
-curl http://localhost:3000/cities?search=agra
+curl https://webapi.weestox.com/cities?search=agra
 
 # Test latest price
-curl http://localhost:3000/metals/latest-price?city_id=1&metal=gold
+curl https://webapi.weestox.com/metals/latest-price?city_id=1&metal=gold
 
 # Test last 10 days
-curl http://localhost:3000/metals/last-10days-data?city_id=1&metal=gold
+curl https://webapi.weestox.com/metals/last-10days-data?city_id=1&metal=gold
 
 # Test history data
-curl http://localhost:3000/metals/fetch-history-data?city_slug=agra&metal=gold&unit=1g&purity=24K&duration=1w
+curl https://webapi.weestox.com/metals/fetch-history-data?city_slug=agra&metal=gold&unit=1g&purity=24K&duration=1w
 ```
 
 All should return valid JSON responses.
@@ -269,14 +269,14 @@ All should return valid JSON responses.
 Look for API request logs in your terminal where you ran `npm run dev:3001`:
 
 ```
-[API Request] GET http://localhost:3000/cities/popular
-[API Response] http://localhost:3000/cities/popular - Status: 200
-[API Success] http://localhost:3000/cities/popular - Data received
+[API Request] GET https://webapi.weestox.com/cities/popular
+[API Response] https://webapi.weestox.com/cities/popular - Status: 200
+[API Success] https://webapi.weestox.com/cities/popular - Data received
 ```
 
 Or errors like:
 ```
-[API Network Error] http://localhost:3000/cities/popular - fetch failed
+[API Network Error] https://webapi.weestox.com/cities/popular - fetch failed
 ```
 
 ## Environment Configuration
@@ -284,7 +284,7 @@ Or errors like:
 Your `.env.local` should contain:
 
 ```env
-BACKEND_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=https://webapi.weestox.com
 ```
 
 **Important Notes:**
@@ -345,7 +345,7 @@ http://localhost:3001
 http://localhost:3001/debug
 
 # View backend directly
-http://localhost:3000/cities/popular
+https://webapi.weestox.com/cities/popular
 ```
 
 The frontend is now more robust and will show helpful error messages instead of crashing when the backend is unreachable.

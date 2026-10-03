@@ -80,7 +80,7 @@ cp .env.example .env.local
 
 Edit `.env.local` and set your backend API URL:
 ```
-BACKEND_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=https://webapi.weestox.com
 ```
 
 ### Development
@@ -91,7 +91,7 @@ Run the development server:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [https://webapi.weestox.com](https://webapi.weestox.com) in your browser.
 
 ### Production
 
@@ -220,7 +220,7 @@ The application can be deployed to:
 - **AWS Amplify**
 - Any Node.js hosting platform
 
-Make sure to set the `BACKEND_API_URL` environment variable in your deployment platform.
+Make sure to set the `NEXT_PUBLIC_API_BASE_URL` environment variable in your deployment platform.
 
 ## Contributing
 

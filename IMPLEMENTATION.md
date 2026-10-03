@@ -273,7 +273,7 @@ halal-stock-frontend/
 
 ```env
 # Backend API URL (server-only)
-BACKEND_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=https://webapi.weestox.com
 ```
 
 ### Setup Instructions
