@@ -120,9 +120,13 @@ export interface StockListItem {
   metrics?: {
     market_cap?: number;
     pe_ratio?: number;
+    forward_pe?: number;
     price_to_book?: number;
     dividend_yield?: number;
     roe?: number;
+    roce?: number;
+    debt_to_equity?: number;
+    eps?: number;
     fifty_two_week_high?: number;
     fifty_two_week_low?: number;
   };

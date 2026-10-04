@@ -11,7 +11,7 @@ import {
   ChevronRight,
   Trophy,
 } from 'lucide-react';
-import { StockItem, StockSortField, SortDirection } from '../types';
+import { StockItem } from '../types';
 import { formatMarketCap } from '../utils/mappers';
 import CompanyLogo from './CompanyLogo';
 
@@ -42,12 +42,12 @@ export default function StockTableView({
 
   const getSortIcon = (field: string) => {
     if (sortField !== field) {
-      return <ArrowUpDown className="w-3 h-3 text-slate-400 dark:text-slate-500 opacity-60" />;
+      return <ArrowUpDown className="h-3 w-3 text-slate-400 dark:text-slate-500 opacity-60" />;
     }
     return isAsc ? (
-      <ArrowUp className="w-3 h-3 text-sky-500 font-bold" />
+      <ArrowUp className="h-3 w-3 text-sky-500 font-bold" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-sky-500 font-bold" />
+      <ArrowDown className="h-3 w-3 text-sky-500 font-bold" />
     );
   };
 
@@ -55,23 +55,23 @@ export default function StockTableView({
     switch (status) {
       case 'compliant':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-            <ShieldCheck className="w-3 h-3" />
-            Halal
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 border border-emerald-500/30 dark:text-emerald-400">
+            <ShieldCheck className="h-3 w-3" />
+            <span>Halal</span>
           </span>
         );
       case 'doubtful':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-            <AlertTriangle className="w-3 h-3" />
-            Review
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 border border-amber-500/30 dark:text-amber-400">
+            <AlertTriangle className="h-3 w-3" />
+            <span>Review</span>
           </span>
         );
       case 'non_compliant':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
-            <XCircle className="w-3 h-3" />
-            Haram
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-600 border border-rose-500/30 dark:text-rose-400">
+            <XCircle className="h-3 w-3" />
+            <span>Haram</span>
           </span>
         );
     }
@@ -101,8 +101,8 @@ export default function StockTableView({
     if (!rank) return null;
     if (rank <= 3) {
       return (
-        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-          <Trophy className="w-2.5 h-2.5 text-amber-500" />
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+          <Trophy className="h-2.5 w-2.5 text-amber-500" />
           #{rank}
         </span>
       );
@@ -116,29 +116,28 @@ export default function StockTableView({
 
   if (stocks.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-sm">
-        <AlertTriangle className="w-10 h-10 text-amber-500 dark:text-amber-400 mx-auto mb-3 opacity-80" />
-        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-200 mb-1">
-          No stocks match your filter criteria
+      <div className="p-12 text-center">
+        <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-amber-500 dark:text-amber-400 opacity-80" />
+        <h3 className="mb-1 text-base font-semibold text-slate-900 dark:text-slate-100">
+          No equities match your filter criteria
         </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-          Try adjusting your search query, sector selection, market tier, or resetting presets.
+        <p className="mx-auto max-w-md text-xs text-slate-500 dark:text-slate-400">
+          Try resetting the search keyword, changing the sector selection, or expanding market tiers.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm mb-6 transition-colors">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          {/* Header */}
-          <thead className="sticky top-0 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md z-20 border-b border-slate-200 dark:border-slate-800">
-            <tr className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-              {/* Rank / Symbol / Company */}
+    <div className="overflow-x-auto relative scroll-smooth">
+      <table className="w-full border-collapse text-left text-xs">
+          {/* Table Header */}
+          <thead className="sticky top-0 z-20 border-b border-slate-200/80 bg-slate-50/95 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/95">
+            <tr className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {/* Ticker & Company - STICKY LEFT ON MOBILE AND DESKTOP */}
               <th
                 onClick={() => onSort('symbol')}
-                className="px-4 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+                className="sticky left-0 z-30 bg-slate-50/95 dark:bg-slate-950/95 px-3.5 py-3 cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]"
               >
                 <div className="flex items-center gap-1.5">
                   <span>Ticker & Company</span>
@@ -146,13 +145,13 @@ export default function StockTableView({
                 </div>
               </th>
 
-              {/* Sector & Tier */}
-              <th className="px-3 py-3 hidden md:table-cell">Sector & Tier</th>
+              {/* Sector & Market Tier */}
+              <th className="hidden md:table-cell px-3 py-3">Sector & Tier</th>
 
-              {/* Price */}
+              {/* Latest Price */}
               <th
                 onClick={() => onSort('latest_price')}
-                className="px-4 py-3 text-right cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+                className="px-3.5 py-3 text-right cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
               >
                 <div className="flex items-center justify-end gap-1.5">
                   <span>Price</span>
@@ -174,7 +173,7 @@ export default function StockTableView({
               {/* Market Cap */}
               <th
                 onClick={() => onSort('market_cap')}
-                className="px-4 py-3 text-right cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors hidden sm:table-cell"
+                className="hidden sm:table-cell px-3.5 py-3 text-right cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
               >
                 <div className="flex items-center justify-end gap-1.5">
                   <span>Market Cap</span>
@@ -183,14 +182,14 @@ export default function StockTableView({
               </th>
 
               {/* 52-Week Range */}
-              <th className="px-4 py-3 text-center hidden lg:table-cell">
+              <th className="hidden lg:table-cell px-3.5 py-3 text-center">
                 <span>52W Range</span>
               </th>
 
               {/* Volume */}
               <th
                 onClick={() => onSort('volume')}
-                className="px-3 py-3 text-right cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors hidden xl:table-cell"
+                className="hidden xl:table-cell px-3 py-3 text-right cursor-pointer hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
               >
                 <div className="flex items-center justify-end gap-1.5">
                   <span>Volume</span>
@@ -198,24 +197,24 @@ export default function StockTableView({
                 </div>
               </th>
 
-              {/* Shariah Status */}
-              <th className="px-4 py-3 text-center">
+              {/* AAOIFI Shariah Status */}
+              <th className="px-3 py-3 text-center">
                 <span>Shariah Status</span>
               </th>
 
               {/* Action */}
-              <th className="px-4 py-3 text-right">Action</th>
+              <th className="px-3 py-3 text-right">Action</th>
             </tr>
           </thead>
 
           {/* Table Body */}
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {stocks.map((stock) => {
               const isPositive = stock.changePercent >= 0;
               const rank = stock.trader_indicators?.rank_in_country;
               const tier = stock.trader_indicators?.market_tier;
               const range52w = stock.trader_indicators?.range_52w_position;
-              const currencySym = stock.currencySymbol || '﷼';
+              const currencySym = stock.currencySymbol || '₹';
 
               // Calculate range position if missing
               let posPct = range52w !== undefined && range52w !== null ? range52w : null;
@@ -231,15 +230,13 @@ export default function StockTableView({
                 <tr
                   key={stock.id}
                   onClick={() => onSelectStock(stock)}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition-colors group"
+                  className="group cursor-pointer transition-colors hover:bg-slate-50/90 dark:hover:bg-slate-800/40"
                 >
-                  {/* Symbol & Name */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      {/* Rank Indicator */}
+                  {/* Ticker & Company - STICKY LEFT ON MOBILE & DESKTOP */}
+                  <td className="sticky left-0 z-10 bg-white/95 dark:bg-slate-900/95 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/90 px-3.5 py-2.5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] transition-colors">
+                    <div className="flex items-center gap-2">
                       {rank && <div className="shrink-0">{getRankBadge(rank)}</div>}
 
-                      {/* Company Logo */}
                       <CompanyLogo
                         src={stock.logo_url}
                         symbol={stock.symbol}
@@ -247,26 +244,26 @@ export default function StockTableView({
                         size="md"
                       />
 
-                      <div className="min-w-0">
+                      <div className="min-w-0 max-w-[130px] sm:max-w-[180px] md:max-w-[210px]">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-bold text-slate-900 dark:text-slate-100 text-sm tracking-wide group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                          <span className="font-bold text-xs sm:text-sm tracking-tight text-slate-900 group-hover:text-sky-600 dark:text-slate-100 dark:group-hover:text-sky-400 transition-colors">
                             {stock.symbol}
                           </span>
                           <span className="text-[10px] font-semibold text-slate-400 uppercase">
                             {stock.exchange}
                           </span>
                         </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[150px] sm:max-w-[220px]">
+                        <div className="truncate text-[11px] text-slate-500 dark:text-slate-400" title={stock.name}>
                           {stock.name}
                         </div>
                       </div>
                     </div>
                   </td>
 
-                  {/* Sector & Tier */}
-                  <td className="px-3 py-3 hidden md:table-cell">
-                    <div className="flex flex-col gap-1 items-start">
-                      <span className="inline-block px-2 py-0.5 bg-slate-100 dark:bg-slate-800/80 rounded text-[11px] text-slate-700 dark:text-slate-300 font-medium truncate max-w-[140px]">
+                  {/* Sector & Market Tier */}
+                  <td className="hidden md:table-cell px-3 py-2.5">
+                    <div className="flex flex-col items-start gap-0.5">
+                      <span className="truncate max-w-[130px] rounded bg-slate-100 px-1.5 py-0.2 text-[11px] font-medium text-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
                         {stock.sector}
                       </span>
                       {tier && getTierBadge(tier)}
@@ -274,19 +271,23 @@ export default function StockTableView({
                   </td>
 
                   {/* Price */}
-                  <td className="px-4 py-3 text-right">
-                    <div className="font-bold text-slate-900 dark:text-slate-100 text-sm tabular-nums">
-                      {currencySym}{stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <td className="px-3.5 py-2.5 text-right font-mono tabular-nums">
+                    <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100">
+                      {stock.price > 0
+                        ? `${currencySym}${stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        : '—'}
                     </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 tabular-nums">
-                      P/E: {stock.fundamentals.peRatio ? stock.fundamentals.peRatio.toFixed(1) : '–'}
-                    </div>
+                    {stock.fundamentals.peRatio > 0 && (
+                      <div className="text-[10px] text-slate-400">
+                        P/E {stock.fundamentals.peRatio.toFixed(1)}
+                      </div>
+                    )}
                   </td>
 
                   {/* 24h Change */}
-                  <td className="px-3 py-3 text-right">
+                  <td className="px-3 py-2.5 text-right font-mono tabular-nums">
                     <div
-                      className={`font-semibold tabular-nums inline-flex items-center justify-end gap-0.5 px-1.5 py-0.5 rounded text-xs ${
+                      className={`inline-flex items-center justify-end rounded px-1.5 py-0.2 text-xs font-semibold ${
                         isPositive
                           ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                           : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
@@ -295,33 +296,35 @@ export default function StockTableView({
                       {isPositive ? '+' : ''}
                       {stock.changePercent.toFixed(2)}%
                     </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 tabular-nums mt-0.5">
-                      {isPositive ? '+' : ''}{currencySym}{stock.change.toFixed(2)}
-                    </div>
+                    {stock.change !== 0 && (
+                      <div className="text-[10px] text-slate-400 mt-0.5">
+                        {isPositive ? '+' : ''}{currencySym}{stock.change.toFixed(2)}
+                      </div>
+                    )}
                   </td>
 
                   {/* Market Cap */}
-                  <td className="px-4 py-3 text-right hidden sm:table-cell">
-                    <div className="text-slate-900 dark:text-slate-100 font-semibold tabular-nums">
+                  <td className="hidden sm:table-cell px-3.5 py-2.5 text-right font-mono tabular-nums">
+                    <div className="font-semibold text-slate-900 dark:text-slate-100">
                       {formatMarketCap(stock.rawMarketCap || stock.marketCapCr * 10000000, stock.country)}
                     </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                    <div className="text-[10px] text-slate-400">
                       {stock.marketCapCategory}
                     </div>
                   </td>
 
-                  {/* 52-Week Range Bar */}
-                  <td className="px-4 py-3 hidden lg:table-cell">
+                  {/* 52W Range */}
+                  <td className="hidden lg:table-cell px-3.5 py-2.5">
                     {posPct !== null ? (
-                      <div className="w-28 mx-auto">
-                        <div className="flex justify-between text-[9px] text-slate-400 tabular-nums mb-1">
+                      <div className="w-24 mx-auto">
+                        <div className="flex justify-between text-[9px] text-slate-400 font-mono mb-0.5">
                           <span>{stock.fundamentals.week52Low ? stock.fundamentals.week52Low.toFixed(0) : 'L'}</span>
                           <span className="font-semibold text-slate-700 dark:text-slate-300">{posPct}%</span>
                           <span>{stock.fundamentals.week52High ? stock.fundamentals.week52High.toFixed(0) : 'H'}</span>
                         </div>
-                        <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                           <div
-                            className="bg-sky-500 h-full rounded-full transition-all"
+                            className="h-full rounded-full bg-sky-500 transition-all"
                             style={{ width: `${Math.min(100, Math.max(0, posPct))}%` }}
                           />
                         </div>
@@ -332,27 +335,27 @@ export default function StockTableView({
                   </td>
 
                   {/* Volume */}
-                  <td className="px-3 py-3 text-right hidden xl:table-cell tabular-nums text-slate-600 dark:text-slate-400 font-medium">
+                  <td className="hidden xl:table-cell px-3 py-2.5 text-right font-mono text-slate-600 dark:text-slate-400 font-medium">
                     {formatVolume(stock.volume)}
                   </td>
 
                   {/* Shariah Status */}
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-2.5 text-center">
                     {getStatusBadge(stock.complianceStatus)}
                   </td>
 
                   {/* Action */}
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-2.5 text-right">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         onSelectStock(stock);
                       }}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 group-hover:translate-x-0.5 transition-all"
+                      className="inline-flex items-center gap-0.5 text-xs font-semibold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors"
                     >
-                      <span>Analysis</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Analyze</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </td>
                 </tr>
@@ -361,6 +364,5 @@ export default function StockTableView({
           </tbody>
         </table>
       </div>
-    </div>
   );
 }

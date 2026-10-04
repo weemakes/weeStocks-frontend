@@ -75,10 +75,15 @@ export function formatMarketCap(mcap: number | string | undefined | null, countr
 }
 
 export function mapBackendStockToStockItem(item: StockListItem, countryCode?: string): StockItem {
-  const complianceRaw = item.shariah_compliance?.status?.toUpperCase() || 'HALAL';
+  const rawStatus = item.shariah_compliance?.status?.toUpperCase() || '';
   let complianceStatus: ComplianceStatus = 'compliant';
-  if (complianceRaw === 'NON_HALAL') complianceStatus = 'non_compliant';
-  if (complianceRaw === 'DOUBTFUL') complianceStatus = 'doubtful';
+  if (rawStatus === 'NON_HALAL' || rawStatus === 'FAIL') {
+    complianceStatus = 'non_compliant';
+  } else if (rawStatus === 'DOUBTFUL' || rawStatus === 'PENDING_DATA' || rawStatus === 'REVIEW') {
+    complianceStatus = 'doubtful';
+  } else if (rawStatus === 'HALAL' || rawStatus === 'PASS') {
+    complianceStatus = 'compliant';
+  }
 
   const debtRatioNum = Number(item.shariah_compliance?.debt_to_market_cap ?? 0);
   const debtRatioPercent = Number((debtRatioNum * 100).toFixed(2));
@@ -103,7 +108,13 @@ export function mapBackendStockToStockItem(item: StockListItem, countryCode?: st
   }
 
   const currencySym = getCurrencySymbol(item.country || item.currency);
-  const latestPrice = Number(item.latest_price || 0);
+  let latestPrice = Number(item.latest_price || (item as any).price || (item as any).current_price || (item as any).close || 0);
+  if (!latestPrice && item.metrics?.pe_ratio && item.metrics?.eps) {
+    const est = Number(item.metrics.pe_ratio) * Number(item.metrics.eps);
+    if (est > 0) {
+      latestPrice = parseFloat(est.toFixed(2));
+    }
+  }
 
   return {
     id: item.id,
