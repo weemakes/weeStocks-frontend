@@ -72,7 +72,7 @@ export function SmartMetalCalculator({
       ];
 
   return (
-    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-xl flex flex-col justify-between h-full">
+    <div className="bg-panel/70 border border-line/70 rounded-xl p-4 sm:p-5 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 flex items-center justify-center">
@@ -112,14 +112,14 @@ export function SmartMetalCalculator({
                       onClick={() => setPurity(p)}
                       className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
                         active
-                          ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20"
+                          ? "bg-gradient-to-b from-[#FFEBA3] via-[#E8B931] to-[#C88D11] text-[#2D1A00] border-[#FFEEA8]/90 shadow-[0_3px_12px_rgba(232,185,49,0.35)] dark:from-[#FFF0B3] dark:via-[#F5C748] dark:to-[#C98B12] dark:text-[#251500]"
                           : "bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                       }`}
                     >
-                      <div>{p}</div>
+                      <div className="font-extrabold">{p}</div>
                       <span
-                        className={`text-[10px] font-normal block ${
-                          active ? "text-slate-900 font-semibold" : "text-slate-500 dark:text-slate-400"
+                        className={`text-[10px] block ${
+                          active ? "text-[#3D2500] font-bold" : "text-slate-500 dark:text-slate-400"
                         }`}
                       >
                         {p === "24K"

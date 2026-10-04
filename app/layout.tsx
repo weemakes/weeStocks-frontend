@@ -55,6 +55,14 @@ export const metadata: Metadata = {
     siteName: "WeeStox",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: `${SITE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "WeeStox - Ethical & Shariah Financial Intelligence",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -63,6 +71,16 @@ export const metadata: Metadata = {
       "Research NSE/BSE equities for Shariah compliance, debt leverage, live Gold/Silver city rates, and IPO GMP.",
     creator: "@weestox",
     site: "@weestox",
+    images: [`${SITE_URL}/og-image.png`],
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   robots: {
     index: true,
@@ -93,7 +111,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-canvas text-body antialiased selection:bg-sky-500/20 selection:text-accent">
         <JsonLd data={[getOrganizationSchema(), getWebSiteSchema()]} />
         <Navigation />
-        <main id="main-content" className="flex-1 pt-[82px] sm:pt-[84px]">
+        <main id="main-content" className="flex-1 pt-[98px] sm:pt-[106px]">
           {children}
         </main>
         <Footer />

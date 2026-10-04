@@ -23,9 +23,9 @@ function getMetalColor(metal?: Metal) {
   switch (metal) {
     case 'gold':
       return {
-        stroke: '#F59E0B',
-        fill: '#F59E0B',
-        tooltip: '#D97706',
+        stroke: '#E5B239',
+        fill: '#F5C748',
+        tooltip: '#C48A18',
       };
     case 'silver':
       return {

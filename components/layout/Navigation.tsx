@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -71,22 +72,30 @@ export default function Navigation() {
 
       {/* 2. Main Navigation Bar - Unified Institutional Header */}
       <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 gap-3">
+        <div className="flex items-center justify-between h-16 sm:h-[72px] gap-3">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-8 h-8 bg-gradient-to-br from-sky-500 to-blue-700 rounded-lg flex items-center justify-center font-bold text-sm text-white shadow-sm group-hover:shadow-sky-500/25 transition-all">
-              W
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-                  WeeStox
-                </span>
-
-              </div>
-              <span className="text-[9px] text-slate-500 dark:text-slate-400 -mt-0.5 tracking-tight hidden xl:inline">
-                Halal &amp; Ethical Financial Intelligence
-              </span>
+          <Link
+            href="/"
+            className="flex items-center shrink-0 group py-1"
+            aria-label="WeeStox - Halal & Ethical Financial Intelligence"
+          >
+            <div className="relative h-12 sm:h-14 w-auto aspect-[490/193]">
+              <Image
+                src="/logo_light.png"
+                alt="WeeStox"
+                width={490}
+                height={193}
+                className="h-full w-auto object-contain dark:hidden group-hover:scale-[1.02] transition-transform"
+                priority
+              />
+              <Image
+                src="/logo_dark.png"
+                alt="WeeStox"
+                width={490}
+                height={193}
+                className="h-full w-auto object-contain hidden dark:block group-hover:scale-[1.02] transition-transform"
+                priority
+              />
             </div>
           </Link>
 

@@ -73,28 +73,17 @@ export function Last10DaysTable({ data }: Last10DaysTableProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-xl">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-          <div>
-            <h2 className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100">
-              {metalConfig.displayName} Price Trend — Last 10 Days
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Daily historical movement and price adjustments{data.cityName ? ` in ${data.cityName}` : ""}
-            </p>
-          </div>
-        </div>
-
-        <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-xs text-muted px-1">
+        <span>Historical daily spot benchmarks in {data.cityName || "city"}</span>
+        <span className="font-semibold uppercase tracking-wider text-[11px] bg-panel px-2 py-0.5 rounded border border-line">
           Unit: {data.unit || "1g"}
         </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-200 dark:divide-slate-800">
-          <thead className="bg-slate-50 dark:bg-slate-950 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+      <div className="overflow-x-auto rounded-xl border border-line/70 bg-panel/30">
+        <table className="w-full text-left text-xs divide-y divide-line/70">
+          <thead className="bg-panel/70 text-[11px] font-semibold text-muted uppercase tracking-wider">
             <tr>
               <th className="py-2.5 px-4">Date</th>
               {columns.map((col, idx) => (
@@ -105,7 +94,7 @@ export function Last10DaysTable({ data }: Last10DaysTableProps) {
               <th className="py-2.5 px-4 text-center">Daily Movement</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
+          <tbody className="divide-y divide-line/70">
             {data.data.map((day: any, idx: number) => {
               // Extract primary change info from 24K or first available column
               const mainPurityData = day["24K"] || day["22K"] || day["1g"];
@@ -117,9 +106,13 @@ export function Last10DaysTable({ data }: Last10DaysTableProps) {
               return (
                 <tr
                   key={day.date}
-                  className={idx === 0 ? "bg-sky-50/50 dark:bg-slate-950/60 font-semibold" : "hover:bg-slate-50 dark:hover:bg-slate-800/30"}
+                  className={`transition-colors ${
+                    idx === 0
+                      ? "bg-accent/10 font-semibold"
+                      : "hover:bg-well/50"
+                  }`}
                 >
-                  <td className="py-2.5 px-4 font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+                  <td className="py-2.5 px-4 font-bold text-ink tabular-nums">
                     {formatHistoricalDate(day.date)}
                   </td>
 
@@ -131,11 +124,11 @@ export function Last10DaysTable({ data }: Last10DaysTableProps) {
                     return (
                       <td key={colIdx} className="py-2.5 px-4 text-right tabular-nums">
                         {price !== undefined ? (
-                          <span className={`font-bold ${is24K ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-slate-100"}`}>
+                          <span className={`font-bold ${is24K ? "text-[#B68214] dark:text-[#FCD34D] font-black" : "text-ink"}`}>
                             {formatPrice(price)}
                           </span>
                         ) : (
-                          <span className="text-slate-400 dark:text-slate-500">—</span>
+                          <span className="text-quiet">—</span>
                         )}
                       </td>
                     );
@@ -146,10 +139,10 @@ export function Last10DaysTable({ data }: Last10DaysTableProps) {
                       <span
                         className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold ${
                           isUp
-                            ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
+                            ? "text-positive bg-emerald-500/10"
                             : isDown
-                            ? "text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10"
-                            : "text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800"
+                            ? "text-negative bg-rose-500/10"
+                            : "text-muted bg-panel"
                         }`}
                       >
                         {isUp ? <ArrowUp className="w-3 h-3" /> : isDown ? <ArrowDown className="w-3 h-3" /> : null}
@@ -157,7 +150,7 @@ export function Last10DaysTable({ data }: Last10DaysTableProps) {
                         {formatPrice(Math.abs(change))}
                       </span>
                     ) : (
-                      <span className="text-slate-400 dark:text-slate-500 text-xs">— Flat</span>
+                      <span className="text-quiet text-xs">— Flat</span>
                     )}
                   </td>
                 </tr>

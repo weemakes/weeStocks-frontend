@@ -57,7 +57,7 @@ export function HistoryControls({
                   px-3 py-1.5 rounded-md text-xs font-semibold transition-all
                   ${
                     purity === selectedPurity
-                      ? "bg-amber-500 text-slate-950 font-bold shadow-sm"
+                      ? "bg-gradient-to-b from-[#FFEBA3] via-[#E8B931] to-[#C88D11] text-[#2D1A00] border border-[#FFEEA8]/80 shadow-[0_2px_8px_rgba(232,185,49,0.3)] dark:from-[#FFF0B3] dark:via-[#F5C748] dark:to-[#C98B12] dark:text-[#251500] font-black"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/70 dark:hover:bg-slate-800/60"
                   }
                 `}
