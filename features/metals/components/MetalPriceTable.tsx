@@ -69,7 +69,7 @@ export function MetalPriceTable({ data }: MetalPriceTableProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-xl flex flex-col justify-between h-full">
+    <div className="bg-panel/70 border border-line/70 rounded-xl p-4 sm:p-5 flex flex-col justify-between h-full">
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export function MetalPriceTable({ data }: MetalPriceTableProps) {
                 <th className="py-2.5 px-4 w-[28%]">Weight Unit</th>
                 {hasGoldPurity ? (
                   purities.map((purity) => (
-                    <th key={purity} className="py-2.5 px-3 text-right">
+                    <th key={purity} className={`py-2.5 px-3 text-right ${purity === "24K" ? "text-[#B68214] dark:text-[#FCD34D] font-extrabold" : ""}`}>
                       {purity} Rate
                     </th>
                   ))
@@ -138,7 +138,7 @@ export function MetalPriceTable({ data }: MetalPriceTableProps) {
                           <td key={purity} className="py-3 px-3 text-right">
                             {priceData ? (
                               <div>
-                                <span className={`text-sm font-bold tabular-nums ${is24K ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-slate-100"}`}>
+                                <span className={`text-sm font-bold tabular-nums ${is24K ? "text-[#B68214] dark:text-[#FCD34D] font-black" : "text-slate-900 dark:text-slate-100"}`}>
                                   {formatPrice(priceData.price)}
                                 </span>
                               </div>

@@ -104,18 +104,7 @@ export function HistoryChartSection({
   }, [unit, duration, purity, fetchChartData]);
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-            Historical Price Trend of {metalConfig.displayName} ({unit})
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Interactive multi-timeframe price chart with live spot movements
-          </p>
-        </div>
-      </div>
+    <div className="space-y-3 sm:space-y-4">
 
       {/* Controls */}
       <HistoryControls
@@ -135,7 +124,7 @@ export function HistoryChartSection({
       />
 
       {/* Chart */}
-      <div className="mt-6">
+      <div className="mt-3 sm:mt-4">
         {error && chartData.length === 0 ? (
           <div className="h-80 flex items-center justify-center bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl">
             <div className="text-center px-4">

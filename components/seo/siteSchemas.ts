@@ -7,7 +7,14 @@ export function getOrganizationSchema() {
     '@id': `${SITE_URL}/#organization`,
     name: 'WeeStox',
     url: SITE_URL,
-    logo: `${SITE_URL}/favicon.ico`,
+    logo: {
+      '@type': 'ImageObject',
+      url: `${SITE_URL}/logo_light.png`,
+      width: '490',
+      height: '193',
+      caption: 'WeeStox Official Brand Logo',
+    },
+    image: `${SITE_URL}/og-image.png`,
     description:
       'Institutional financial intelligence platform for AAOIFI Shariah-compliant equities, live gold/silver rates across India, real-time IPO GMP, and Islamic wealth calculators.',
     sameAs: [

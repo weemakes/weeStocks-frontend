@@ -7,13 +7,7 @@ import {
   ArrowLeft,
   Loader2,
   AlertTriangle,
-  Globe,
   ChevronRight,
-  Share2,
-  Check,
-  Printer,
-  Search,
-  RefreshCw,
 } from 'lucide-react';
 import { StockMasterDetail } from '@/features/stocks/types';
 import { getStockDetail } from '@/features/stocks/api';
@@ -35,8 +29,6 @@ function StockDetailInner() {
   const [detail, setDetail] = useState<StockMasterDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [searchJump, setSearchJump] = useState('');
 
   const loadData = async () => {
     if (!symbol) return;
@@ -65,90 +57,27 @@ function StockDetailInner() {
     router.push(`/stocks/${peerSymbol}?country=${encodeURIComponent(countryParam)}`);
   };
 
-  const handleCopyLink = () => {
-    if (typeof window !== 'undefined') {
-      navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleSearchJump = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchJump.trim()) {
-      router.push(`/stocks/${searchJump.trim().toUpperCase()}?country=${encodeURIComponent(countryParam)}`);
-      setSearchJump('');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-      {/* Top Trader Action Bar */}
-      <div className="sticky top-14 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="mx-auto flex max-w-[1500px] px-4 py-2.5 sm:px-6 lg:px-8 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-            <Link
-              href={`/stocks?country=${encodeURIComponent(countryParam)}`}
-              className="inline-flex items-center gap-1.5 font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>{countryParam} Screener</span>
-            </Link>
-            <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-700" />
-            <span className="font-bold text-slate-800 dark:text-slate-200 uppercase">{symbol}</span>
-            {detail && (
-              <span className="text-slate-400 dark:text-slate-600 hidden md:inline">
-                ({detail.company.name})
-              </span>
-            )}
-          </div>
-
-          {/* Quick Jump Search + Trader Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            <form onSubmit={handleSearchJump} className="relative hidden md:block">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Jump to ticker..."
-                value={searchJump}
-                onChange={(e) => setSearchJump(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500 w-36 focus:w-48 transition-all"
-              />
-            </form>
-
-            <button
-              type="button"
-              onClick={loadData}
-              title="Refresh live quote & calculations"
-              className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors shadow-xs"
-            >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Share2 className="w-3.5 h-3.5 text-slate-500" />}
-              <span>{copied ? 'Copied!' : 'Share'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors shadow-xs"
-            >
-              <Printer className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden sm:inline">Print Report</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main Workstation Container */}
-      <div className="mx-auto max-w-[1500px] px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <div className="mx-auto max-w-[1500px] px-3 py-3 sm:px-6 sm:py-5 lg:px-8">
+        {/* Clean, Lightweight Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-2.5 sm:mb-3.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <Link
+            href={`/stocks?country=${encodeURIComponent(countryParam)}`}
+            className="inline-flex items-center gap-1 font-medium text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>{countryParam} Screener</span>
+          </Link>
+          <ChevronRight className="w-3 h-3 text-slate-300 dark:text-slate-700" />
+          <span className="font-bold text-slate-800 dark:text-slate-200 uppercase">{symbol}</span>
+          {detail?.company?.name && (
+            <span className="text-slate-400 dark:text-slate-500 hidden sm:inline truncate max-w-[280px]">
+              ({detail.company.name})
+            </span>
+          )}
+        </nav>
         {loading ? (
           <div className="py-36 flex flex-col items-center justify-center gap-3 text-slate-500">
             <Loader2 className="w-9 h-9 animate-spin text-sky-600 dark:text-sky-400" />

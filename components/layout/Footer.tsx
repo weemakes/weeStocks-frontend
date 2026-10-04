@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Shield, ArrowUpRight } from 'lucide-react';
 
 export default function Footer() {
@@ -10,11 +11,27 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8 mb-5">
           {/* Brand Col (2 cols wide on desktop) */}
           <div className="lg:col-span-2 space-y-3 pr-2 lg:pr-6">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-sky-500 to-sky-700 rounded-lg flex items-center justify-center font-bold text-xs text-white">
-                W
+            <Link
+              href="/"
+              className="inline-flex items-center group py-1"
+              aria-label="WeeStox - Halal & Ethical Financial Intelligence"
+            >
+              <div className="relative h-12 sm:h-14 w-auto aspect-[490/193]">
+                <Image
+                  src="/logo_light.png"
+                  alt="WeeStox"
+                  width={490}
+                  height={193}
+                  className="h-full w-auto object-contain dark:hidden group-hover:scale-[1.02] transition-transform"
+                />
+                <Image
+                  src="/logo_dark.png"
+                  alt="WeeStox"
+                  width={490}
+                  height={193}
+                  className="h-full w-auto object-contain hidden dark:block group-hover:scale-[1.02] transition-transform"
+                />
               </div>
-              <span className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">WeeStox</span>
             </Link>
             <p className="text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm">
               WeeStox is an institutional-grade financial intelligence platform screening Indian and global capital markets for Shariah compliance, low balance-sheet leverage, and fundamental quality.

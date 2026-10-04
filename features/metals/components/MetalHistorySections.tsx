@@ -27,7 +27,7 @@ export async function MetalHistorySection({ metal, citySlug }: MetalHistoryProps
   });
 
   return (
-    <section className="bg-panel/90 border border-line rounded-2xl p-5 md:p-6 shadow-xl">
+    <div className="bg-panel/60 dark:bg-panel/40 border border-line/70 rounded-xl p-4 sm:p-5">
       <HistoryChartSection
         key={`${metal}-${citySlug}`}
         metal={metal}
@@ -37,7 +37,7 @@ export async function MetalHistorySection({ metal, citySlug }: MetalHistoryProps
         initialUnit={config.defaultUnit}
         initialDuration={config.defaultDuration}
       />
-    </section>
+    </div>
   );
 }
 

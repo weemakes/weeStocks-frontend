@@ -43,7 +43,7 @@ export function MetalSelector({ currentMetal, citySlug }: MetalSelectorProps) {
         const config = METAL_CONFIG[metal];
 
         const activeStyles = {
-          gold: "bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 font-extrabold",
+          gold: "bg-gradient-to-b from-[#FFEBA3] via-[#E8B931] to-[#C88D11] text-[#2D1A00] border border-[#FFEEA8]/90 shadow-[0_3px_14px_rgba(232,185,49,0.4)] dark:from-[#FFF0B3] dark:via-[#F5C748] dark:to-[#C98B12] dark:text-[#251500] font-black",
           silver: "bg-white dark:bg-slate-200 text-slate-950 shadow-md dark:shadow-lg shadow-slate-300/20 font-extrabold",
           platinum: "bg-sky-500 text-white dark:bg-sky-400 dark:text-slate-950 shadow-lg shadow-sky-400/20 font-extrabold",
         }[metal];

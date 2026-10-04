@@ -52,9 +52,10 @@
   --shadow-card: 0 4px 20px -8px rgba(15, 23, 42, 0.08);
 
   /* Metal Accents */
-  --gold: #d97706;
-  --gold-light: #fef3c7;
-  --gold-dark: #b45309;
+  --gold: #C58B17;
+  --gold-light: #FEF7DE;
+  --gold-dark: #976506;
+  --gold-gradient: linear-gradient(135deg, #FFE894 0%, #E6AF2E 48%, #BE8011 100%);
   --silver: #64748b;
   --silver-light: #f1f5f9;
   --silver-dark: #334155;
@@ -101,9 +102,10 @@
   --shadow-card: 0 8px 28px -16px #00000070;
 
   /* Metal Accents */
-  --gold: #f59e0b;
-  --gold-light: #fef3c7;
-  --gold-dark: #b45309;
+  --gold: #FCD34D;
+  --gold-light: rgba(252, 211, 77, 0.15);
+  --gold-dark: #E6AF2E;
+  --gold-gradient: linear-gradient(135deg, #FFF1B5 0%, #F5C748 50%, #C98B12 100%);
   --silver: #94a3b8;
   --silver-light: #f1f5f9;
   --silver-dark: #475569;

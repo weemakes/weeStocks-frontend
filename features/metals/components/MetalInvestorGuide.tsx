@@ -64,101 +64,92 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
       ];
 
   return (
-    <div className="space-y-6">
-      {/* 1. Investor Guidance & Market Drivers */}
-      <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-xl">
-        <div className="flex items-center gap-2 mb-4">
-          <BookOpen className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            Smart Investor Guide: {isGold ? "Gold" : metal.toUpperCase()} in {cityName}
-          </h2>
+    <div className="space-y-8">
+      {/* 1. Investor Guidance & Market Drivers (3-Column Grid directly on page canvas) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        {/* Card 1: Purity & Hallmarking */}
+        <div className="bg-panel/40 border border-line/70 p-4 rounded-xl space-y-2.5">
+          <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold">
+            <Award className="w-4 h-4" />
+            <span>{isGold ? "Gold Purity & HUID" : isSilver ? "Silver Fineness" : "Platinum Fineness"}</span>
+          </div>
+          {isGold ? (
+            <>
+              <p className="text-muted leading-relaxed">
+                Verify the stated purity and HUID on hallmarked gold jewellery before buying.
+              </p>
+              <ul className="space-y-1.5 text-body">
+                <li>• <strong className="text-ink">24K999</strong>: 99.9% pure bullion</li>
+                <li>• <strong className="text-ink">22K916</strong>: 91.6% jewellery grade</li>
+                <li>• <strong className="text-ink">18K750</strong>: 75.0% gold</li>
+              </ul>
+            </>
+          ) : isSilver ? (
+            <p className="text-muted leading-relaxed">
+              Compare silver products by weight and fineness. Fine silver is commonly marked 999, while sterling silver is commonly marked 925.
+            </p>
+          ) : (
+            <p className="text-muted leading-relaxed">
+              Compare platinum products using the seller&apos;s stated fineness and net weight. Request a purity certificate and itemised invoice before purchase.
+            </p>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          {/* Card 1: Purity & Hallmarking */}
-          <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold">
-              <Award className="w-4 h-4" />
-              <span>{isGold ? "Gold Purity & HUID" : isSilver ? "Silver Fineness" : "Platinum Fineness"}</span>
-            </div>
-            {isGold ? (
-              <>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Verify the stated purity and HUID on hallmarked gold jewellery before buying.
-                </p>
-                <ul className="space-y-1 text-slate-700 dark:text-slate-300">
-                  <li>• <strong className="text-slate-900 dark:text-slate-100">24K999</strong>: 99.9% pure bullion</li>
-                  <li>• <strong className="text-slate-900 dark:text-slate-100">22K916</strong>: 91.6% jewellery grade</li>
-                  <li>• <strong className="text-slate-900 dark:text-slate-100">18K750</strong>: 75.0% gold</li>
-                </ul>
-              </>
-            ) : isSilver ? (
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                Compare silver products by weight and fineness. Fine silver is commonly marked 999, while sterling silver is commonly marked 925.
-              </p>
-            ) : (
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                Compare platinum products using the seller&apos;s stated fineness and net weight. Request a purity certificate and itemised invoice before purchase.
-              </p>
-            )}
+        {/* Card 2: Market Catalysts */}
+        <div className="bg-panel/40 border border-line/70 p-4 rounded-xl space-y-2.5">
+          <div className="flex items-center gap-2 text-[#B68214] dark:text-[#FCD34D] font-bold">
+            <TrendingUp className="w-4 h-4" />
+            <span>Key Macro Price Drivers</span>
           </div>
+          <p className="text-muted leading-relaxed">
+            Domestic metal rates in India are directly influenced by four core financial factors:
+          </p>
+          <ul className="space-y-1.5 text-body">
+            <li>• <strong className="text-ink">US Fed Rates</strong> &amp; Dollar Index</li>
+            <li>• <strong className="text-ink">USD / INR Exchange Rate</strong> depreciation</li>
+            <li>• <strong className="text-ink">Customs Duty (6%)</strong> &amp; 3% GST</li>
+            <li>• <strong className="text-ink">MCX Futures &amp; Festive Demand</strong></li>
+          </ul>
+        </div>
 
-          {/* Card 2: Market Catalysts */}
-          <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold">
-              <TrendingUp className="w-4 h-4" />
-              <span>Key Macro Price Drivers</span>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-              Domestic metal rates in India are directly influenced by four core financial factors:
-            </p>
-            <ul className="space-y-1 text-slate-700 dark:text-slate-300">
-              <li>• <strong className="text-slate-900 dark:text-slate-100">US Federal Reserve Rates</strong> &amp; Dollar Index</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">USD / INR Exchange Rate</strong> depreciation</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Customs Import Duty (6%)</strong> &amp; 3% GST</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">MCX Futures &amp; Festive Demand</strong></li>
-            </ul>
+        {/* Card 3: Investment Vehicles */}
+        <div className="bg-panel/40 border border-line/70 p-4 rounded-xl space-y-2.5">
+          <div className="flex items-center gap-2 text-positive font-bold">
+            <Scale className="w-4 h-4" />
+            <span>Investment Options</span>
           </div>
-
-          {/* Card 3: Investment Vehicles */}
-          <div className="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
-              <Scale className="w-4 h-4" />
-              <span>Ways to Invest in Precious Metals</span>
-            </div>
-            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-              Choose the right vehicle according to your financial timeline:
-            </p>
-            <ul className="space-y-1 text-slate-700 dark:text-slate-300">
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Physical Bullion</strong>: Compare dealer premium, certification, storage, and resale terms</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Exchange-traded products</strong>: Check availability, tracking cost, and liquidity</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Jewellery</strong>: Compare purity, making charges, and resale deductions</li>
-              <li>• <strong className="text-slate-900 dark:text-slate-100">Digital products</strong>: Review custody, redemption, and counterparty terms</li>
-            </ul>
-          </div>
+          <p className="text-muted leading-relaxed">
+            Choose the right vehicle according to your financial timeline:
+          </p>
+          <ul className="space-y-1.5 text-body">
+            <li>• <strong className="text-ink">Physical Bullion</strong>: Dealer premium &amp; storage</li>
+            <li>• <strong className="text-ink">Exchange-traded ETFs</strong>: High liquidity &amp; no making</li>
+            <li>• <strong className="text-ink">Jewellery</strong>: Purity, making &amp; deductions</li>
+            <li>• <strong className="text-ink">Digital Gold</strong>: 24/7 fractional buying</li>
+          </ul>
         </div>
       </div>
 
       {/* 2. Frequently Asked Questions (FAQ) */}
-      <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm dark:shadow-xl">
-        <div className="flex items-center gap-2 mb-4">
-          <HelpCircle className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-            Frequently Asked Questions — {metal.toUpperCase()} in {cityName}
-          </h2>
+      <div className="space-y-3 pt-2">
+        <div className="flex items-center gap-2 mb-3">
+          <HelpCircle className="w-4 h-4 text-[#B68214] dark:text-[#FCD34D]" />
+          <h3 className="text-sm font-bold text-ink">
+            Frequently Asked Questions — {isGold ? "Gold" : isSilver ? "Silver" : "Platinum"} in {cityName}
+          </h3>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {faqs.map((faq, idx) => (
             <div
               key={idx}
-              className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 transition-colors"
+              className="bg-panel/40 border border-line/60 rounded-xl p-4 transition-colors hover:border-line"
             >
-              <h3 className="text-xs font-bold text-slate-900 dark:text-slate-200 mb-1.5 flex items-start gap-2">
-                <span className="text-sky-600 dark:text-sky-400 font-extrabold">Q.</span>
+              <h4 className="text-xs font-bold text-ink mb-1.5 flex items-start gap-2">
+                <span className="text-[#B68214] dark:text-[#FCD34D] font-black">Q.</span>
                 <span>{faq.q}</span>
-              </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed pl-4">
+              </h4>
+              <p className="text-xs text-muted leading-relaxed pl-4">
                 {faq.a}
               </p>
             </div>
