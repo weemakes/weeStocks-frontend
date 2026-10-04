@@ -37,7 +37,7 @@ export default function StockCountrySelector({
               className={`rounded px-1.5 py-0.2 font-mono text-[10px] ${
                 isSelected
                   ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold'
-                  : 'bg-slate-200/70 text-slate-600 dark:bg-slate-850 dark:text-slate-400'
+                  : 'bg-slate-200/70 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
               }`}
             >
               {c.total_companies ? c.total_companies.toLocaleString() : c.exchange}

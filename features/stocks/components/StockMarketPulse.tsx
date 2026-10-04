@@ -183,7 +183,7 @@ export default function StockMarketPulse({
                     key={m.id || m.symbol}
                     type="button"
                     onClick={() => onSelectStock(m.symbol)}
-                    className="group inline-flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-850 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                    className="group inline-flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 px-2 py-1 rounded-md transition-colors cursor-pointer"
                   >
                     <span className="font-mono text-[10px] text-slate-400">#{idx + 1}</span>
                     <span className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400">
