@@ -10,7 +10,7 @@ import {
   Check,
   X,
   Trophy,
-  BarChart2,
+  ChevronRight,
 } from 'lucide-react';
 import { StockItem } from '../types';
 import { formatMarketCap } from '../utils/mappers';
@@ -34,23 +34,23 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
     switch (status) {
       case 'compliant':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            100% Halal
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 border border-emerald-500/30 dark:text-emerald-400">
+            <ShieldCheck className="h-3 w-3" />
+            <span>Halal</span>
           </span>
         );
       case 'doubtful':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            Under Review
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 border border-amber-500/30 dark:text-amber-400">
+            <AlertTriangle className="h-3 w-3" />
+            <span>Review</span>
           </span>
         );
       case 'non_compliant':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
-            <XCircle className="w-3.5 h-3.5" />
-            Non-Compliant
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-600 border border-rose-500/30 dark:text-rose-400">
+            <XCircle className="h-3 w-3" />
+            <span>Haram</span>
           </span>
         );
     }
@@ -60,14 +60,14 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
     if (!rank) return null;
     if (rank <= 3) {
       return (
-        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-          <Trophy className="w-3 h-3 text-amber-500" />
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+          <Trophy className="h-2.5 w-2.5 text-amber-500" />
           #{rank}
         </span>
       );
     }
     return (
-      <span className="px-1.5 py-0.5 rounded text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">
         #{rank}
       </span>
     );
@@ -75,26 +75,25 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
 
   if (stocks.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-sm">
-        <AlertTriangle className="w-10 h-10 text-amber-500 dark:text-amber-400 mx-auto mb-3 opacity-80" />
-        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-200 mb-1">
-          No stocks match your filter criteria
+      <div className="p-12 text-center">
+        <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-amber-500 dark:text-amber-400 opacity-80" />
+        <h3 className="mb-1 text-base font-semibold text-slate-900 dark:text-slate-100">
+          No equities match your filter criteria
         </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-          Try adjusting your search query, sector selection, or resetting the filters.
+        <p className="mx-auto max-w-md text-xs text-slate-500 dark:text-slate-400">
+          Try resetting the search keyword or broadening your compliance filters.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
       {stocks.map((stock) => {
         const isPositive = stock.changePercent >= 0;
         const rank = stock.trader_indicators?.rank_in_country;
-        const tier = stock.trader_indicators?.market_tier;
+        const currencySym = stock.currencySymbol || '₹';
         const range52w = stock.trader_indicators?.range_52w_position;
-        const currencySym = stock.currencySymbol || '﷼';
 
         let posPct = range52w !== undefined && range52w !== null ? range52w : null;
         if (posPct === null && stock.fundamentals.week52High > stock.fundamentals.week52Low) {
@@ -109,139 +108,126 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
           <div
             key={stock.id}
             onClick={() => onSelectStock(stock)}
-            className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-sky-200 dark:hover:border-slate-700 rounded-2xl p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer flex flex-col justify-between group shadow-sm"
+            className="group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white/95 p-3.5 sm:p-4 shadow-xs transition-all hover:border-sky-500/40 hover:shadow-sm dark:border-slate-800/80 dark:bg-slate-900/90 dark:hover:border-sky-500/30 cursor-pointer"
           >
             <div>
-              {/* Header: Avatar, Ticker, Exchange, Rank & Status */}
+              {/* Header: Logo, Ticker, Exchange & Status */}
               <div className="flex items-start justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <CompanyLogo
                     src={stock.logo_url}
                     symbol={stock.symbol}
                     name={stock.name}
-                    size="lg"
+                    size="md"
                   />
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 text-base group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                      <span className="font-bold text-sm text-slate-900 transition-colors group-hover:text-sky-600 dark:text-slate-100 dark:group-hover:text-sky-400">
                         {stock.symbol}
                       </span>
-                      <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                      <span className="rounded bg-slate-100 px-1 py-0.2 text-[9px] font-semibold uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                         {stock.exchange}
                       </span>
                       {rank && getRankBadge(rank)}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[190px]" title={stock.name}>
+                    <div className="truncate text-xs text-slate-500 dark:text-slate-400" title={stock.name}>
                       {stock.name}
                     </div>
                   </div>
                 </div>
 
-                <div>{getStatusBadge(stock.complianceStatus)}</div>
+                <div className="shrink-0">{getStatusBadge(stock.complianceStatus)}</div>
               </div>
 
               {/* Price & Change Banner */}
-              <div className="flex items-baseline justify-between p-3 bg-slate-50 dark:bg-slate-950/80 rounded-xl border border-slate-200 dark:border-slate-800/80 mb-3">
+              <div className="flex items-baseline justify-between rounded-xl bg-slate-50/80 px-3 py-2 border border-slate-200/60 dark:border-slate-800/60 dark:bg-slate-950/60 mb-3">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block uppercase tracking-wider">
-                    Current Price
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Latest Price
                   </span>
-                  <span className="text-lg font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
-                    {currencySym}{stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <span className="font-mono text-base font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
+                    {stock.price > 0
+                      ? `${currencySym}${stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      : '—'}
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block uppercase tracking-wider">
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     Day Move
                   </span>
                   <span
-                    className={`inline-flex items-center gap-0.5 font-bold text-xs tabular-nums px-1.5 py-0.5 rounded ${
+                    className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.2 font-mono text-xs font-bold tabular-nums ${
                       isPositive
                         ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                         : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                     }`}
                   >
-                    {isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                    {isPositive ? '+' : ''}
-                    {stock.changePercent.toFixed(2)}%
+                    {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                    {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
                   </span>
                 </div>
               </div>
 
               {/* 52-Week Range Bar */}
               {posPct !== null && (
-                <div className="mb-3 px-1">
-                  <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 tabular-nums mb-1">
-                    <span>52W Low: {currencySym}{stock.fundamentals.week52Low?.toFixed(1) || '–'}</span>
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">Pos: {posPct}%</span>
-                    <span>High: {currencySym}{stock.fundamentals.week52High?.toFixed(1) || '–'}</span>
+                <div className="mb-3 px-0.5">
+                  <div className="flex justify-between text-[10px] font-mono text-slate-400 mb-0.5">
+                    <span>52W Low: {currencySym}{stock.fundamentals.week52Low?.toFixed(1) || '—'}</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{posPct}%</span>
+                    <span>High: {currencySym}{stock.fundamentals.week52High?.toFixed(1) || '—'}</span>
                   </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div
-                      className="bg-gradient-to-r from-sky-500 to-indigo-500 h-full rounded-full transition-all"
+                      className="h-full rounded-full bg-sky-500 transition-all"
                       style={{ width: `${Math.min(100, Math.max(0, posPct))}%` }}
                     />
                   </div>
                 </div>
               )}
 
-              {/* Shariah Criteria Checklist */}
-              <div className="space-y-1.5 text-xs mb-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+              {/* Shariah Criteria Summary */}
+              <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs mb-3">
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                   <span className="flex items-center gap-1.5">
                     {stock.shariah.businessActivityStatus === 'pass' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                     ) : (
-                      <X className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                      <X className="h-3 w-3 text-rose-600 dark:text-rose-400" />
                     )}
-                    Business Activity:
+                    Core Business:
                   </span>
-                  <span
-                    className={`font-semibold ${
-                      stock.shariah.businessActivityStatus === 'pass'
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                    }`}
-                  >
-                    {stock.shariah.businessActivityStatus === 'pass' ? 'Halal Core' : 'Non-Permissible'}
+                  <span className="font-medium text-slate-800 dark:text-slate-200">
+                    {stock.sector}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                   <span className="flex items-center gap-1.5">
                     {stock.shariah.debtRatioPercent <= 33 ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                     ) : (
-                      <X className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                      <X className="h-3 w-3 text-rose-600 dark:text-rose-400" />
                     )}
-                    Interest-Bearing Debt:
+                    Debt / MCap:
                   </span>
-                  <span
-                    className={`font-semibold tabular-nums ${
-                      stock.shariah.debtRatioPercent <= 33
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                    }`}
-                  >
-                    {stock.shariah.debtRatioPercent}% (Max 33%)
+                  <span className="font-mono font-medium text-slate-800 dark:text-slate-200">
+                    {stock.shariah.debtRatioPercent > 0 ? `${stock.shariah.debtRatioPercent}% (≤33%)` : 'Compliant'}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Footer Stats: Market Cap & Volume */}
-            <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
+            {/* Footer Stats & Action */}
+            <div className="pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-xs">
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-medium">Market Cap</span>
-                <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+                <span className="block text-[10px] text-slate-400 uppercase font-medium">Market Cap</span>
+                <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
                   {formatMarketCap(stock.rawMarketCap || stock.marketCapCr * 10000000, stock.country)}
                 </span>
               </div>
-              <div className="text-right">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-medium">Vol</span>
-                <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
-                  {formatVolume(stock.volume)}
-                </span>
+              <div className="text-right flex items-center gap-1 font-semibold text-sky-600 dark:text-sky-400 group-hover:translate-x-0.5 transition-transform">
+                <span>Analysis</span>
+                <ChevronRight className="h-3.5 w-3.5" />
               </div>
             </div>
           </div>

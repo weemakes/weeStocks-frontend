@@ -1,4 +1,5 @@
 export { default as StockCountrySelector } from './StockCountrySelector';
+export { default as StockMarketPulse } from './StockMarketPulse';
 export { default as StockMarketMovers } from './StockMarketMovers';
 export { default as StockMarketOverview } from './StockMarketOverview';
 export { default as StockSummaryStrip } from './StockSummaryStrip';

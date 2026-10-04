@@ -124,7 +124,7 @@ export default function StockSummaryStrip({
                 onSelectStatus(card.id);
               }
             }}
-            className={`bg-white dark:bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-850/60 shadow-sm ${
+            className={`bg-white dark:bg-slate-900/80 border rounded-lg p-3 text-left transition-all hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm ${
               isActive ? card.activeBorder : 'border-slate-200 dark:border-slate-800'
             }`}
           >
