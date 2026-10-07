@@ -35,8 +35,8 @@ export async function generateMetadata({ searchParams }: IPOPageProps): Promise<
   if (page) canonicalParams.set('page', String(page));
   const canonical = `/ipo${canonicalParams.size ? `?${canonicalParams}` : ''}`;
   const qualifier = [status, category, page ? `Page ${page}` : null].filter(Boolean).join(' · ');
-  const title = `${qualifier ? `${qualifier} IPOs — ` : ''}Live IPO GMP Today & Subscription Status | WeeStox`;
-  const description = 'Track Indian IPO GMP, expected listing price, subscription demand, allotment status, dates, lot size and Shariah screening for NSE and BSE IPOs.';
+  const title = `${qualifier ? `${qualifier} IPOs — ` : ''}IPO GMP, Subscription & Allotment Updates`;
+  const description = 'Track Indian IPO GMP, subscription demand, allotment updates, dates and lot sizes. Explore company financials and historical GMP.';
   const hasNonCanonicalFilter = Boolean(params.search || params.sort || params.halal || params.snapshot_date || params.type);
 
   return {
@@ -110,7 +110,6 @@ function getGmpDisplay(gmp: IPOV2ListItem['gmp']) {
 export default async function IPOPage({ searchParams }: IPOPageProps) {
   const params = await searchParams;
 
-  try {
     const ipoListData = await getIPOList({
       status: params.status || 'all',
       type: params.type,
@@ -565,22 +564,4 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
         </div>
       </div>
     );
-  } catch (error: any) {
-    return (
-      <div className="min-h-screen bg-canvas py-12 text-body">
-        <div className="container mx-auto px-4 max-w-2xl text-center">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 shadow-sm">
-            <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto mb-3" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Unable to Load IPO Data</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Could not retrieve IPO listings from the backend server. Error: {error?.message || 'Connection refused'}
-            </p>
-            <Link href="/ipo" className="btn btn-primary text-xs">
-              Retry Connection
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 }

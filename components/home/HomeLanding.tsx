@@ -400,11 +400,11 @@ export default function HomeLanding({ data }: Props) {
 
   return (
     <div className="overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <section className="relative flex flex-col justify-center border-b border-slate-200 bg-gradient-to-br from-sky-50/80 via-white to-emerald-50/60 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/20 min-h-[calc(100vh-82px)] min-h-[calc(100svh-82px)] lg:min-h-[calc(100vh-82px)]">
+      <section className="relative flex min-h-[calc(100svh-98px)] sm:min-h-[calc(100svh-106px)] flex-col border-b border-slate-200 bg-gradient-to-br from-sky-50/80 via-white to-emerald-50/60 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/20">
         {/* Subtle Background Blueprint Grid */}
         <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,#dbeafe_1px,transparent_1px),linear-gradient(to_bottom,#dbeafe_1px,transparent_1px)] [background-size:44px_44px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)] dark:opacity-10" />
 
-        <div className="container relative mx-auto flex lg:flex-1 items-center pt-4 pb-3 sm:py-6 lg:py-10">
+        <div className="container relative mx-auto flex flex-1 items-center py-5 sm:py-7 lg:py-8">
           <div className="grid w-full items-center gap-4 sm:gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
             {/* Left Column: Heading, Search & CTAs */}
             <div className="max-w-2xl">

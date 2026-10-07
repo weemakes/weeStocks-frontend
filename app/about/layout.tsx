@@ -3,24 +3,24 @@ import JsonLd from '@/components/seo/JsonLd';
 import { getBreadcrumbSchema, SITE_URL } from '@/components/seo/siteSchemas';
 
 export const metadata: Metadata = {
-  title: 'About WeeStox | Shariah Financial Intelligence & Ethical Investing',
+  title: 'About WeeStox — Stock Research & Market Data',
   description:
-    'Learn about WeeStox, our AAOIFI Standard No. 21 Shariah screening methodology, and our mission to provide institutional-grade tools for ethical and conscious investors.',
+    'Learn about WeeStox stock research, IPO updates, metal-price tools and Shariah screening.',
   alternates: {
     canonical: '/about',
   },
   openGraph: {
-    title: 'About WeeStox | Shariah Financial Intelligence & Ethical Investing',
+    title: 'About WeeStox — Stock Research & Market Data',
     description:
-      'Learn about WeeStox, our AAOIFI Standard No. 21 screening methodology, and our mission for ethical investors.',
+      'Learn about WeeStox stock research, IPO updates and metal-price tools.',
     url: '/about',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'About WeeStox | Ethical Market Intelligence',
+    title: 'About WeeStox — Stock Research & Market Data',
     description:
-      'Empowering conscious investors with institutional-grade tools and Shariah-compliant screening intelligence.',
+      'Research tools for stock financials, IPOs, metal rates and Shariah screening.',
   },
 };
 

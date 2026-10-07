@@ -17,7 +17,7 @@ const getBaseUrl = () => {
   if (typeof window !== 'undefined') {
     return '/api/stocks';
   }
-  const backend = process.env.BACKEND_API_URL || 'http://localhost:3000';
+  const backend = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://webapi.weestox.com';
   return `${backend}/stocks`;
 };
 
@@ -31,7 +31,7 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? value as Record<string, unknown> : {};
 }
 
-function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
+export function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
   const source = asRecord(raw);
   if (!source.company || !source.quote) return null;
 

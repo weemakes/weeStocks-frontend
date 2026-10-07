@@ -8,24 +8,24 @@ import JsonLd from '@/components/seo/JsonLd';
 import { getFaqSchema, getSoftwareAppSchema } from '@/components/seo/siteSchemas';
 
 export const metadata: Metadata = {
-  title: 'WeeStox | Stocks, IPOs, Metals & Shariah Market Intelligence',
+  title: { absolute: 'WeeStox — Stocks, IPO Updates & Metal Prices' },
   description:
-    'Research stocks, live IPO GMP, gold, silver and platinum prices with AAOIFI Shariah screening, transparent balance sheet analytics and Islamic wealth tools.',
+    'Research stock prices and financials, IPO GMP and allotment updates, and gold, silver and platinum rates. Explore charts, calculators and Shariah screening.',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'WeeStox | Stocks, IPOs, Metals & Shariah Market Intelligence',
+    title: 'WeeStox — Stocks, IPO Updates & Metal Prices',
     description:
-      'Research stocks, live IPO GMP, gold, silver and platinum prices with AAOIFI Shariah screening, transparent balance sheet analytics and Islamic wealth tools.',
+      'Research stock prices and financials, IPO GMP and allotment updates, and gold, silver and platinum rates. Explore charts, calculators and Shariah screening.',
     url: '/',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'WeeStox | Stocks, IPOs, Metals & Shariah Market Intelligence',
+    title: 'WeeStox — Stocks, IPO Updates & Metal Prices',
     description:
-      'Research stocks, live IPO GMP, gold, silver and platinum prices with AAOIFI Shariah screening and Islamic wealth tools.',
+      'Research stock prices, IPO updates and metal rates with charts, financials and calculators.',
   },
 };
 

@@ -6,9 +6,9 @@ import {
 } from '@/components/seo/siteSchemas';
 
 export const metadata: Metadata = {
-  title: 'NSE & BSE Halal Stock Screener | AAOIFI Shariah Compliance | WeeStox',
+  title: 'Stock Screener, Share Prices & Financial Ratios',
   description:
-    'Screen over 1,500+ Indian equities for AAOIFI Standard No. 21 compliance, debt-to-market-cap ratio (≤33%), interest securities (<33%), non-halal income (<5%), and automated dividend purification.',
+    'Compare stocks by share price, market capitalization, valuation, financial ratios and sector. Explore company financials, peer comparisons and Shariah screening.',
   keywords: [
     'halal stock screener',
     'shariah compliant stocks nse',
@@ -22,17 +22,17 @@ export const metadata: Metadata = {
     canonical: '/stocks',
   },
   openGraph: {
-    title: 'NSE & BSE Halal Stock Screener | AAOIFI Shariah Compliance | WeeStox',
+    title: 'Stock Screener, Share Prices & Financial Ratios',
     description:
-      'Screen over 1,500+ Indian equities for AAOIFI Standard No. 21 compliance, debt-to-market-cap ratio (≤33%), and automated dividend purification.',
+      'Compare share prices, valuation ratios, sectors and company financials with the WeeStox stock screener.',
     url: '/stocks',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NSE & BSE Halal Stock Screener | AAOIFI Shariah Compliance | WeeStox',
+    title: 'Stock Screener, Share Prices & Financial Ratios',
     description:
-      'Screen over 1,500+ Indian equities for AAOIFI Standard No. 21 compliance and dividend purification.',
+      'Compare stocks, financial ratios and company reports on WeeStox.',
   },
 };
 
@@ -42,9 +42,9 @@ export default function StocksLayout({
   children: React.ReactNode;
 }) {
   const softwareSchema = getSoftwareAppSchema({
-    name: 'WeeStox Halal Equities Screener',
+    name: 'WeeStox Stock Screener',
     description:
-      'Institutional stock screening engine for AAOIFI Shariah compliance, financial leverage, and automated purification.',
+      'Stock screener for market data, valuation, financial ratios and Shariah screening.',
     applicationCategory: 'FinanceApplication',
     path: '/stocks',
   });

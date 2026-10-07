@@ -63,7 +63,7 @@ export async function generateMetadata({
   const capitalizedCity = city.name;
   const metalName = metalConfig.displayName;
 
-  const title = `${metalName} Rate Today in ${capitalizedCity} (1g, 10g) | WeeStox`;
+  const title = `${metalName} Rate in ${capitalizedCity} — ${metal === 'gold' ? '22K & 24K Prices' : 'Prices & History'}`;
   const description = `Check today's ${metalName.toLowerCase()} rate in ${capitalizedCity} per gram and 10 grams, with recent price history and rates across major Indian cities.`;
   const canonicalPath = `/${metal}/${city.slug || citySlug}`;
 
@@ -224,7 +224,7 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
           </div>
 
           {/* Seamless Live Spot Ticker Strip (Bounded by clean hairline borders) */}
-          <div className="border-y border-line/80 py-3 sm:py-3.5 my-4 bg-panel/40 dark:bg-panel/20 rounded-xl overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="border border-line/80 my-4 bg-panel/40 dark:bg-panel/20 rounded-xl overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-line/60 min-w-full">
               {isGold ? (
                 <>

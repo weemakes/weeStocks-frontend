@@ -1,4 +1,4 @@
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com').replace(/\/$/, '');
 
 export function getOrganizationSchema() {
   return {
@@ -16,7 +16,7 @@ export function getOrganizationSchema() {
     },
     image: `${SITE_URL}/og-image.png`,
     description:
-      'Institutional financial intelligence platform for AAOIFI Shariah-compliant equities, live gold/silver rates across India, real-time IPO GMP, and Islamic wealth calculators.',
+      'Stock research, IPO updates, metal prices and financial calculators with Shariah screening.',
     sameAs: [
       'https://twitter.com/weestox',
       'https://www.linkedin.com/company/weestox',
@@ -38,7 +38,7 @@ export function getWebSiteSchema() {
     url: SITE_URL,
     name: 'WeeStox',
     description:
-      'Shariah & Ethical Stock Screener, Live Metal Prices, IPO GMP, and Islamic Wealth Intelligence.',
+      'Stock financials, IPO GMP and allotment updates, metal rates and financial research tools.',
     publisher: {
       '@id': `${SITE_URL}/#organization`,
     },
@@ -50,7 +50,7 @@ export function getWebSiteSchema() {
       },
       'query-input': 'required name=search_term_string',
     },
-    inLanguage: 'en-US',
+    inLanguage: 'en-IN',
   };
 }
 

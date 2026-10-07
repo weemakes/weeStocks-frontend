@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import {
   ShieldCheck,
   AlertTriangle,
@@ -130,9 +131,7 @@ export default function StockCardView({ stocks, onSelectStock }: StockCardViewPr
                       </span>
                       {rank && getRankBadge(rank)}
                     </div>
-                    <div className="truncate text-xs text-slate-500 dark:text-slate-400" title={stock.name}>
-                      {stock.name}
-                    </div>
+                    <Link href={`/stocks/${encodeURIComponent(stock.symbol)}${stock.country && stock.country !== 'India' ? `?${new URLSearchParams({ country: stock.country })}` : ''}`} onClick={(event) => event.stopPropagation()} className="truncate text-xs text-slate-500 dark:text-slate-400 hover:underline" title={stock.name}>{stock.name}</Link>
                   </div>
                 </div>
 

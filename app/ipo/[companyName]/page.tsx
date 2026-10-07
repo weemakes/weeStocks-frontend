@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { IPOApiError } from '@/features/ipo/api';
 import {
   ArrowLeft,
   Calendar,
@@ -57,28 +59,28 @@ export async function generateMetadata({ params }: IPODetailPageProps): Promise<
   try {
     const { data } = await getIPODetail(decodedSlug);
     const name = data.profile.company_name;
-    const gmp = data.gmp?.display || `₹${data.gmp?.value ?? 0}`;
-    const description = `${name} IPO GMP is ${gmp}. Check price band, lot size, subscription, allotment status, listing date, financials and Shariah screening.`;
+    const gmp = data.gmp?.display || (data.gmp?.value != null ? `₹${data.gmp.value}` : null);
+    const allotment = data.is_allotment_out ? 'Allotment has been declared.' : 'Check the latest allotment updates.';
+    const title = data.profile.status?.toLowerCase() === 'listed'
+      ? `${name} IPO Listing Details, GMP History & Subscription`
+      : `${name} IPO GMP, Subscription & Allotment Status`;
+    const description = `${gmp ? `${name} IPO GMP: ${gmp}.` : `${name} IPO details.`} ${allotment} Explore subscription, GMP history, dates, price band and financials.`;
     return {
-      title: `${name} IPO GMP Today, Allotment, Dates & Review | WeeStox`,
+      title,
       description,
       alternates: { canonical },
       openGraph: {
         type: 'article',
         url: canonical,
-        title: `${name} IPO GMP Today & Allotment Status`,
+        title,
         description,
         images: data.profile.logo_url ? [{ url: data.profile.logo_url, alt: `${name} logo` }] : undefined,
       },
-      twitter: { card: 'summary', title: `${name} IPO GMP Today`, description },
+      twitter: { card: 'summary', title, description },
     };
-  } catch {
-    const name = decodedSlug.replace(/-/g, ' ');
-    return {
-      title: `${name} IPO GMP Today, Dates & Allotment | WeeStox`,
-      description: `Check ${name} IPO GMP, dates, price band, lot size, subscription and allotment status.`,
-      alternates: { canonical },
-    };
+  } catch (error) {
+    if (error instanceof IPOApiError && error.status === 404) notFound();
+    throw error;
   }
 }
 
@@ -112,9 +114,11 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
   const { companyName } = await params;
   const decodedSlug = decodeURIComponent(companyName);
 
-  try {
     const [response, historyResponse] = await Promise.all([
-      getIPODetail(decodedSlug),
+      getIPODetail(decodedSlug).catch((error: unknown) => {
+        if (error instanceof IPOApiError && error.status === 404) notFound();
+        throw error;
+      }),
       getIPOGmpHistory(decodedSlug).catch(() => null),
     ]);
     const data: IPODetailData = response.data;
@@ -159,7 +163,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
     let retailMaxLots = Math.max(1, Math.floor(200000 / (lotSize * upperPrice)));
     if (isSme) retailMaxLots = 1; // SME standard is 1 lot max for retail
     const sHniMinLots = retailMaxLots + 1;
-    let sHniMaxLots = Math.max(sHniMinLots, Math.floor(1000000 / (lotSize * upperPrice)));
+    const sHniMaxLots = Math.max(sHniMinLots, Math.floor(1000000 / (lotSize * upperPrice)));
     const bHniMinLots = sHniMaxLots + 1;
 
     const canonicalUrl = `${SITE_URL}/ipo/${encodeURIComponent(profile.slug)}`;
@@ -216,7 +220,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
 
             <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <Clock className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
-              <span>Updated: {gmp?.updated_on || 'Live'}</span>
+              <span>Updated: {gmp?.updated_on || 'Update time unavailable'}</span>
             </div>
           </div>
 
@@ -290,7 +294,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                       {is_allotment_out ? (
                         <><CheckCircle2 className="h-4 w-4 shrink-0" /> Allotment is out</>
                       ) : (
-                        <><Clock className="h-4 w-4 shrink-0" /> Not declared yet</>
+                        <><Clock className="h-4 w-4 shrink-0" /> Declaration not confirmed</>
                       )}
                     </span>
                     {is_allotment_out && allotment_declared_at && (
@@ -1361,22 +1365,4 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
         </div>
       </div>
     );
-  } catch (error: any) {
-    return (
-      <div className="min-h-screen bg-canvas py-12">
-        <div className="container mx-auto px-4 max-w-2xl text-center">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 shadow-sm dark:shadow-xl">
-            <AlertTriangle className="w-12 h-12 text-rose-500 dark:text-rose-400 mx-auto mb-3" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">IPO Details Not Found</h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-              Could not find detailed information for &quot;{decodedSlug}&quot;. The company might be newly announced or the slug may be invalid.
-            </p>
-            <Link href="/ipo" className="btn btn-primary text-xs">
-              &larr; Back to IPO Directory
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 }

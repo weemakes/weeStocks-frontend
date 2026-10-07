@@ -7,7 +7,7 @@ import {
 } from '@/components/seo/siteSchemas';
 
 export const metadata: Metadata = {
-  title: 'Zakat & Nisab Calculator Online (Gold & Silver Benchmark) | WeeStox',
+  title: 'Zakat & Nisab Calculator Online (Gold & Silver Benchmark)',
   description:
     'Calculate your exact annual Zakat obligation across cash, savings, gold, silver, equities, and trade assets with live Nisab benchmarks and automated dividend purification.',
   keywords: [

@@ -14,7 +14,7 @@ export default function Footer() {
             <Link
               href="/"
               className="inline-flex items-center group py-1"
-              aria-label="WeeStox - Halal & Ethical Financial Intelligence"
+              aria-label="WeeStox - Stocks, IPOs and metal prices"
             >
               <div className="relative h-12 sm:h-14 w-auto aspect-[490/193]">
                 <Image
@@ -34,7 +34,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm">
-              WeeStox is an institutional-grade financial intelligence platform screening Indian and global capital markets for Shariah compliance, low balance-sheet leverage, and fundamental quality.
+              Research stock financials, track IPO subscription and allotment updates, and compare metal rates. WeeStox also provides Shariah screening and financial calculators.
             </p>
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
               <Shield className="w-4 h-4 text-sky-600 dark:text-sky-400" />
@@ -135,7 +135,7 @@ export default function Footer() {
         {/* Bottom Disclaimers & Legal */}
         <div className="pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
           <p>
-            &copy; {currentYear} WeeStox Intelligence. All rights reserved. Data updated in real-time.
+            &copy; {currentYear} WeeStox Intelligence. All rights reserved. Data may be delayed.
           </p>
           <div className="flex items-center gap-4">
             <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-300 transition-colors">

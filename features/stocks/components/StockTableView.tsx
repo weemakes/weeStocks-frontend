@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import {
   ArrowUpDown,
   ArrowUp,
@@ -19,7 +20,7 @@ interface StockTableViewProps {
   stocks: StockItem[];
   sortField: string;
   sortDirection: 'ASC' | 'DESC' | 'asc' | 'desc';
-  onSort: (field: any) => void;
+  onSort: (field: string) => void;
   onSelectStock: (stock: StockItem) => void;
 }
 
@@ -253,9 +254,7 @@ export default function StockTableView({
                             {stock.exchange}
                           </span>
                         </div>
-                        <div className="truncate text-[11px] text-slate-500 dark:text-slate-400" title={stock.name}>
-                          {stock.name}
-                        </div>
+                        <Link href={`/stocks/${encodeURIComponent(stock.symbol)}${stock.country && stock.country !== 'India' ? `?${new URLSearchParams({ country: stock.country })}` : ''}`} onClick={(event) => event.stopPropagation()} className="truncate text-[11px] text-slate-500 dark:text-slate-400 hover:underline" title={stock.name}>{stock.name}</Link>
                       </div>
                     </div>
                   </td>

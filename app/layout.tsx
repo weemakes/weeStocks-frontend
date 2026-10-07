@@ -6,6 +6,7 @@ import Navigation from "@/components/layout/Navigation";
 import Footer from "@/components/layout/Footer";
 
 import JsonLd from "@/components/seo/JsonLd";
+import ResearchEvents from "@/components/seo/ResearchEvents";
 import { getOrganizationSchema, getWebSiteSchema } from "@/components/seo/siteSchemas";
 
 const inter = Inter({
@@ -19,11 +20,11 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://weestox.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "WeeStox | Shariah & Ethical Stock Screener, Live Metals & IPO GMP",
+    default: "WeeStox — Stocks, IPO Updates & Metal Prices",
     template: "%s | WeeStox",
   },
   description:
-    "Institutional-grade financial intelligence for AAOIFI Shariah-compliant equities, live gold & silver rates across Indian cities, real-time IPO GMP, and Islamic wealth tools.",
+    "Research stocks and financial ratios, track IPO GMP, subscription and allotment updates, and compare gold, silver and platinum rates across Indian cities.",
   keywords: [
     "halal stock screener",
     "shariah compliant stocks india",
@@ -48,9 +49,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "WeeStox | Shariah & Ethical Stock Screener, Live Metals & IPO GMP",
+    title: "WeeStox — Stocks, IPO Updates & Metal Prices",
     description:
-      "Research NSE/BSE equities for Shariah compliance, debt-to-market-cap leverage, and dividend purification. Monitor real-time Gold rates, IPO GMP, and Zakat.",
+      "Explore stock financials, IPO GMP, subscription and allotment updates, metal rates, and investment research tools.",
     url: SITE_URL,
     siteName: "WeeStox",
     locale: "en_IN",
@@ -66,23 +67,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "WeeStox | Shariah & Ethical Stock Screener, Live Metals & IPO GMP",
+    title: "WeeStox — Stocks, IPO Updates & Metal Prices",
     description:
-      "Research NSE/BSE equities for Shariah compliance, debt leverage, live Gold/Silver city rates, and IPO GMP.",
+      "Explore stock financials, IPO updates, and gold and silver rates across Indian cities.",
     creator: "@weestox",
     site: "@weestox",
     images: [`${SITE_URL}/og-image.png`],
-  },
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
-      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
-      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
-    ],
-    apple: [
-      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
   },
   robots: {
     index: true,
@@ -130,6 +120,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-canvas text-body antialiased selection:bg-sky-500/20 selection:text-accent">
         <JsonLd data={[getOrganizationSchema(), getWebSiteSchema()]} />
+        <ResearchEvents />
         <Navigation />
         <main id="main-content" className="flex-1 pt-[98px] sm:pt-[106px]">
           {children}
