@@ -5,6 +5,9 @@ export interface FAQItem {
 }
 
 export const HOME_FAQS: FAQItem[] = [
+  { category: 'Market research', question: 'Where can I check stock financials, IPO GMP and metal rates?', answer: 'Use the Stocks section for company reports and financial ratios, IPOs for issue details, subscription and allotment updates, and Metals for gold, silver and platinum rates by city. Check the dates and units shown before comparing figures.' },
+  { category: 'Zakat calculator', question: 'Can I calculate Zakat on cash, gold and shares online?', answer: 'The WeeStox Zakat calculator estimates 2.5% of the positive net value you enter for eligible assets and deductible liabilities. Enter monetary values rather than grams, and verify Nisab, the lunar-year condition and the appropriate treatment of investments separately.' },
+  { category: 'Data freshness', question: 'Are all market prices on WeeStox real-time?', answer: 'No. Data can be delayed, and reporting dates differ between prices, company financials and IPO updates. Check each report’s timestamp and verify transaction prices with your broker or dealer. Do not interpret a marketing preview as an executable quote.' },
   {
     category: 'Shariah Stock Screening',
     question: 'How does WeeStox screen Indian stocks for Shariah compliance?',

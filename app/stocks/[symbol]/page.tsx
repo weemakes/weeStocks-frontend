@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import PageFaq from '@/components/seo/PageFaq';
+import { companyFaqs } from '@/lib/seo/faqs';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getServerStockDetail, stockPath } from '@/features/stocks/api/detail.server';
 import StockReport from '@/features/stocks/components/StockReport';
 import JsonLd from '@/components/seo/JsonLd';
-import { getBreadcrumbSchema, SITE_URL } from '@/components/seo/siteSchemas';
+import { getBreadcrumbSchema, getFaqSchema, SITE_URL } from '@/components/seo/siteSchemas';
 
 type Props = {
   params: Promise<{ symbol: string }>;
@@ -39,12 +41,14 @@ export default async function StockDetailPage(props: Props) {
     <JsonLd data={[
       getBreadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Stocks', path: '/stocks' }, { name: detail.company.name, path: canonical }]),
       { '@context': 'https://schema.org', '@type': 'WebPage', name: `${detail.company.name} Share Price & Financials`, url: `${SITE_URL}${canonical}` },
+      ...(detail.investor_faqs?.length ? [getFaqSchema(detail.investor_faqs)] : []),
     ]} />
     <div className="mx-auto max-w-[1500px] px-3 py-3 sm:px-6 sm:py-5">
       <nav aria-label="Breadcrumb" className="mb-3 text-sm text-muted">
         <Link href="/stocks" className="text-accent">Stocks</Link> / {detail.company.name}
       </nav>
       <StockReport detail={detail} />
+      {!detail.investor_faqs?.length && <PageFaq title={`${detail.company.name} research FAQs`} items={companyFaqs(detail.company.name, detail.company.symbol)} links={[{ label: 'Compare stocks', href: '/stocks' }]} />}
       <p className="mt-4 text-xs text-muted">Market data may be delayed. Quote date: {detail.quote.date || 'Not supplied'}. Financial figures relate to their stated reporting periods. This information is for research and is not a recommendation to buy or sell.</p>
     </div>
   </div>;

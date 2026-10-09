@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import PageFaq from '@/components/seo/PageFaq';
+import { IPO_FAQS } from '@/lib/seo/faqs';
 import {
   Rocket,
   Clock,
@@ -562,6 +564,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
             </div>
           </div>
         </div>
+        <PageFaq title="IPO GMP, subscription and allotment FAQs" items={IPO_FAQS} links={[{ label: 'Stock screener', href: '/stocks' }]} />
       </div>
     );
 }

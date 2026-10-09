@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import PageFaq from '@/components/seo/PageFaq';
+import { ABOUT_FAQS } from '@/lib/seo/faqs';
 import { ArrowRight, BarChart3, Calculator, Check, Coins, FileText, Mail, Rocket, ShieldCheck } from 'lucide-react';
 
 const tools = [
@@ -56,5 +58,6 @@ export default function AboutPage() {
     </section>
 
     <section className="container mx-auto pb-12"><div className="flex flex-col gap-5 rounded-2xl border border-sky-200 bg-sky-50 p-6 sm:flex-row sm:items-center sm:justify-between dark:border-sky-900 dark:bg-sky-950/30"><div><h2 className="text-xl font-bold">Help us make research clearer.</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">Have a question or found a discrepancy? Send the page URL, the figure and a supporting source to our team.</p></div><a href="mailto:care@weestox.com" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-sky-600 hover:underline dark:text-sky-400"><Mail className="h-4 w-4" />care@weestox.com</a></div></section>
+    <PageFaq title="About WeeStox FAQs" items={ABOUT_FAQS} links={[{ label: 'Zakat calculator', href: '/zakat' }, { label: 'Metal rates', href: '/gold' }]} />
   </div>;
 }

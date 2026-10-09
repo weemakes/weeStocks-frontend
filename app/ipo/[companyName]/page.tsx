@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import PageFaq from '@/components/seo/PageFaq';
+import { IPO_FAQS } from '@/lib/seo/faqs';
 import { notFound } from 'next/navigation';
 import { IPOApiError } from '@/features/ipo/api';
 import {
@@ -1363,6 +1365,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             </section>
           </div>
         </div>
+        <PageFaq title={`${profile.company_name} IPO FAQs`} items={IPO_FAQS.map(item => item.question === 'How do I check IPO allotment status?' ? { ...item, question: `How do I check ${profile.company_name} IPO allotment status?` } : item)} links={[{ label: 'All IPOs', href: '/ipo' }]} />
       </div>
     );
 }
