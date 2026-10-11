@@ -56,10 +56,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
 export async function generateMetadata({ params }: IPODetailPageProps): Promise<Metadata> {
   const { companyName } = await params;
   const decodedSlug = decodeURIComponent(companyName);
-  const canonical = `/ipo/${encodeURIComponent(decodedSlug)}`;
 
   try {
     const { data } = await getIPODetail(decodedSlug);
+    const canonical = `/ipo/${encodeURIComponent(data.profile.slug)}`;
     const name = data.profile.company_name;
     const gmp = data.gmp?.display || (data.gmp?.value != null ? `₹${data.gmp.value}` : null);
     const allotment = data.is_allotment_out ? 'Allotment has been declared.' : 'Check the latest allotment updates.';

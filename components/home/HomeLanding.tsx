@@ -259,7 +259,7 @@ export default function HomeLanding({ data }: Props) {
         };
       });
     }
-    if (!featuredStock?.name) return BASE_STOCKS;
+    if (!featuredStock?.name) return BASE_STOCKS.map((stock) => ({ ...stock, logoUrl: null }));
     const first = {
       symbol: featuredStock.symbol || 'TCS',
       name: featuredStock.name || 'Tata Consultancy Services',
@@ -271,13 +271,14 @@ export default function HomeLanding({ data }: Props) {
       status: 'AAOIFI Standard 21 Pass',
       purification: '0.00% (Pure)',
       country: featuredStock.country || 'India',
+      logoUrl: featuredStock.logoUrl,
       path: BASE_STOCKS[0].path,
       areaPath: BASE_STOCKS[0].areaPath,
       color: BASE_STOCKS[0].color,
       beaconX: BASE_STOCKS[0].beaconX,
       beaconY: BASE_STOCKS[0].beaconY,
     };
-    return [first, ...BASE_STOCKS.filter((s) => s.symbol !== first.symbol)];
+    return [first, ...BASE_STOCKS.filter((s) => s.symbol !== first.symbol).map((stock) => ({ ...stock, logoUrl: null }))];
   }, [data.stocksList, featuredStock]);
 
   const metalsList = useMemo(() => {
@@ -564,7 +565,7 @@ export default function HomeLanding({ data }: Props) {
                       >
                         {/* Row 1: Full-width Company Identity (Never gets squished by chart!) */}
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <CompanyLogo symbol={currentStock.symbol} name={currentStock.name} size="sm" />
+                          <CompanyLogo key={currentStock.symbol} src={currentStock.logoUrl} symbol={currentStock.symbol} name={currentStock.name} size="sm" />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <h3 className="truncate text-sm font-black text-slate-900 group-hover:text-sky-600 dark:text-white transition-colors">
@@ -853,7 +854,7 @@ export default function HomeLanding({ data }: Props) {
                   >
                     <div>
                       <div className="flex items-center gap-2.5">
-                        <CompanyLogo symbol={currentStock.symbol} name={currentStock.name} size="md" />
+                        <CompanyLogo key={currentStock.symbol} src={currentStock.logoUrl} symbol={currentStock.symbol} name={currentStock.name} size="md" />
                         <div className="min-w-0">
                           <h3 className="truncate text-base font-black text-slate-900 group-hover:text-sky-600 dark:text-white dark:group-hover:text-sky-400 transition-colors">
                             {currentStock.name}

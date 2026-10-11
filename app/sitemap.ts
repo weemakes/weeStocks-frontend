@@ -6,7 +6,8 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = ['', '/stocks', '/ipo', '/zakat', '/about']
     .map((path) => ({ url: `${SITE_URL}${path}` }));
-  const sections = await Promise.allSettled([
+  // Reject incomplete inventories so a failed regeneration cannot replace cached XML.
+  const sections = await Promise.all([
     (async () => {
       const path = '/stocks?country=India&limit=100&sort_by=symbol&sort_order=ASC';
       const first = await fetchInventory<StockInventory>(`${path}&page=1`);
@@ -15,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         (page) => fetchInventory<StockInventory>(`${path}&page=${page}`),
       );
       return [first, ...rest].flatMap((page) => page.data)
-        .filter((stock) => stock.symbol?.trim() && stock.company_name?.trim() && Number(stock.latest_price) > 0)
+        .filter((stock) => stock.symbol?.trim() && stock.company_name?.trim() && stock.is_active !== false && stock.is_published !== false)
         .map((stock) => ({ url: `${SITE_URL}/stocks/${encodeURIComponent(stock.symbol.trim().toUpperCase())}` }));
     })(),
     (async () => {
@@ -40,8 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })))(),
   ]);
   for (const section of sections) {
-    if (section.status === 'fulfilled') entries.push(...section.value);
-    else console.error('Sitemap section unavailable:', section.reason);
+    entries.push(...section);
   }
   return [...new Map(entries.map((entry) => [entry.url, entry])).values()];
 }

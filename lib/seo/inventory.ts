@@ -14,7 +14,7 @@ export async function fetchInventory<T>(path: string): Promise<T> {
 }
 
 export interface StockInventory {
-  data: { symbol: string; company_name: string; latest_price: number | null }[];
+  data: { symbol: string; company_name: string; latest_price: number | null; is_active?: boolean; is_published?: boolean }[];
   meta: { totalPages: number };
 }
 export interface MetalCity {
@@ -26,11 +26,8 @@ export interface MetalCity {
 export async function collectBatches<T, R>(items: T[], run: (item: T) => Promise<R>, size = 5): Promise<R[]> {
   const results: R[] = [];
   for (let start = 0; start < items.length; start += size) {
-    const batch = await Promise.allSettled(items.slice(start, start + size).map(run));
-    for (const result of batch) {
-      if (result.status === 'fulfilled') results.push(result.value);
-      else console.error('SEO inventory batch failed:', result.reason);
-    }
+    const batch = await Promise.all(items.slice(start, start + size).map(run));
+    results.push(...batch);
   }
   return results;
 }

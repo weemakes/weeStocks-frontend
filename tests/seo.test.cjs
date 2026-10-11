@@ -7,7 +7,7 @@ const ts = require('typescript');
 function load(file, dependencies = {}) {
   const filename = path.resolve(file);
   const compiled = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   const module = { exports: {} };
   new Function('require', 'module', 'exports', compiled)((name) => {
@@ -42,6 +42,19 @@ function fixtureFetch({ failStockPage = false, failIPOPage = false } = {}) {
   };
 }
 
+test('IPO missing fields use a dash without hiding valid zero values', () => {
+  const { displayValue, displayDateRange, displayNumber } = load('features/ipo/utils/display.ts');
+  for (const value of [null, undefined, '', '  ', 'null', 'undefined', 'null → null']) {
+    assert.equal(displayValue(value), '–');
+  }
+  assert.equal(displayDateRange('null → null', null, null), '–');
+  assert.equal(displayDateRange(null, '12 Oct', null), '12 Oct → –');
+  assert.equal(displayNumber(null, '₹'), '–');
+  assert.equal(displayNumber(0, '₹'), '₹0');
+  assert.equal(displayNumber(0, '', 'x'), '0x');
+  assert.equal(displayValue(0), '0');
+});
+
 test('sitemap paginates inventories, deduplicates and includes only available metals', async () => {
   const original = global.fetch;
   global.fetch = fixtureFetch();
@@ -54,24 +67,21 @@ test('sitemap paginates inventories, deduplicates and includes only available me
     assert.ok(urls.includes('/ipo/second-ipo'));
     assert.ok(urls.includes('/silver/mumbai'));
     assert.ok(!urls.includes('/gold/mumbai'));
-    assert.ok(!urls.includes('/stocks/EMPTY'));
+    assert.ok(urls.includes('/stocks/EMPTY'), 'missing quote must not exclude a company report');
     assert.equal(urls.filter((url) => url === '/stocks/TCS').length, 1);
     assert.equal(entries.find((entry) => entry.url.endsWith('/gold/delhi')).lastModified.toISOString(), '2026-01-01T00:00:00.000Z');
     assert.equal(entries.find((entry) => entry.url.endsWith('/about')).lastModified, undefined);
   } finally { global.fetch = original; }
 });
 
-test('failed inventory pages preserve other pages and sections', async () => {
+test('failed inventory pages reject the sitemap rather than publishing a partial inventory', async () => {
   const original = global.fetch;
   const originalError = console.error;
   global.fetch = fixtureFetch({ failStockPage: true, failIPOPage: true });
   console.error = () => {};
   try {
     const inventory = load('lib/seo/inventory.ts');
-    const entries = await load('app/sitemap.ts', { '@/lib/seo/inventory': inventory }).default();
-    assert.ok(entries.some((entry) => entry.url.endsWith('/stocks/TCS')));
-    assert.ok(entries.some((entry) => entry.url.endsWith('/ipo/first-ipo')));
-    assert.ok(entries.some((entry) => entry.url.endsWith('/silver/mumbai')));
+    await assert.rejects(load('app/sitemap.ts', { '@/lib/seo/inventory': inventory }).default(), /503/);
   } finally { global.fetch = original; console.error = originalError; }
 });
 
