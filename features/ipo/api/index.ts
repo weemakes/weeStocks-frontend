@@ -1,5 +1,9 @@
 import type { IPOV2ListResponse, IPODetailV2Response, IPOGmpHistoryResponse, IPOQueryParams } from '../types';
 
+export class IPOApiError extends Error {
+  constructor(message: string, public status: number) { super(message); this.name = 'IPOApiError'; }
+}
+
 const API_BASE_URL = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
 /**
@@ -54,7 +58,7 @@ export async function getIPODetail(slug: string): Promise<IPODetailV2Response> {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch IPO detail for ${slug}: ${response.status} ${response.statusText}`);
+    throw new IPOApiError(`Failed to fetch IPO detail for ${slug}: ${response.status} ${response.statusText}`, response.status);
   }
 
   const payload = (await response.json()) as IPODetailV2Response;

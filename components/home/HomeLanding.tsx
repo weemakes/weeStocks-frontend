@@ -259,7 +259,7 @@ export default function HomeLanding({ data }: Props) {
         };
       });
     }
-    if (!featuredStock?.name) return BASE_STOCKS;
+    if (!featuredStock?.name) return BASE_STOCKS.map((stock) => ({ ...stock, logoUrl: null }));
     const first = {
       symbol: featuredStock.symbol || 'TCS',
       name: featuredStock.name || 'Tata Consultancy Services',
@@ -271,13 +271,14 @@ export default function HomeLanding({ data }: Props) {
       status: 'AAOIFI Standard 21 Pass',
       purification: '0.00% (Pure)',
       country: featuredStock.country || 'India',
+      logoUrl: featuredStock.logoUrl,
       path: BASE_STOCKS[0].path,
       areaPath: BASE_STOCKS[0].areaPath,
       color: BASE_STOCKS[0].color,
       beaconX: BASE_STOCKS[0].beaconX,
       beaconY: BASE_STOCKS[0].beaconY,
     };
-    return [first, ...BASE_STOCKS.filter((s) => s.symbol !== first.symbol)];
+    return [first, ...BASE_STOCKS.filter((s) => s.symbol !== first.symbol).map((stock) => ({ ...stock, logoUrl: null }))];
   }, [data.stocksList, featuredStock]);
 
   const metalsList = useMemo(() => {
@@ -400,11 +401,11 @@ export default function HomeLanding({ data }: Props) {
 
   return (
     <div className="overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <section className="relative flex flex-col justify-center border-b border-slate-200 bg-gradient-to-br from-sky-50/80 via-white to-emerald-50/60 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/20 min-h-[calc(100vh-82px)] min-h-[calc(100svh-82px)] lg:min-h-[calc(100vh-82px)]">
+      <section className="relative flex min-h-[calc(100svh-98px)] sm:min-h-[calc(100svh-106px)] flex-col border-b border-slate-200 bg-gradient-to-br from-sky-50/80 via-white to-emerald-50/60 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/20">
         {/* Subtle Background Blueprint Grid */}
         <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,#dbeafe_1px,transparent_1px),linear-gradient(to_bottom,#dbeafe_1px,transparent_1px)] [background-size:44px_44px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)] dark:opacity-10" />
 
-        <div className="container relative mx-auto flex lg:flex-1 items-center pt-4 pb-3 sm:py-6 lg:py-10">
+        <div className="container relative mx-auto flex flex-1 items-center py-5 sm:py-7 lg:py-8">
           <div className="grid w-full items-center gap-4 sm:gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
             {/* Left Column: Heading, Search & CTAs */}
             <div className="max-w-2xl">
@@ -564,7 +565,7 @@ export default function HomeLanding({ data }: Props) {
                       >
                         {/* Row 1: Full-width Company Identity (Never gets squished by chart!) */}
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <CompanyLogo symbol={currentStock.symbol} name={currentStock.name} size="sm" />
+                          <CompanyLogo key={currentStock.symbol} src={currentStock.logoUrl} symbol={currentStock.symbol} name={currentStock.name} size="sm" />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <h3 className="truncate text-sm font-black text-slate-900 group-hover:text-sky-600 dark:text-white transition-colors">
@@ -853,7 +854,7 @@ export default function HomeLanding({ data }: Props) {
                   >
                     <div>
                       <div className="flex items-center gap-2.5">
-                        <CompanyLogo symbol={currentStock.symbol} name={currentStock.name} size="md" />
+                        <CompanyLogo key={currentStock.symbol} src={currentStock.logoUrl} symbol={currentStock.symbol} name={currentStock.name} size="md" />
                         <div className="min-w-0">
                           <h3 className="truncate text-base font-black text-slate-900 group-hover:text-sky-600 dark:text-white dark:group-hover:text-sky-400 transition-colors">
                             {currentStock.name}

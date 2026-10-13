@@ -1,0 +1,42 @@
+import type { FaqItem } from '@/components/seo/PageFaq';
+
+export const STOCK_FAQS: FaqItem[] = [
+  { question: 'How do I compare stocks using a stock screener?', answer: 'Start with the market and sector, then compare valuation, profitability, growth and debt. Open the company reports to check reporting periods and peer context. A filter shortlist is a starting point for research, not a recommendation to buy.' },
+  { question: 'What do P/E ratio, market capitalization and ROE mean?', answer: 'P/E compares share price with earnings per share. Market capitalization is the value of outstanding shares at the quoted price. ROE measures profit relative to shareholder equity. Read these measures together and compare companies in similar sectors; a low P/E alone does not establish that a stock is undervalued.' },
+  { question: 'Are WeeStox share prices live or delayed?', answer: 'Prices depend on the available data feed and may be delayed. Check the quote date in the company report and verify executable prices with your broker or exchange. Historical financial statements relate to their own reporting periods.' },
+  { question: 'How can I find a company’s financial statements and shareholding?', answer: 'Search for the company name or exchange symbol and open its report. Review the available financial statements, valuation ratios and shareholding sections. Missing figures should be treated as unavailable rather than zero; verify important details in company filings.' },
+  { question: 'Can I use the screener without Shariah screening?', answer: 'Yes. Company reports provide general financial research, charts and peer comparisons. Shariah screening is an additional feature for investors who need it, rather than a replacement for financial research.' },
+];
+
+export const IPO_FAQS: FaqItem[] = [
+  { question: 'What is IPO GMP, and does it guarantee a listing gain?', answer: 'Grey market premium is an unofficial price indication outside the exchange. It can change quickly and does not guarantee the exchange listing price, liquidity or a profit. Read it alongside the prospectus, valuation, financials and risks.' },
+  { question: 'How do I check IPO allotment status?', answer: 'Open the individual IPO report and check its allotment update and registrar details. Confirm your application outcome through the official registrar or exchange service. A scheduled allotment date is not confirmation that allotment has been declared.' },
+  { question: 'What does IPO subscription mean?', answer: 'Subscription compares shares bid for with shares offered in a category. For example, 2 times subscription means bids for twice the available shares in that category. Retail, institutional and other categories can have different demand; subscription alone does not establish investment quality.' },
+  { question: 'How is an indicative IPO listing price calculated from GMP?', answer: 'A commonly used illustration adds reported GMP to the issue price, or upper price band before the final price is known. It is a sentiment illustration, not an exchange quote or reliable forecast. Missing GMP should not be interpreted as zero.' },
+  { question: 'Where can I find IPO dates, price bands and lot sizes?', answer: 'The individual IPO report brings together available issue dates, price bands, lot sizes, subscription and company details. Check the final prospectus and exchange announcements before applying because issue terms can change.' },
+];
+
+export const ZAKAT_FAQS: FaqItem[] = [
+  { question: 'How do I calculate 2.5% Zakat using this calculator?', answer: 'Enter the monetary value of qualifying cash, savings, gold, silver, shares and business assets using one currency. Enter only liabilities deductible under the guidance you follow. The calculator estimates 2.5% of the positive net amount: for example, ₹100,000 produces ₹2,500. It does not automatically determine whether Zakat is due.' },
+  { question: 'What is Nisab, and does this calculator check it automatically?', answer: 'Nisab is the minimum qualifying wealth threshold. Common benchmarks use the value of 85 grams of gold or 595 grams of silver; scholarly conventions can differ. This calculator does not automatically fetch a Nisab threshold or compare your wealth against it. Check current metal values and the guidance you follow before using the estimate.' },
+  { question: 'Should I enter gold and silver in grams or rupees?', answer: 'Enter a monetary value, not grams. For an INR calculation, value the qualifying metal holding using its weight, purity and current applicable rate, then enter that rupee amount. The gold and silver reports provide rate references and purchase calculators; confirm the appropriate valuation method for your circumstances.' },
+  { question: 'Is Zakat calculated monthly or after a lunar year?', answer: 'For qualifying monetary wealth, the usual calculation concerns a lunar year, called hawl, subject to Nisab and the rules you follow. This tool does not track ownership dates or establish completion of hawl. Confirm eligibility separately; payment timing and advance payments require their own guidance.' },
+  { question: 'How should I calculate Zakat on shares and investments?', answer: 'The method can depend on whether shares are held for trading or long-term investment and on the underlying company’s qualifying assets. This calculator only applies 2.5% to the amount you enter; it does not derive a company’s zakatable assets. Obtain the appropriate value using qualified guidance before entering it.' },
+  { question: 'Can I deduct all loans and debts from my Zakat calculation?', answer: 'Do not automatically deduct every outstanding loan in full. Treatment of immediately payable debts and longer-term liabilities differs across scholarly approaches. The calculator subtracts the amounts entered without deciding eligibility, so enter only the deductible portion under the guidance you follow.' },
+  { question: 'Is dividend purification the same as Zakat?', answer: 'No. Purification concerns disposing of an identified non-permissible income portion; Zakat concerns eligible wealth and its conditions. This calculator does not calculate dividend purification, and the two should not be treated as interchangeable.' },
+  { question: 'Are my asset values sent to the backend when I calculate?', answer: 'The calculation runs in your browser; this form does not submit the entered asset amounts to a backend. Ordinary site analytics may still record page activity. This tool supplies arithmetic assistance rather than an individual religious ruling.' },
+];
+
+export const ABOUT_FAQS: FaqItem[] = [
+  { question: 'What is WeeStox used for?', answer: 'WeeStox brings together company research, IPO updates, city-specific gold, silver and platinum rates, and financial calculators. Use it to explore figures and compare information before verifying important details with official sources.' },
+  { question: 'Does WeeStox recommend which stock or IPO to buy?', answer: 'Reports and calculators support research. They are not personalized recommendations, guarantees of returns or a substitute for reviewing official filings and your own circumstances.' },
+  { question: 'How do I report an incorrect price or company figure?', answer: 'Email care@weestox.com with the page URL, the figure, its reporting date and an authoritative supporting source. That context helps the team investigate a discrepancy.' },
+];
+
+export function companyFaqs(name: string, symbol: string): FaqItem[] {
+  return [
+    { question: `Where can I check ${name} (${symbol}) share price and financials?`, answer: `This report brings together the available quote, price history, financial statements and ratios for ${name}. Check the quote date and reporting periods, and verify important figures with exchange notices and company filings.` },
+    { question: `How should I assess ${name} before investing?`, answer: 'Compare earnings, cash flow, debt, valuation and peers across reporting periods. Consider business risks and whether the available information is current. A price move, score or screening badge alone is not a buy or sell recommendation.' },
+    { question: `Why might some ${symbol} figures be missing?`, answer: 'Data availability depends on the company, filing period and source feed. A missing value does not mean zero. Refer to the company’s annual report or exchange filings when a needed metric is unavailable.' },
+  ];
+}

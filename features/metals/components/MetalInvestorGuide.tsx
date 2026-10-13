@@ -1,5 +1,8 @@
 import { BookOpen, TrendingUp, HelpCircle, Award, Scale } from "lucide-react";
 import type { Metal } from "../types";
+import JsonLd from '@/components/seo/JsonLd';
+import { getFaqSchema } from '@/components/seo/siteSchemas';
+import Link from 'next/link';
 
 interface MetalInvestorGuideProps {
   metal: Metal;
@@ -18,11 +21,11 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
         },
         {
           q: `Why do gold prices differ between ${cityName} and other Indian cities?`,
-          a: `Gold prices across Indian cities differ due to local transportation logistics, jewellers' association daily benchmarks, municipal octroi/entry taxes, and regional demand dynamics. Port cities like Mumbai and Chennai typically have lower transit charges than inland locations.`,
+          a: 'Local dealer premiums, availability and regional benchmarks can differ. Compare the same purity and weight, then check whether the dealer quote includes making charges and taxes. A city benchmark is not a guaranteed retail purchase price.',
         },
         {
           q: "What taxes and making charges are added when buying gold in India?",
-          a: "A nationwide 3% Goods and Services Tax (GST) is levied on the total purchase value (metal cost + making charges). Jewellers charge making fees ranging from 5% to 15% for plain gold, and up to 25% for intricate handcrafted or antique ornaments.",
+          a: 'The report shows a metal benchmark rather than a final jewellery invoice. Dealers may add making charges, premiums and applicable taxes. The calculator lets you model charges; verify current tax treatment and the final itemized invoice with your seller.',
         },
         {
           q: "What is the mandatory BIS Hallmarking with HUID in India?",
@@ -37,7 +40,7 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
     ? [
         {
           q: `How is silver priced in ${cityName}?`,
-          a: "Silver rates are quoted in grams and kilograms based on international spot silver (XAG/USD), MCX commodity futures prices, import duty (6%), and currency fluctuations between the USD and INR.",
+          a: 'This report presents available silver benchmarks by weight. International silver prices, currency movements, import costs and local premiums can influence domestic prices. Compare the same purity and unit and confirm final dealer charges separately.',
         },
         {
           q: "What is the difference between 999 Fine Silver and Sterling Silver (925)?",
@@ -63,6 +66,9 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
         },
       ];
 
+  const metalName = isGold ? 'gold' : isSilver ? 'silver' : 'platinum';
+  faqs.unshift({ q: `Where can I check today’s ${metalName} rate in ${cityName}?`, a: `The price cards and rate matrix above show the available ${cityName} benchmarks. Check the update date, weight and purity. Use the city selector to compare another location; the displayed benchmark excludes additional retail charges.` });
+  faqs.push({ q: `How do I calculate the cost of ${metalName} for a different weight?`, a: 'Select the purity where available and enter the weight in the purchase calculator. Review the rate per gram, making-charge setting and tax option. The result is an estimate based on those inputs, not a binding dealer quote.' });
   return (
     <div className="space-y-8">
       {/* 1. Investor Guidance & Market Drivers (3-Column Grid directly on page canvas) */}
@@ -130,6 +136,7 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
         </div>
       </div>
 
+      <JsonLd data={getFaqSchema(faqs.map(faq => ({ question: faq.q, answer: faq.a })))} />
       {/* 2. Frequently Asked Questions (FAQ) */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center gap-2 mb-3">
@@ -155,6 +162,7 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
             </div>
           ))}
         </div>
+        <Link href="/zakat" className="mt-4 inline-block text-sm font-semibold text-accent hover:underline">Zakat calculator and Nisab FAQs →</Link>
       </div>
     </div>
   );

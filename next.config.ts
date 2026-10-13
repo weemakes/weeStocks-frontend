@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  async redirects() {
+    return [{
+      source: '/:path*',
+      has: [{ type: 'host', value: 'www.weestox.com' }],
+      destination: 'https://weestox.com/:path*',
+      permanent: true,
+    }];
+  },
   async rewrites() {
     const apiBaseUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
     return [

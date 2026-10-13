@@ -282,7 +282,7 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
 
       {delivery_conviction?.length ? <DeliveryParticipation rows={delivery_conviction} /> : null}
 
-      {peers?.length ? <PeerComparison peers={peers} onSelect={onSelectPeer} /> : null}
+      {peers?.length ? <PeerComparison peers={peers} onSelect={onSelectPeer} country={company.country} /> : null}
 
       <div className="grid gap-3 lg:grid-cols-2">
         {company.description && <section id="about" className={`${panel} scroll-mt-28 p-4`}><Title icon={<Building2 className="h-4 w-4" />}>About {company.name}</Title><div className="flex gap-4"><CompanyLogo src={company.logo_url} symbol={company.symbol} name={company.name} size="lg" /><div><p className="text-xs leading-5 text-slate-600 dark:text-slate-300">{company.description}</p><p className="mt-3 flex gap-3 text-[10px] text-slate-500"><span><Globe className="mr-1 inline h-3 w-3" />{company.country}</span><span>{company.sector}</span></p></div></div></section>}

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import PageFaq from '@/components/seo/PageFaq';
+import { IPO_FAQS } from '@/lib/seo/faqs';
 import {
   Rocket,
   Clock,
@@ -17,6 +19,7 @@ import { IPOQueryParams, IPOV2ListItem } from '@/features/ipo/types';
 import { GMPDisclaimer, IpoCompanyLogo } from '@/features/ipo/components';
 import IPOFilters from './components/IPOFilters';
 import type { Metadata } from 'next';
+import { displayValue, displayDateRange, displayNumber } from '@/features/ipo/utils/display';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
 
@@ -35,8 +38,8 @@ export async function generateMetadata({ searchParams }: IPOPageProps): Promise<
   if (page) canonicalParams.set('page', String(page));
   const canonical = `/ipo${canonicalParams.size ? `?${canonicalParams}` : ''}`;
   const qualifier = [status, category, page ? `Page ${page}` : null].filter(Boolean).join(' · ');
-  const title = `${qualifier ? `${qualifier} IPOs — ` : ''}Live IPO GMP Today & Subscription Status | WeeStox`;
-  const description = 'Track Indian IPO GMP, expected listing price, subscription demand, allotment status, dates, lot size and Shariah screening for NSE and BSE IPOs.';
+  const title = `${qualifier ? `${qualifier} IPOs — ` : ''}IPO GMP, Subscription & Allotment Updates`;
+  const description = 'Track Indian IPO GMP, subscription demand, allotment updates, dates and lot sizes. Explore company financials and historical GMP.';
   const hasNonCanonicalFilter = Boolean(params.search || params.sort || params.halal || params.snapshot_date || params.type);
 
   return {
@@ -84,7 +87,7 @@ function formatGmpRange(subDisplay?: string, gmpValue?: number): string | null {
 }
 
 function getGmpDisplay(gmp: IPOV2ListItem['gmp']) {
-  if (!gmp || gmp.value === 0 || gmp.value === null || !gmp.value) {
+  if (!gmp || gmp.value == null || !Number.isFinite(Number(gmp.value))) {
     return {
       hasGmp: false,
       text: '—',
@@ -100,7 +103,7 @@ function getGmpDisplay(gmp: IPOV2ListItem['gmp']) {
 
   return {
     hasGmp: true,
-    text: gmp.display || `₹${gmp.value}${gmp.percentage !== null && gmp.percentage !== undefined ? ` (${Number(gmp.percentage).toFixed(2)}%)` : ''}`,
+    text: displayValue(gmp.display, `₹${gmp.value}${gmp.percentage != null && Number.isFinite(Number(gmp.percentage)) ? ` (${Number(gmp.percentage).toFixed(2)}%)` : ''}`),
     range,
     color: isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400',
     isHot,
@@ -110,7 +113,6 @@ function getGmpDisplay(gmp: IPOV2ListItem['gmp']) {
 export default async function IPOPage({ searchParams }: IPOPageProps) {
   const params = await searchParams;
 
-  try {
     const ipoListData = await getIPOList({
       status: params.status || 'all',
       type: params.type,
@@ -351,7 +353,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                                     href={`/ipo/${ipo.slug}`}
                                     className="font-bold text-slate-900 dark:text-slate-100 text-sm tracking-wide hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
                                   >
-                                    {ipo.company_name}
+                                    {displayValue(ipo.company_name)}
                                   </Link>
                                   {gmpInfo.isHot && (
                                     <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 dark:border-0 text-[9px] font-bold rounded">
@@ -362,7 +364,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${getStatusBadge(ipo.status)}`}>
-                                    {ipo.status}
+                                    {displayValue(ipo.status)}
                                   </span>
                                   <span
                                     className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
@@ -371,7 +373,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                                         : 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30'
                                     }`}
                                   >
-                                    {ipo.type || (isSme ? 'SME' : 'Mainboard')}
+                                    {displayValue(ipo.type)}
                                   </span>
                                 </div>
                               </div>
@@ -381,19 +383,19 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                           {/* Bidding Dates */}
                           <td className="px-3 py-3 text-center whitespace-nowrap">
                             <div className="text-slate-800 dark:text-slate-200 font-medium tabular-nums">
-                              {ipo.open_close || `${ipo.open_date} → ${ipo.close_date}`}
+                              {displayDateRange(ipo.open_close, ipo.open_date, ipo.close_date)}
                             </div>
-                            <div className="text-[10px] text-slate-400 dark:text-slate-500">Updated: {ipo.updated_on}</div>
+                            <div className="text-[10px] text-slate-400 dark:text-slate-500">Updated: {displayValue(ipo.updated_on)}</div>
                           </td>
 
                           {/* Issue Price */}
                           <td className="px-3 py-3 text-right whitespace-nowrap">
                             <div className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
-                              {ipo.issue_price_display || (ipo.issue_price ? `₹${ipo.issue_price}` : '–')}
+                              {displayValue(ipo.issue_price_display, displayNumber(ipo.issue_price, '₹'))}
                             </div>
                             {ipo.ipo_size_display && (
                               <div className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums">
-                                Size: {ipo.ipo_size_display}
+                                Size: {displayValue(ipo.ipo_size_display)}
                               </div>
                             )}
                           </td>
@@ -401,10 +403,10 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                           {/* Lot Size & Min Investment */}
                           <td className="px-4 py-3 text-right whitespace-nowrap hidden sm:table-cell">
                             <div className="text-slate-800 dark:text-slate-200 font-medium tabular-nums">
-                              {ipo.min_investment_display || (ipo.min_investment ? `₹${ipo.min_investment.toLocaleString('en-IN')}` : '–')}
+                              {displayValue(ipo.min_investment_display, displayNumber(ipo.min_investment, '₹'))}
                             </div>
                             <div className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums">
-                              {ipo.lot_size_display || (ipo.lot_size ? `${ipo.lot_size} Shares` : '–')}
+                              {displayValue(ipo.lot_size_display, displayNumber(ipo.lot_size, '', ' Shares'))}
                             </div>
                           </td>
 
@@ -431,27 +433,27 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                           {/* Est Listing & Profit */}
                           <td className="px-4 py-3 text-right whitespace-nowrap hidden md:table-cell">
                             <div className="text-slate-800 dark:text-slate-200 font-medium tabular-nums">
-                              {ipo.est_listing_display || (ipo.est_listing ? `₹${ipo.est_listing}` : '–')}
+                              {displayValue(ipo.est_listing_display, displayNumber(ipo.est_listing, '₹'))}
                             </div>
                             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
-                              {ipo.est_profit_display ? `+${ipo.est_profit_display}/lot` : '–'}
+                              {displayValue(ipo.est_profit_display, '') ? `+${displayValue(ipo.est_profit_display)}/lot` : '–'}
                             </div>
                           </td>
 
                           {/* Subscription Demand */}
                           <td className="px-3 py-3 text-center whitespace-nowrap hidden lg:table-cell">
                             <div className="text-slate-800 dark:text-slate-200 font-bold tabular-nums">
-                              {ipo.subscription_display || (ipo.subscription_times ? `${ipo.subscription_times}x` : '–')}
+                              {displayValue(ipo.subscription_display, displayNumber(ipo.subscription_times, '', 'x'))}
                             </div>
                             <div className="text-[10px] text-slate-400 dark:text-slate-500">
-                              {ipo.has_anchor ? 'Anchor In' : 'No Anchor'}
+                              {ipo.has_anchor == null ? '–' : ipo.has_anchor ? 'Anchor In' : 'No Anchor'}
                             </div>
                           </td>
 
                           {/* Listing Date */}
                           <td className="px-3 py-3 text-center whitespace-nowrap hidden xl:table-cell">
                             <div className="text-slate-800 dark:text-slate-200 font-medium">
-                              {ipo.listing_date_display || ipo.listing_date || '–'}
+                              {displayValue(ipo.listing_date_display, displayValue(ipo.listing_date))}
                             </div>
                             <div className="text-[10px] text-slate-400 dark:text-slate-500">Tentative</div>
                           </td>
@@ -563,24 +565,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
             </div>
           </div>
         </div>
+        <PageFaq title="IPO GMP, subscription and allotment FAQs" items={IPO_FAQS} links={[{ label: 'Stock screener', href: '/stocks' }]} />
       </div>
     );
-  } catch (error: any) {
-    return (
-      <div className="min-h-screen bg-canvas py-12 text-body">
-        <div className="container mx-auto px-4 max-w-2xl text-center">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-8 shadow-sm">
-            <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto mb-3" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Unable to Load IPO Data</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Could not retrieve IPO listings from the backend server. Error: {error?.message || 'Connection refused'}
-            </p>
-            <Link href="/ipo" className="btn btn-primary text-xs">
-              Retry Connection
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 }

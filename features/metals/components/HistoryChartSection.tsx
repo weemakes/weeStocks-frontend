@@ -118,7 +118,7 @@ export function HistoryChartSection({
         units={historyUnits}
         selectedUnit={unit}
         onUnitChange={setUnit}
-        durations={metal === "platinum" ? ["9m", "1y"] : CHART_DURATIONS}
+        durations={CHART_DURATIONS}
         selectedDuration={duration}
         onDurationChange={setDuration}
       />

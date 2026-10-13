@@ -64,7 +64,7 @@ export default function ZakatPage() {
             Zakat Calculator &amp; Investment Guide
           </h1>
           <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-            Calculate your Zakat accurately and learn how to manage your wealth according to Islamic principles
+            Estimate 2.5% of eligible net asset values. Check Nisab, the lunar-year condition and deductible debts separately.
           </p>
         </div>
 
@@ -280,7 +280,7 @@ export default function ZakatPage() {
                         ₹{result.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                       </div>
                       <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400">
-                        This represents exactly 2.5% of your qualifying net wealth
+                        This estimate is 2.5% of the positive net amount entered; eligibility is not checked automatically.
                       </p>
                     </div>
                   </div>

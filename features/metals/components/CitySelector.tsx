@@ -40,7 +40,17 @@ export function CitySelector({
     }
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    function closeOnScroll() { setIsOpen(false); }
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsOpen(false);
+    }
+    window.addEventListener('scroll', closeOnScroll, { passive: true });
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener('scroll', closeOnScroll);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
   }, []);
 
   // Compute display cities based on search query
@@ -80,10 +90,12 @@ export function CitySelector({
   };
 
   return (
-    <div ref={dropdownRef} className="relative z-50">
+    <div ref={dropdownRef} className="relative z-20">
       {/* Trigger Button */}
       <button
         type="button"
+        aria-expanded={isOpen}
+        aria-controls="metal-city-options"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3.5 py-2 border border-slate-200 dark:border-slate-700/80 rounded-xl bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 transition-colors shadow-sm"
       >
@@ -99,8 +111,8 @@ export function CitySelector({
       {/* Dropdown */}
       {isOpen && (
         <div
-          style={{ right: 0, left: 'auto' }}
-          className="absolute top-full right-0 left-auto mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/90 rounded-2xl shadow-2xl shadow-slate-900/20 dark:shadow-black/60 z-50 overflow-hidden"
+          id="metal-city-options"
+          className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/90 rounded-2xl shadow-2xl shadow-slate-900/20 dark:shadow-black/60 z-50 overflow-hidden"
         >
           {/* Search Input */}
           <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60">
@@ -112,7 +124,6 @@ export function CitySelector({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-8 py-2 border border-slate-200 dark:border-slate-700/80 rounded-xl bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:outline-none focus-visible:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
-                autoFocus
               />
               {searchQuery && (
                 <button
@@ -127,7 +138,7 @@ export function CitySelector({
           </div>
 
           {/* City List */}
-          <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
+          <div className="max-h-[min(18rem,45svh)] overflow-y-auto overscroll-contain divide-y divide-slate-100 dark:divide-slate-800/60">
             {!searchQuery && (
               <div className="px-3.5 py-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-950/40">
                 Major Business Hubs

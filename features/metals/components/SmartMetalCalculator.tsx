@@ -72,7 +72,7 @@ export function SmartMetalCalculator({
       ];
 
   return (
-    <div className="bg-panel/70 border border-line/70 rounded-xl p-4 sm:p-5 flex flex-col justify-between h-full">
+    <div data-analytics="metal-calculator" className="bg-panel/70 border border-line/70 rounded-xl p-4 sm:p-5 flex flex-col justify-between h-full">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 flex items-center justify-center">

@@ -4,9 +4,9 @@
  */
 
 import { cache } from "react";
-import { apiRequest, buildQueryString } from "./api-client";
+import { ApiError, apiRequest, buildQueryString } from "./api-client";
 import type { City, CitySearchParams } from "../types";
-import { ensureCitySlugs, generateSlug } from "../utils";
+import { ensureCitySlugs } from "../utils";
 
 function readCities(response: unknown): City[] {
   if (Array.isArray(response)) return response as City[];
@@ -71,24 +71,18 @@ export async function searchCities(
  */
 export const getCityBySlug = cache(async function getCityBySlug(slug: string): Promise<City | null> {
   try {
-    const response = await apiRequest<{ data: { cities: City[] } }>(
-      `/cities?search=${encodeURIComponent(slug)}`,
+    const response = await apiRequest<{ data: { city: City } }>(
+      `/cities/${encodeURIComponent(slug)}`,
       {
         revalidate: 86400, // Cache static city info for 24 hours
       }
     );
 
-    const cities = response.data?.cities || [];
-
-    if (cities.length === 0) {
-      return null;
-    }
-
-    const normalizedSlug = generateSlug(slug);
-    const normalizedCities = ensureCitySlugs(cities);
-    return normalizedCities.find((city) => city.slug === normalizedSlug) || null;
+    const city = response.data?.city;
+    if (!city || city.is_active === false) return null;
+    return ensureCitySlugs([city])[0];
   } catch (error) {
-    console.error(`Error in getCityBySlug for "${slug}":`, error);
-    return null;
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
   }
 });

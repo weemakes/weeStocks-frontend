@@ -17,13 +17,7 @@ export async function GET(request: NextRequest) {
     const purity = searchParams.get("purity") as MetalPurity | null;
     const requestedDuration = searchParams.get("duration") as ChartDuration | null;
 
-    // For platinum: default is 9m; even if 1w, 1m, 3m, 6m are requested, use 9m; 1y is 1y
-    const duration: ChartDuration =
-      metal === "platinum"
-        ? requestedDuration === "1y"
-          ? "1y"
-          : "9m"
-        : requestedDuration || "1w";
+    const duration: ChartDuration = requestedDuration || "1w";
 
     // Determine unit defaults based on metal
     const unit: MetalUnit =
