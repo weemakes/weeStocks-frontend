@@ -30,7 +30,7 @@ const BASE_STOCKS = [
     country: 'India',
     path: 'M3 49 L18 40 L31 43 L46 27 L59 32 L72 20 L88 25 L101 14 L117 18 L132 8 L152 11',
     areaPath: 'M3 49 L18 40 L31 43 L46 27 L59 32 L72 20 L88 25 L101 14 L117 18 L132 8 L152 11 L152 54 L3 54 Z',
-    color: '#0ea5e9',
+    color: 'var(--primary-accent)',
     beaconX: 152,
     beaconY: 11,
   },
@@ -47,7 +47,7 @@ const BASE_STOCKS = [
     country: 'India',
     path: 'M3 44 L18 40 L31 35 L46 38 L59 26 L72 28 L88 18 L101 20 L117 12 L132 14 L152 6',
     areaPath: 'M3 44 L18 40 L31 35 L46 38 L59 26 L72 28 L88 18 L101 20 L117 12 L132 14 L152 6 L152 54 L3 54 Z',
-    color: '#10b981',
+    color: 'var(--primary-accent)',
     beaconX: 152,
     beaconY: 6,
   },
@@ -64,7 +64,7 @@ const BASE_STOCKS = [
     country: 'India',
     path: 'M3 50 L18 45 L31 46 L46 33 L59 34 L72 23 L88 25 L101 16 L117 13 L132 15 L152 8',
     areaPath: 'M3 50 L18 45 L31 46 L46 33 L59 34 L72 23 L88 25 L101 16 L117 13 L132 15 L152 8 L152 54 L3 54 Z',
-    color: '#0284c7',
+    color: 'var(--primary-accent)',
     beaconX: 152,
     beaconY: 8,
   },
@@ -81,7 +81,7 @@ const BASE_STOCKS = [
     country: 'India',
     path: 'M3 46 L18 42 L31 43 L46 31 L59 33 L72 24 L88 21 L101 23 L117 14 L132 11 L152 9',
     areaPath: 'M3 46 L18 42 L31 43 L46 31 L59 33 L72 24 L88 21 L101 23 L117 14 L132 11 L152 9 L152 54 L3 54 Z',
-    color: '#8b5cf6',
+    color: 'var(--primary-accent)',
     beaconX: 152,
     beaconY: 9,
   },
@@ -115,7 +115,7 @@ const BASE_STOCKS = [
     country: 'India',
     path: 'M3 44 L18 46 L31 39 L46 41 L59 34 L72 28 L88 29 L101 21 L117 19 L132 14 L152 10',
     areaPath: 'M3 44 L18 46 L31 39 L46 41 L59 34 L72 28 L88 29 L101 21 L117 19 L132 14 L152 10 L152 54 L3 54 Z',
-    color: '#3b82f6',
+    color: 'var(--primary-accent)',
     beaconX: 152,
     beaconY: 10,
   },
@@ -403,7 +403,7 @@ export default function HomeLanding({ data }: Props) {
     <div className="overflow-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <section className="relative flex min-h-[calc(100svh-98px)] sm:min-h-[calc(100svh-106px)] flex-col border-b border-slate-200 bg-gradient-to-br from-sky-50/80 via-white to-emerald-50/60 dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/20">
         {/* Subtle Background Blueprint Grid */}
-        <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,#dbeafe_1px,transparent_1px),linear-gradient(to_bottom,#dbeafe_1px,transparent_1px)] [background-size:44px_44px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)] dark:opacity-10" />
+        <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,var(--border-subtle)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-subtle)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)] dark:opacity-10" />
 
         <div className="container relative mx-auto flex flex-1 items-center py-5 sm:py-7 lg:py-8">
           <div className="grid w-full items-center gap-4 sm:gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
@@ -411,7 +411,7 @@ export default function HomeLanding({ data }: Props) {
             <div className="max-w-2xl">
               <h1 className="text-2xl sm:text-4xl xl:text-5xl font-black leading-snug tracking-tight text-slate-950 dark:text-white">
                 Research markets with clarity.{' '}
-                <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-accent to-[var(--primary-light)] bg-clip-text text-transparent">
                   Invest with confidence.
                 </span>
               </h1>
@@ -455,7 +455,7 @@ export default function HomeLanding({ data }: Props) {
             {/* Right Column: Clean, High-End Responsive Market Intelligence Terminal */}
             <div className="relative mx-auto w-full max-w-xl">
               {/* Ambient Multi-Hue Depth Glow behind Terminal */}
-              <div className="pointer-events-none absolute -inset-2 rounded-3xl bg-gradient-to-tr from-sky-500/15 via-emerald-500/10 to-indigo-500/15 blur-2xl dark:from-sky-500/20 dark:via-emerald-500/10 dark:to-indigo-500/15 -z-10 animate-glow-aura" />
+              <div className="pointer-events-none absolute -inset-2 rounded-3xl bg-gradient-to-tr from-sky-500/15 via-emerald-500/10 to-teal-500/10 blur-2xl dark:from-sky-500/20 dark:via-emerald-500/10 dark:to-teal-500/10 -z-10 animate-glow-aura" />
 
               {/* ======================================================================= */}
               {/* MOBILE ONLY (< lg): 4-Tab Segmented Cockpit (Zero Bloat, Perfectly Fitted) */}
@@ -1480,7 +1480,7 @@ function StockPreview() {
       <div className="mt-5 grid gap-4 sm:grid-cols-[1.45fr_1fr]">
         <div className="rounded-xl bg-sky-50 p-3 dark:bg-sky-950/30">
           <svg viewBox="0 0 150 56" className="h-14 w-36">
-            <path d="M3 49 L18 40 L31 43 L46 27 L59 32 L72 20 L88 25 L101 14 L117 18 L132 8 L147 11" fill="none" stroke="#0284c7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M3 49 L18 40 L31 43 L46 27 L59 32 L72 20 L88 25 L101 14 L117 18 L132 8 L147 11" fill="none" stroke="var(--primary-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <div className="mt-2 flex justify-between text-[9px] text-slate-500">
             <span>Jan</span>
@@ -1577,7 +1577,7 @@ function DecisionFlow({
               <span>News</span>
             </div>
             <svg viewBox="0 0 220 44" className="mt-1 h-11 w-full">
-              <polyline points="2,38 24,32 45,34 66,25 88,28 112,18 133,22 154,11 177,15 218,4" fill="none" stroke="#3b82f6" strokeWidth="2" />
+              <polyline points="2,38 24,32 45,34 66,25 88,28 112,18 133,22 154,11 177,15 218,4" fill="none" stroke="var(--primary-accent)" strokeWidth="2" />
             </svg>
           </>
         )}

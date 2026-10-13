@@ -351,13 +351,16 @@ export interface StockListParams {
   sort_order?: 'ASC' | 'DESC';
   page?: number;
   limit?: number;
+  pe_max?: number;
+  market_cap_min?: number;
+  market_cap_max?: number;
 }
 
 /**
  * 2. Fetch Multi-Market Paginated Stock List
  * GET /stocks?...
  */
-export async function getStocksList(params: StockListParams = {}): Promise<StockListResponse> {
+export async function getStocksList(params: StockListParams = {}, signal?: AbortSignal): Promise<StockListResponse> {
   const p = new URLSearchParams();
   if (params.country && params.country !== 'All') p.set('country', params.country);
   if (params.exchange && params.exchange !== 'All') p.set('exchange', params.exchange);
@@ -369,11 +372,14 @@ export async function getStocksList(params: StockListParams = {}): Promise<Stock
   if (params.halal_status && params.halal_status !== 'ALL') p.set('halal_status', params.halal_status);
   if (params.sort_by) p.set('sort_by', params.sort_by);
   if (params.sort_order) p.set('sort_order', params.sort_order);
+  if (params.pe_max !== undefined) p.set('pe_max', String(params.pe_max));
+  if (params.market_cap_min !== undefined) p.set('market_cap_min', String(params.market_cap_min));
+  if (params.market_cap_max !== undefined) p.set('market_cap_max', String(params.market_cap_max));
   p.set('page', String(params.page || 1));
   p.set('limit', String(params.limit || 20));
 
   const url = `${getBaseUrl()}?${p.toString()}`;
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(url, { cache: 'no-store', signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
