@@ -259,9 +259,9 @@ export default function Navigation() {
             {/* Launch Screener CTA */}
             <Link
               href="/stocks"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-xs shadow-sm shadow-sky-600/25 transition-all"
+              className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-xs shadow-sm shadow-sky-600/25 transition-all"
             >
-              <TrendingUp className="w-3.5 h-3.5" />
+              <TrendingUp className="hidden sm:block w-3.5 h-3.5" />
               <span>Launch Screener</span>
             </Link>
 
