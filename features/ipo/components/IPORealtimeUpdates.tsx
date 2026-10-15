@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Radio, X } from "lucide-react";
+import { X } from "lucide-react";
 
-type ConnectionState = "connecting" | "connected" | "offline";
 
 interface IPOEvent {
   event?: string;
@@ -15,7 +14,6 @@ interface IPOEvent {
 
 export function IPORealtimeUpdates({ streamUrl }: { streamUrl: string }) {
   const router = useRouter();
-  const [connection, setConnection] = useState<ConnectionState>("connecting");
   const [announcement, setAnnouncement] = useState<IPOEvent | null>(null);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -34,8 +32,6 @@ export function IPORealtimeUpdates({ streamUrl }: { streamUrl: string }) {
 
     const connect = () => {
       source = new EventSource(streamUrl);
-      source.onopen = () => setConnection("connected");
-      source.onerror = () => setConnection(source?.readyState === EventSource.CLOSED ? "offline" : "connecting");
       source.onmessage = handlePayload;
       ["ALLOTMENT_DECLARED", "GMP_UPDATE", "STATUS_CHANGE", "NEW_IPO_SAVED", "SUBSCRIPTION_UPDATE"].forEach((name) => {
         source?.addEventListener(name, handlePayload as EventListener);
@@ -56,8 +52,6 @@ export function IPORealtimeUpdates({ streamUrl }: { streamUrl: string }) {
     return () => window.clearTimeout(timer);
   }, [announcement]);
 
-  const label = connection === "connected" ? "Live updates active" : connection === "connecting" ? "Reconnecting…" : "Live updates offline";
-  const dot = connection === "connected" ? "bg-emerald-500" : connection === "connecting" ? "bg-amber-500" : "bg-rose-500";
 
   return (
     <>
@@ -79,11 +73,7 @@ export function IPORealtimeUpdates({ streamUrl }: { streamUrl: string }) {
           </div>
         </div>
       )}
-      <div className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-slate-700 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-200" title={`IPO ${label.toLowerCase()}`}>
-        <Radio className="h-3.5 w-3.5" />
-        <span className={`h-2 w-2 rounded-full ${dot} ${connection === "connecting" ? "animate-pulse" : ""}`} />
-        {label}
-      </div>
+
     </>
   );
 }

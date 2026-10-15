@@ -65,18 +65,24 @@ export default function DeliveryParticipation({ rows }: Props) {
       </div>
 
       {view === 'chart' ? (
+        <div>
+        <div className="mb-2 flex flex-wrap gap-4 text-xs text-body" aria-label="Chart legend">
+          <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-sm" style={{ background: 'var(--text-quiet)', opacity: 0.55 }} aria-hidden="true" />Traded volume</span>
+          <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4" style={{ background: 'var(--primary-accent)' }} aria-hidden="true" />Delivery %</span>
+        </div>
         <div className="h-[330px] w-full rounded-xl border border-slate-100 p-2 dark:border-slate-800 sm:p-4">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={sessions} margin={{ top: 12, right: 8, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-slate-800" />
-              <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#94a3b8' }} interval={sessions.length > 12 ? 1 : 0} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="volume" tickFormatter={(value) => formatSafeVolume(value)} tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={48} />
-              <YAxis yAxisId="delivery" orientation="right" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={36} />
-              <Tooltip contentStyle={{ borderRadius: 12, borderColor: '#cbd5e1', fontSize: 11 }} labelFormatter={(_, payload) => payload?.[0]?.payload?.date ? dateLabel(payload[0].payload.date, true) : ''} formatter={(value, name) => name === 'Delivery %' ? [formatSafePct(Number(value), false), name] : [formatSafeVolume(Number(value)), name]} />
-              <Bar yAxisId="volume" dataKey="traded_quantity" name="Traded volume" fill="#bae6fd" stroke="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={44} />
-              <Line yAxisId="delivery" type="monotone" dataKey="delivery_percentage" name="Delivery %" stroke="#10b981" strokeWidth={2.5} dot={{ r: 2.5, fill: '#10b981' }} activeDot={{ r: 5 }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} interval={sessions.length > 12 ? 1 : 0} minTickGap={18} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="volume" tickFormatter={(value) => formatSafeVolume(value)} tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} width={56} />
+              <YAxis yAxisId="delivery" orientation="right" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} width={40} />
+              <Tooltip contentStyle={{ backgroundColor: 'var(--bg-surface-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-active)', borderRadius: 10, padding: '12px 14px', fontSize: 12, boxShadow: 'var(--shadow-card)' }} labelStyle={{ color: 'var(--text-secondary)', marginBottom: 6 }} itemStyle={{ color: 'var(--text-primary)', padding: '3px 0' }} cursor={{ stroke: 'var(--text-muted)', strokeWidth: 1 }} labelFormatter={(_, payload) => payload?.[0]?.payload?.date ? dateLabel(payload[0].payload.date, true) : ''} formatter={(value, name) => name === 'Delivery %' ? [formatSafePct(Number(value), false), name] : [formatSafeVolume(Number(value)), name]} />
+              <Bar yAxisId="volume" dataKey="traded_quantity" name="Traded volume" fill="var(--text-quiet)" fillOpacity={0.55} radius={[4, 4, 0, 0]} maxBarSize={44} />
+              <Line yAxisId="delivery" type="monotone" dataKey="delivery_percentage" name="Delivery %" stroke="var(--primary-accent)" strokeWidth={2.5} dot={{ r: 2.5, fill: 'var(--primary-accent)' }} activeDot={{ r: 5, fill: 'var(--primary-accent)', stroke: 'var(--bg-surface)', strokeWidth: 2 }} />
             </ComposedChart>
           </ResponsiveContainer>
+        </div>
         </div>
       ) : (
         <div className="max-h-[430px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-800">

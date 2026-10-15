@@ -39,19 +39,22 @@ async function getHomeData(): Promise<{
   let stocks: any[] = [];
   let goldData: any = null;
   let silverData: any = null;
+  let platinumData: any = null;
   let ipoData: any = null;
 
   try {
-    const [stocksRes, goldRes, silverRes, ipoRes] = await Promise.allSettled([
+    const [stocksRes, goldRes, silverRes, ipoRes, platinumRes] = await Promise.allSettled([
       fetch(`${backend}/stocks?country=India&limit=10`, { next: { revalidate: 60 } }).then((r) => r.json()),
       fetch(`${backend}/metals/latest-price?city_id=1&metal=gold`, { next: { revalidate: 300 } }).then((r) => r.json()),
       fetch(`${backend}/metals/latest-price?city_id=1&metal=silver`, { next: { revalidate: 300 } }).then((r) => r.json()),
       fetch(`${backend}/v2/ipos?type=mainboard&limit=25`, { next: { revalidate: 60 } }).then((r) => r.json()),
+      fetch(`${backend}/metals/latest-price?city_id=1&metal=platinum`, { next: { revalidate: 300 } }).then((r) => r.json()),
     ]);
 
     if (stocksRes.status === 'fulfilled') stocks = stocksRes.value?.data || [];
     if (goldRes.status === 'fulfilled') goldData = goldRes.value?.data || null;
     if (silverRes.status === 'fulfilled') silverData = silverRes.value?.data || null;
+    if (platinumRes.status === 'fulfilled') platinumData = platinumRes.value?.data || null;
     if (ipoRes.status === 'fulfilled') ipoData = ipoRes.value?.data || null;
   } catch (e) {
     console.error('Failed fetching home page live feeds:', e);
@@ -104,6 +107,23 @@ async function getHomeData(): Promise<{
   const silver1g = silverData?.priceTable?.find((p: any) => p.gram === 1);
   const gold1g = goldData?.priceTable?.find((p: any) => p.gram === 1)?.['24K'];
   const silverRate = Number(silver1g?.today || 245);
+  const metalsList: NonNullable<MarketPulseData['metalsList']> = [{
+    name: 'Gold 24K', shortName: 'Gold', rateDisplay: gold.price10g,
+    changeDisplay: gold.changeDisplay, isPositive: gold.isPositive,
+    unit: 'per 10g', purity: '24K', href: '/gold',
+  }];
+  const silverKg = silverData?.priceTable?.find((row: any) => row.gram === 1000);
+  if (silverKg?.today != null) metalsList.push({
+    name: 'Silver 999', shortName: 'Silver', rateDisplay: '₹' + Number(silverKg.today).toLocaleString('en-IN'),
+    changeDisplay: silverKg.change != null ? `${Number(silverKg.change) >= 0 ? '+' : '-'}₹${Math.abs(Number(silverKg.change)).toLocaleString('en-IN')} (Today)` : 'Latest available rate',
+    isPositive: Number(silverKg.change ?? 0) >= 0, unit: 'per kg', purity: '999', href: '/silver',
+  });
+  const platinumGram = platinumData?.priceTable?.find((row: any) => row.gram === 1);
+  if (platinumGram?.today != null) metalsList.push({
+    name: 'Platinum', shortName: 'Platinum', rateDisplay: '₹' + Number(platinumGram.today).toLocaleString('en-IN'),
+    changeDisplay: `${Number(platinumGram.change ?? 0) >= 0 ? '+' : '-'}₹${Math.abs(Number(platinumGram.change ?? 0)).toLocaleString('en-IN')} (Today)`,
+    isPositive: Number(platinumGram.change ?? 0) >= 0, unit: 'per gram', purity: '950', href: '/platinum',
+  });
   const goldRate = Number(gold1g?.price || 15332);
   const zakatNisab = {
     silverRatePerGram: '₹' + silverRate + '/g',
@@ -182,6 +202,7 @@ async function getHomeData(): Promise<{
       purification: '0.00% (Pure)',
       country: s.country || 'India',
       logoUrl: s.logo_url || null,
+      aaoifiScore: s.shariah_compliance?.score != null ? Number(s.shariah_compliance.score) : null,
     };
   });
 
@@ -192,6 +213,7 @@ async function getHomeData(): Promise<{
     category: i.category || 'Mainboard',
     gmpDisplay: i.gmp?.percentage != null ? `+${i.gmp.percentage}%` : (i.gmp?.display || 'Live'),
     gmpPercentage: i.gmp?.percentage != null ? Number(i.gmp.percentage) : null,
+    subscriptionTimes: i.subscription_times != null ? Number(i.subscription_times) : null,
   }));
 
   const heroIpoAlert: HeroIpoAlert = {
@@ -204,7 +226,7 @@ async function getHomeData(): Promise<{
   };
 
   return {
-    pulseData: { featuredStock, stocksList, gold, topIpo, iposList, zakatNisab },
+    pulseData: { featuredStock, stocksList, gold, metalsList, topIpo, iposList, zakatNisab },
     heroStocks,
     heroIpoAlert,
   };

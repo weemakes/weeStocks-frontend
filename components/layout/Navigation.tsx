@@ -47,7 +47,7 @@ export default function Navigation() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <header data-site-header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
       {/* 1. Real-Time Streaming Market Ticker Tape Carousel */}
       <div className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200/70 dark:border-slate-800/70 text-[11px] py-1 overflow-hidden select-none">
         <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -259,9 +259,9 @@ export default function Navigation() {
             {/* Launch Screener CTA */}
             <Link
               href="/stocks"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-xs shadow-sm shadow-sky-600/25 transition-all"
+              className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold text-xs shadow-sm shadow-sky-600/25 transition-all"
             >
-              <TrendingUp className="w-3.5 h-3.5" />
+              <TrendingUp className="hidden sm:block w-3.5 h-3.5" />
               <span>Launch Screener</span>
             </Link>
 

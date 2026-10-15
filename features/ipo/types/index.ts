@@ -338,6 +338,7 @@ export interface IPOQueryParams {
   snapshot_date?: string;
   sort?: string;
   halal?: string;
+  active_gmp?: string;
   page?: number | string;
   limit?: number | string;
 }

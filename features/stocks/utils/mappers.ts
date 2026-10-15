@@ -76,7 +76,7 @@ export function formatMarketCap(mcap: number | string | undefined | null, countr
 
 export function mapBackendStockToStockItem(item: StockListItem, countryCode?: string): StockItem {
   const rawStatus = item.shariah_compliance?.status?.toUpperCase() || '';
-  let complianceStatus: ComplianceStatus = 'compliant';
+  let complianceStatus: ComplianceStatus = 'doubtful';
   if (rawStatus === 'NON_HALAL' || rawStatus === 'FAIL') {
     complianceStatus = 'non_compliant';
   } else if (rawStatus === 'DOUBTFUL' || rawStatus === 'PENDING_DATA' || rawStatus === 'REVIEW') {
@@ -158,8 +158,8 @@ export function mapBackendStockToStockItem(item: StockListItem, countryCode?: st
       debtToEquity: debtRatioNum,
       freeCashFlowCr: 0,
       dividendYield: item.metrics?.dividend_yield ? Number((Number(item.metrics.dividend_yield) * 100).toFixed(2)) : 0,
-      week52High: item.metrics?.fifty_two_week_high ? Number(item.metrics.fifty_two_week_high) : (latestPrice ? latestPrice * 1.15 : 0),
-      week52Low: item.metrics?.fifty_two_week_low ? Number(item.metrics.fifty_two_week_low) : (latestPrice ? latestPrice * 0.85 : 0),
+      week52High: item.metrics?.fifty_two_week_high ? Number(item.metrics.fifty_two_week_high) : 0,
+      week52Low: item.metrics?.fifty_two_week_low ? Number(item.metrics.fifty_two_week_low) : 0,
     },
     lastUpdated: item.market_date || 'Live',
     isNifty50: item.country === 'India' && mcap >= 500000000000,
