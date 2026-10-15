@@ -91,101 +91,104 @@ export default function IPOFilters({
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 mb-4 shadow-xs">
-      {/* 1. Status Tabs Row (StockeZee-style) */}
-      <div className="overflow-x-auto no-scrollbar mb-3">
-        <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800/70 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
-          {statusTabs.map((tab) => {
-            const active = currentStatus === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => updateParam('status', tab.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
-                  active
-                    ? 'bg-emerald-700 text-white shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <span>{tab.label}</span>
-                {typeof tab.count === 'number' && (
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
+      {/* 1 & 2. Filter Pills & Toggles: 2 lines on mobile, 1 single line on web (lg:flex-row) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 mb-3">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-2.5">
+          {/* Status Tabs: Line 1 on mobile, inline on desktop */}
+          <div className="overflow-x-auto no-scrollbar">
+            <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800/70 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shrink-0">
+              {statusTabs.map((tab) => {
+                const active = currentStatus === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => updateParam('status', tab.id)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
                       active
-                        ? 'bg-white/20 text-white'
-                        : tab.id === 'open' && tab.count > 0
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                        ? 'bg-emerald-700 text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                   >
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 2. Category Tabs + Active GMP + Halal Row (StockeZee-style) */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Category Tabs */}
-          <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800/70 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
-            {categoryTabs.map((tab) => {
-              const active = currentCategory === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => updateParam('category', tab.id)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
-                    active
-                      ? 'bg-emerald-700 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
-                >
-                  <span>{tab.label}</span>
-                  {typeof tab.count === 'number' && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
-                        active
-                          ? 'bg-white/20 text-white'
-                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                      }`}
-                    >
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                    <span>{tab.label}</span>
+                    {typeof tab.count === 'number' && (
+                      <span
+                        className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
+                          active
+                            ? 'bg-white/20 text-white'
+                            : tab.id === 'open' && tab.count > 0
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400'
+                            : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Active GMP Checkbox */}
-          <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none transition-colors">
-            <input
-              type="checkbox"
-              checked={isActiveGmpOnly}
-              onChange={(e) => updateParam('active_gmp', e.target.checked ? 'true' : null)}
-              className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700 dark:bg-slate-900 cursor-pointer accent-emerald-600"
-            />
-            <span className="whitespace-nowrap">Active GMP</span>
-          </label>
+          {/* Category Tabs + Toggles: Line 2 on mobile, inline on desktop */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Category Tabs */}
+            <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800/70 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shrink-0">
+              {categoryTabs.map((tab) => {
+                const active = currentCategory === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => updateParam('category', tab.id)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
+                      active
+                        ? 'bg-emerald-700 text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    {typeof tab.count === 'number' && (
+                      <span
+                        className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
+                          active
+                            ? 'bg-white/20 text-white'
+                            : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* Halal Screened Toggle Button */}
-          <button
-            type="button"
-            onClick={() => updateParam('halal', isHalalActive ? null : 'true')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border transition-all whitespace-nowrap ${
-              isHalalActive
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 shadow-2xs'
-                : 'bg-slate-50/60 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-            }`}
-          >
-            <ShieldCheck className={`w-3.5 h-3.5 ${isHalalActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
-            <span>Halal Screened</span>
-          </button>
+            {/* Active GMP Checkbox */}
+            <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none transition-colors shrink-0">
+              <input
+                type="checkbox"
+                checked={isActiveGmpOnly}
+                onChange={(e) => updateParam('active_gmp', e.target.checked ? 'true' : null)}
+                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-700 dark:bg-slate-900 cursor-pointer accent-emerald-600"
+              />
+              <span className="whitespace-nowrap">Active GMP</span>
+            </label>
+
+            {/* Halal Screened Toggle Button */}
+            <button
+              type="button"
+              onClick={() => updateParam('halal', isHalalActive ? null : 'true')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold border transition-all whitespace-nowrap shrink-0 ${
+                isHalalActive
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 shadow-2xs'
+                  : 'bg-slate-50/60 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              <ShieldCheck className={`w-3.5 h-3.5 ${isHalalActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
+              <span>Halal Screened</span>
+            </button>
+          </div>
         </div>
 
         {/* Reset Filters Icon */}
@@ -194,7 +197,7 @@ export default function IPOFilters({
             type="button"
             onClick={handleResetAll}
             title="Reset all filters"
-            className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs inline-flex items-center gap-1"
+            className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs inline-flex items-center gap-1 shrink-0 self-start lg:self-auto"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Reset</span>
