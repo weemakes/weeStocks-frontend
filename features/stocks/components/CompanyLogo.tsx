@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface CompanyLogoProps {
   src?: string | null;
@@ -17,12 +15,7 @@ export default function CompanyLogo({
   size = 'md',
   className = '',
 }: CompanyLogoProps) {
-  const [hasError, setHasError] = useState(false);
-
-  // Reset error state if src changes (e.g. stock changes in modal)
-  useEffect(() => {
-    setHasError(false);
-  }, [src]);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
   const sizeClasses = {
     sm: 'w-7 h-7 text-[10px] rounded-lg',
@@ -33,18 +26,24 @@ export default function CompanyLogo({
 
   const initials = (symbol || 'ST').slice(0, 2).toUpperCase();
 
+  const dimension = size === 'sm' ? 28 : size === 'md' ? 32 : size === 'lg' ? 40 : 56;
+
   // If valid src and hasn't errored out
-  if (src && !hasError) {
+  if (src && failedSrc !== src) {
     return (
       <div
         className={`relative ${sizeClasses} shrink-0 overflow-hidden flex items-center justify-center border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all ${className}`}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt={name || symbol}
+          width={dimension}
+          height={dimension}
           loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover"
-          onError={() => setHasError(true)}
+          onError={() => setFailedSrc(src)}
         />
       </div>
     );

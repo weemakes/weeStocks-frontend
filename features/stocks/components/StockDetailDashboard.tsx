@@ -1,17 +1,34 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CheckCircle2, FileText, Globe, LineChart, PieChart, ShieldCheck, Sparkles, Target, TrendingUp, WalletCards, XCircle } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CheckCircle2, FileText, Globe, PieChart, ShieldCheck, Sparkles, Target, TrendingUp, WalletCards, XCircle } from 'lucide-react';
 import type { StockCandle, StockMasterDetail } from '../types';
 import { getStockChart } from '../api';
 import { formatMarketCap, formatSafeNumber, formatSafePct, formatSafePrice, formatSafeVolume, getCurrencySymbol } from '../utils/mappers';
+import dynamic from 'next/dynamic';
 import CompanyLogo from './CompanyLogo';
-import ShareholdingCharts from './ShareholdingCharts';
 import StockCandleChart from './StockCandleChart';
-import DeliveryParticipation from './DeliveryParticipation';
-import CorporateActionsSection from './CorporateActionsSection';
-import FinancialStatements from './FinancialStatements';
-import PeerComparison from './PeerComparison';
+
+const FinancialStatements = dynamic(() => import('./FinancialStatements'), {
+  ssr: false,
+  loading: () => <div className="h-56 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />,
+});
+const ShareholdingCharts = dynamic(() => import('./ShareholdingCharts'), {
+  ssr: false,
+  loading: () => <div className="h-56 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />,
+});
+const PeerComparison = dynamic(() => import('./PeerComparison'), {
+  ssr: false,
+  loading: () => <div className="h-56 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />,
+});
+const CorporateActionsSection = dynamic(() => import('./CorporateActionsSection'), {
+  ssr: false,
+  loading: () => <div className="h-36 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />,
+});
+const DeliveryParticipation = dynamic(() => import('./DeliveryParticipation'), {
+  ssr: false,
+  loading: () => <div className="h-36 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />,
+});
 
 interface Props { detail: StockMasterDetail; onSelectPeer?: (symbol: string) => void; isStandalonePage?: boolean }
 const chartRanges = [{ label: '1D', range: '1D', interval: '5m' }, { label: '1W', range: '1W', interval: '1h' }, { label: '1M', range: '1M', interval: '1d' }, { label: '3M', range: '3M', interval: '1d' }, { label: '6M', range: '6M', interval: '1d' }, { label: '1Y', range: '1Y', interval: '1wk' }, { label: '5Y', range: '5Y', interval: '1mo' }] as const;
@@ -223,7 +240,7 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
             loading={chartLoading}
             range={range}
             chartRanges={chartRanges}
-            onRangeChange={setRange}
+            onRangeChange={(r) => setRange(r as typeof range)}
             performance={performance}
           />
         </section>

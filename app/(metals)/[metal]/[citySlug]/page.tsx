@@ -66,6 +66,7 @@ export async function generateMetadata({
   const title = `${metalName} Rate in ${capitalizedCity} — ${metal === 'gold' ? '22K & 24K Prices' : 'Prices & History'}`;
   const description = `Check today's ${metalName.toLowerCase()} rate in ${capitalizedCity} per gram and 10 grams, with recent price history and rates across major Indian cities.`;
   const canonicalPath = `/${metal}/${city.slug || citySlug}`;
+  const ogImageUrl = `${SITE_URL}/og-image.png`;
 
   return {
     title,
@@ -77,10 +78,25 @@ export async function generateMetadata({
       siteName: "WeeStox",
       title,
       description,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${metalName} Rate in ${capitalizedCity}`,
+        },
+      ],
     },
-    twitter: { card: "summary", title, description },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
   };
 }
+
+export const revalidate = 3600;
 
 export default async function MetalCityPage({ params }: MetalCityPageProps) {
   const { metal: metalParam, citySlug } = await params;

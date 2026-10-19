@@ -4,13 +4,44 @@ import { STOCK_FAQS } from '@/lib/seo/faqs';
 import { getStocksList } from '@/features/stocks/api';
 import StocksScreener from '@/features/stocks/components/StocksScreener';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
+
+export const revalidate = 300;
+
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const query = await searchParams;
   const country = typeof query.country === 'string' ? query.country : 'India';
   const canonical = country === 'India' ? '/stocks' : '/stocks?' + new URLSearchParams({ country });
-  return { title: country + ' Stock Screener, Share Prices & Financial Ratios', alternates: { canonical },
+  const title = `${country} Stock Screener, Share Prices & Financial Ratios`;
+  const description = `Screen ${country} stocks, analyse financial statements, valuation metrics, price charts, and AAOIFI Shariah compliance on WeeStox.`;
+  const ogImageUrl = `${SITE_URL}/og-image.png`;
+  return {
+    title,
+    description,
+    alternates: { canonical },
     robots: query.search ? { index: false, follow: true } : { index: true, follow: true },
+    openGraph: {
+      type: 'website',
+      url: canonical,
+      title,
+      description,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${country} Stock Screener - WeeStox`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
+    },
   };
 }
 export default async function StocksPage({ searchParams }: Props) {

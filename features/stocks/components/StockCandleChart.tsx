@@ -21,7 +21,7 @@ interface StockCandleChartProps {
   loading?: boolean;
   range?: string;
   chartRanges?: readonly { label: string; range: string; interval: string }[];
-  onRangeChange?: (range: any) => void;
+  onRangeChange?: (range: string) => void;
   performance?: {
     return_1w_pct?: number | null;
     return_1m_pct?: number | null;
@@ -341,10 +341,11 @@ export default function StockCandleChart({
             <ComposedChart
               data={chartData}
               margin={{ top: 12, right: 38, left: -22, bottom: 4 }}
-              onMouseMove={(e: any) => {
-                const payload = e?.activePayload?.[0]?.payload;
+              onMouseMove={(state) => {
+                const nextState = state as { activePayload?: Array<{ payload?: StockCandle }> } | undefined;
+                const payload = nextState?.activePayload?.[0]?.payload;
                 if (payload) {
-                  setHoveredData(payload as StockCandle);
+                  setHoveredData(payload);
                 }
               }}
               onMouseLeave={() => setHoveredData(null)}

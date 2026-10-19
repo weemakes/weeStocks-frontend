@@ -4,11 +4,7 @@ import { IPO_FAQS } from '@/lib/seo/faqs';
 import { notFound } from 'next/navigation';
 import { IPOApiError } from '@/features/ipo/api';
 import {
-  ArrowLeft,
   Calendar,
-  TrendingUp,
-  ArrowUp,
-  ArrowDown,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -17,10 +13,7 @@ import {
   ExternalLink,
   Building2,
   Coins,
-  DollarSign,
-  Percent,
   Check,
-  X,
   Phone,
   Mail,
   Globe,
@@ -32,7 +25,6 @@ import {
   Download,
   PieChart,
   BookOpen,
-  ChevronRight,
 } from 'lucide-react';
 import { getIPODetail, getIPOGmpHistory } from '@/features/ipo/api';
 import type { Metadata } from 'next';
@@ -53,6 +45,8 @@ interface IPODetailPageProps {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
 
+export const revalidate = 300;
+
 export async function generateMetadata({ params }: IPODetailPageProps): Promise<Metadata> {
   const { companyName } = await params;
   const decodedSlug = decodeURIComponent(companyName);
@@ -67,6 +61,7 @@ export async function generateMetadata({ params }: IPODetailPageProps): Promise<
       ? `${name} IPO Listing Details, GMP History & Subscription`
       : `${name} IPO GMP, Subscription & Allotment Status`;
     const description = `${gmp ? `${name} IPO GMP: ${gmp}.` : `${name} IPO details.`} ${allotment} Explore subscription, GMP history, dates, price band and financials.`;
+    const ogImageUrl = data.profile.logo_url || `${SITE_URL}/og-image.png`;
     return {
       title,
       description,
@@ -76,9 +71,21 @@ export async function generateMetadata({ params }: IPODetailPageProps): Promise<
         url: canonical,
         title,
         description,
-        images: data.profile.logo_url ? [{ url: data.profile.logo_url, alt: `${name} logo` }] : undefined,
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: `${name} IPO GMP & Details`,
+          },
+        ],
       },
-      twitter: { card: 'summary', title, description },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [ogImageUrl],
+      },
     };
   } catch (error) {
     if (error instanceof IPOApiError && error.status === 404) notFound();
@@ -148,7 +155,6 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
       strengths,
       risks,
       broker_reviews,
-      peer_comparison,
       anchor_investor,
       halal_screening,
       is_allotment_out,
@@ -191,18 +197,6 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
       ],
     };
 
-    // Deduplicate subscription categories
-    const uniqueSubscriptions = subscriptions
-      ? Array.from(new Map(subscriptions.map((item) => [item.category, item])).values())
-      : [];
-
-    // Total issue shares calculation
-    const totalIssueShares = issue_details?.fresh_issue_shares
-      ? issue_details.fresh_issue_shares + (issue_details.ofs_shares || 0)
-      : issue_details?.total_issue_amount_cr && upperPrice
-      ? Math.round((issue_details.total_issue_amount_cr * 10000000) / upperPrice)
-      : null;
-
     return (
       <div className="bg-canvas min-h-screen py-6 md:py-8 pb-8 text-body">
         <script
@@ -231,6 +225,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
                 {profile.logo_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img
                     src={profile.logo_url}
                     alt={profile.company_name}

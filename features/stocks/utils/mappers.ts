@@ -1,4 +1,4 @@
-import { StockItem, StockListItem, ComplianceStatus, StockCountry } from '../types';
+import { StockItem, StockListItem, ComplianceStatus } from '../types';
 
 export function getCurrencySymbol(countryOrCurrency?: string): string {
   if (!countryOrCurrency) return '₹';
@@ -14,21 +14,21 @@ export function formatCurrencyAmount(amount: number | undefined | null, currency
   return `${currencySymbol}${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 }
 
-export function formatSafeNumber(val: any, decimals = 2, fallback = '—'): string {
+export function formatSafeNumber(val: unknown, decimals = 2, fallback = '—'): string {
   if (val === undefined || val === null || val === '') return fallback;
   const num = typeof val === 'number' ? val : parseFloat(String(val));
   if (isNaN(num)) return fallback;
   return num.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
-export function formatSafePrice(val: any, currencySymbol: string = '', decimals = 2, fallback = '—'): string {
+export function formatSafePrice(val: unknown, currencySymbol: string = '', decimals = 2, fallback = '—'): string {
   if (val === undefined || val === null || val === '') return fallback;
   const num = typeof val === 'number' ? val : parseFloat(String(val));
   if (isNaN(num)) return fallback;
   return `${currencySymbol}${num.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
-export function formatSafePct(val: any, withPlus = true, fallback = '—'): string {
+export function formatSafePct(val: unknown, withPlus = true, fallback = '—'): string {
   if (val === undefined || val === null || val === '') return fallback;
   const num = typeof val === 'number' ? val : parseFloat(String(val));
   if (isNaN(num)) return fallback;
@@ -36,7 +36,7 @@ export function formatSafePct(val: any, withPlus = true, fallback = '—'): stri
   return `${sign}${num.toFixed(2)}%`;
 }
 
-export function formatSafeVolume(val: any, fallback = '—'): string {
+export function formatSafeVolume(val: unknown, fallback = '—'): string {
   if (val === undefined || val === null || val === '') return fallback;
   const num = typeof val === 'number' ? val : parseFloat(String(val));
   if (isNaN(num)) return fallback;
@@ -107,8 +107,10 @@ export function mapBackendStockToStockItem(item: StockListItem, countryCode?: st
     halalScore = 20;
   }
 
-  const currencySym = getCurrencySymbol(item.country || item.currency);
-  let latestPrice = Number(item.latest_price || (item as any).price || (item as any).current_price || (item as any).close || 0);
+  const effectiveCountry = item.country || countryCode;
+  const currencySym = getCurrencySymbol(effectiveCountry || item.currency);
+  const rawItem = item as unknown as Record<string, unknown>;
+  let latestPrice = Number(item.latest_price || rawItem.price || rawItem.current_price || rawItem.close || 0);
   if (!latestPrice && item.metrics?.pe_ratio && item.metrics?.eps) {
     const est = Number(item.metrics.pe_ratio) * Number(item.metrics.eps);
     if (est > 0) {
@@ -122,7 +124,7 @@ export function mapBackendStockToStockItem(item: StockListItem, countryCode?: st
     name: item.company_name,
     logo_url: item.logo_url || null,
     exchange: item.exchange,
-    country: item.country,
+    country: effectiveCountry,
     currency: item.currency,
     currencySymbol: currencySym,
     sector: item.sector || 'Diversified',

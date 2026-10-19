@@ -11,7 +11,6 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  ArrowRight,
   Coins,
   Gem,
   Layers,
@@ -19,7 +18,6 @@ import {
   Calculator,
   BookOpen,
   Home,
-  Sparkles,
 } from 'lucide-react';
 import ThemeToggle from '../theme/ThemeToggle';
 
@@ -60,7 +58,7 @@ export default function Navigation() {
 
           <div className="overflow-hidden whitespace-nowrap flex-1 ml-2.5 sm:ml-3 relative">
             <div className="flex items-center gap-6 animate-ticker">
-              {MARKET_TICKER.concat(MARKET_TICKER).map((item, idx) => (
+              {[...MARKET_TICKER, ...MARKET_TICKER].map((item, idx) => (
                 <div key={`${item.name}-${idx}`} className="inline-flex items-center gap-1.5 shrink-0">
                   <span className="font-semibold text-slate-700 dark:text-slate-300">{item.name}</span>
                   <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">{item.value}</span>
@@ -168,7 +166,7 @@ export default function Navigation() {
 
                     {/* Gold Price Today */}
                     <Link
-                      href="/gold"
+                      href="/gold/delhi"
                       onClick={() => setActiveDropdown(null)}
                       className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-amber-500/10 dark:hover:bg-amber-500/15 transition-all cursor-pointer"
                     >
@@ -182,7 +180,7 @@ export default function Navigation() {
 
                     {/* Silver Price Today */}
                     <Link
-                      href="/silver"
+                      href="/silver/delhi"
                       onClick={() => setActiveDropdown(null)}
                       className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-all cursor-pointer"
                     >
@@ -196,7 +194,7 @@ export default function Navigation() {
 
                     {/* Platinum Price Today */}
                     <Link
-                      href="/platinum"
+                      href="/platinum/delhi"
                       onClick={() => setActiveDropdown(null)}
                       className="group flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-cyan-500/10 dark:hover:bg-cyan-500/15 transition-all cursor-pointer"
                     >
@@ -350,7 +348,7 @@ export default function Navigation() {
                 </span>
               </div>
               <Link
-                href="/gold"
+                href="/gold/delhi"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
                   isActive('/gold')
@@ -364,7 +362,7 @@ export default function Navigation() {
                 <span>Gold Price Today</span>
               </Link>
               <Link
-                href="/silver"
+                href="/silver/delhi"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
                   isActive('/silver')
@@ -378,7 +376,7 @@ export default function Navigation() {
                 <span>Silver Price Today</span>
               </Link>
               <Link
-                href="/platinum"
+                href="/platinum/delhi"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
                   isActive('/platinum')

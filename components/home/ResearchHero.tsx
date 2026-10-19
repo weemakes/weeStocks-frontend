@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Calculator, Coins, Rocket, ShieldCheck, TrendingUp } from 'lucide-react';
@@ -118,6 +119,18 @@ export default function ResearchHero({ data }: { data: MarketPulseData }) {
   const chartEntrance = useEntrance(`${stock.symbol}:${points.length}`, visible && points.length > 1);
   const href = `/stocks/${encodeURIComponent(stock.symbol)}?country=${encodeURIComponent(stock.country || 'India')}`;
   return <section ref={hero} style={{ minHeight: `calc(100svh - ${headerHeight}px)` }} className={styles.hero} aria-label="Market research introduction">
+    <div className={styles.bgGraphic} aria-hidden="true">
+      <Image
+        src="/hero-bg.webp"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        quality={80}
+        className={styles.bgImage}
+      />
+      <div className={styles.bgOverlay} />
+    </div>
     <div className={styles.main}>
       <div className={styles.copy}><h1>Research markets<br />with clarity. <span>Invest<br className={styles.desktopBreak} /> with confidence.</span></h1><p>Discover Halal and ethical investment opportunities with clear Shariah screening, market research and current financial data.</p><GlobalMarketSearch /><div className={styles.actions}><Link href="/stocks" className={styles.primary}>Explore Screener →</Link><Link href="/about">Our methodology <ShieldCheck size={13} /></Link></div></div>
       <div className={styles.dashboard}>

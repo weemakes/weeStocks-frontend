@@ -24,8 +24,11 @@ export default function StockCountrySelector({
           <button
             key={c.code}
             type="button"
+            disabled={isLoading}
             onClick={() => onSelectCountry(c.country)}
             className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              isLoading ? 'opacity-70 cursor-not-allowed' : ''
+            } ${
               isSelected
                 ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-sky-400 shadow-2xs font-bold ring-1 ring-sky-500/20'
                 : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'

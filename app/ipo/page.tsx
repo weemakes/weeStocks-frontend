@@ -3,11 +3,6 @@ import PageFaq from '@/components/seo/PageFaq';
 import { IPO_FAQS } from '@/lib/seo/faqs';
 import {
   Banknote,
-  Download,
-  Rocket,
-  Clock,
-  ArrowUp,
-  ArrowDown,
   ShieldCheck,
   AlertTriangle,
   ChevronRight,
@@ -29,6 +24,8 @@ interface IPOPageProps {
   searchParams: Promise<IPOQueryParams>;
 }
 
+export const revalidate = 300;
+
 export async function generateMetadata({ searchParams }: IPOPageProps): Promise<Metadata> {
   const params = await searchParams;
   const status = typeof params.status === 'string' && params.status !== 'all' ? params.status : null;
@@ -43,14 +40,33 @@ export async function generateMetadata({ searchParams }: IPOPageProps): Promise<
   const title = `${qualifier ? `${qualifier} IPOs — ` : ''}IPO GMP, Subscription & Allotment Updates`;
   const description = 'Track Indian IPO GMP, subscription demand, allotment updates, dates and lot sizes. Explore company financials and historical GMP.';
   const hasNonCanonicalFilter = Boolean(params.search || params.sort || params.halal || params.snapshot_date || params.type);
+  const ogImageUrl = `${SITE_URL}/og-image.png`;
 
   return {
     title,
     description,
     alternates: { canonical },
     robots: hasNonCanonicalFilter ? { index: false, follow: true } : { index: true, follow: true },
-    openGraph: { type: 'website', url: canonical, title, description },
-    twitter: { card: 'summary', title, description },
+    openGraph: {
+      type: 'website',
+      url: canonical,
+      title,
+      description,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: 'WeeStox IPO Grey Market Premium (GMP) & Updates',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
+    },
   };
 }
 
