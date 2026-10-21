@@ -175,7 +175,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd).replace(/</g, '\\u003c') }}
       />
-      <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1740px] px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Breadcrumb & Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div>

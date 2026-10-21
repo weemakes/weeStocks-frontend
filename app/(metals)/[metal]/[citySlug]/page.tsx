@@ -166,7 +166,7 @@ export default async function MetalCityPage({ params }: MetalCityPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-[1740px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center justify-between gap-4 mb-4 text-xs text-muted">
           <div className="flex items-center gap-1.5 flex-wrap">

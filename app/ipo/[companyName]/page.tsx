@@ -35,6 +35,8 @@ import {
   StrengthsRisksSection,
   GMPDisclaimer,
   GMPHistorySection,
+  IPODetailStickyNav,
+  type IPONavItem,
 } from '@/features/ipo/components';
 
 interface IPODetailPageProps {
@@ -174,6 +176,19 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
     const sHniMaxLots = Math.max(sHniMinLots, Math.floor(1000000 / (lotSize * upperPrice)));
     const bHniMinLots = sHniMaxLots + 1;
 
+    // Verified total subscription calculation (prioritizing consolidated live bidding breakdown over stale GMP tracker snapshot)
+    const totalRowInShares = subscription_summary?.by_shares?.find((s) => s.category?.toLowerCase()?.includes('total'));
+    const totalRowInSubs = subscriptions?.find((s) => s.category?.toLowerCase()?.includes('total'));
+    const verifiedTotalTimes: number | null = totalRowInShares?.times != null && Number(totalRowInShares.times) > 0
+      ? Number(totalRowInShares.times)
+      : totalRowInSubs?.subscription_times != null && Number(totalRowInSubs.subscription_times) > 0
+      ? Number(totalRowInSubs.subscription_times)
+      : gmp?.subscription_times ?? null;
+
+    const verifiedTotalDisplay: string | null = verifiedTotalTimes != null
+      ? `${Number(verifiedTotalTimes).toFixed(2)}x`
+      : gmp?.subscription_display || null;
+
     const canonicalUrl = `${SITE_URL}/ipo/${encodeURIComponent(profile.slug)}`;
     const jsonLd = {
       '@context': 'https://schema.org',
@@ -197,13 +212,37 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
       ],
     };
 
+    const navItems: IPONavItem[] = [
+      { id: 'market-data', label: 'GMP History', tone: 'amber', badge: 'Live' },
+      { id: 'subscription', label: 'Live Subscription', tone: 'emerald', badge: verifiedTotalDisplay || undefined },
+      { id: 'issue-details', label: 'Details & Timeline' },
+      { id: 'reservation', label: 'Reservation & Anchor' },
+      { id: 'lotsize', label: 'Lot Sizes' },
+      ...(broker_reviews && broker_reviews.length > 0
+        ? [{ id: 'broker-reviews', label: 'Broker Reviews', tone: 'emerald' as const }]
+        : []),
+      ...(financials && financials.length > 0
+        ? [{ id: 'financials', label: 'Financials' }]
+        : []),
+      ...(kpi ? [{ id: 'kpi', label: 'Valuation & KPIs' }] : []),
+      ...(strengths?.length || risks?.length
+        ? [{ id: 'strengths-risks', label: 'Strengths & Risks' }]
+        : []),
+      { id: 'about', label: 'About Company' },
+      ...(halal_screening
+        ? [{ id: 'halal', label: 'Shariah Audit', tone: 'emerald' as const }]
+        : []),
+      { id: 'documents', label: 'Documents' },
+      { id: 'contact', label: 'Registrar & Leads' },
+    ];
+
     return (
       <div className="bg-canvas min-h-screen py-6 md:py-8 pb-8 text-body">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
-        <div className="container mx-auto">
+        <div className="w-full max-w-[1740px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
           {/* Breadcrumb Navigation */}
           <div className="flex items-center justify-between gap-4 mb-3 text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -335,35 +374,10 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
                 </div>
               </div>
             </div>
-
-            {/* In-Page Jump Links */}
-            <div className="flex items-center gap-2 pt-4 mt-4 border-t border-slate-200 dark:border-slate-800/80 overflow-x-auto no-scrollbar text-xs">
-              <span className="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] shrink-0">Jump To:</span>
-              <a href="#issue-details" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">Details &amp; Timeline</a>
-              <a href="#reservation" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">Reservation &amp; Anchor</a>
-              <a href="#lotsize" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">Lot Sizes &amp; Promoter</a>
-              {broker_reviews && broker_reviews.length > 0 && (
-                <a href="#broker-reviews" className="px-2.5 py-1 rounded bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap font-semibold">Broker Reviews</a>
-              )}
-              <a href="#market-data" className="px-2.5 py-1 rounded bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 border border-amber-200 dark:border-amber-500/30 whitespace-nowrap font-semibold">Market Data (GMP)</a>
-              <a href="#subscription" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">Subscription &amp; Funding</a>
-              {Boolean(strengths?.length || risks?.length) && (
-                <a href="#strengths-risks" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">
-                  {strengths?.length && risks?.length
-                    ? 'Strengths & Risks'
-                    : strengths?.length
-                    ? 'Strengths & Positives'
-                    : 'Key Risks & Concerns'}
-                </a>
-              )}
-              <a href="#financials" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">Financials</a>
-              <a href="#kpi" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">KPIs</a>
-              <a href="#about" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">About Company</a>
-              <a href="#halal" className="px-2.5 py-1 rounded bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap font-semibold">Shariah Audit</a>
-              <a href="#documents" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">Documents</a>
-              <a href="#contact" className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 whitespace-nowrap">Registrar &amp; Leads</a>
-            </div>
           </div>
+
+          {/* Sticky Navigation Bar for In-Page Section Links */}
+          <IPODetailStickyNav items={navItems} />
 
           {/* SEBI Compliance / Educational Disclaimer */}
           <GMPDisclaimer className="mb-5" />
@@ -426,7 +440,7 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 text-left shadow-xs">
               <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mb-1">Total Subscription</span>
               <div className="text-xl font-bold text-sky-600 dark:text-sky-400 tabular-nums">
-                {gmp?.subscription_display || (gmp?.subscription_times ? `${gmp.subscription_times}x` : '–')}
+                {verifiedTotalDisplay || '–'}
               </div>
               <div className="text-[10px] text-slate-500 mt-1">
                 Anchor: {gmp?.anchor_investor || (anchor_investor ? 'Yes' : 'No')}
@@ -436,6 +450,18 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
 
           <div className="space-y-6">
             <GMPHistorySection slug={profile.slug} companyName={profile.company_name} rating={gmp?.rating ?? 1} data={historyResponse?.data ?? null} lotSize={issue_details?.lot_size} />
+
+            {/* FULL WIDTH: Live Subscription Status & Demand Breakdown (Placed immediately below GMP History) */}
+            <SubscriptionTabsSection
+              companyName={profile.company_name}
+              slug={profile.slug}
+              ipoId={profile.id}
+              subscriptions={subscriptions}
+              subscriptionSummary={subscription_summary}
+              overallTimes={verifiedTotalTimes}
+              overallDisplay={verifiedTotalDisplay}
+              fundingInterestCost={funding_interest_cost}
+            />
             {/* ========================================================================= */}
             {/* ROW 1: TWO TABLES SIDE-BY-SIDE (Chittorgarh Style)                        */}
             {/* Left: IPO Details | Right: IPO Timeline (Timetable)                       */}
@@ -905,18 +931,6 @@ export default async function IPODetailPage({ params }: IPODetailPageProps) {
             <BrokerConsensusSection
               companyName={profile.company_name}
               brokerReviews={broker_reviews}
-            />
-
-            {/* ========================================================================= */}
-            {/* FULL WIDTH: Comprehensive Subscription Tabs & HNI Funding Cost            */}
-            {/* ========================================================================= */}
-            <SubscriptionTabsSection
-              companyName={profile.company_name}
-              subscriptions={subscriptions}
-              subscriptionSummary={subscription_summary}
-              overallTimes={gmp?.subscription_times}
-              overallDisplay={gmp?.subscription_display}
-              fundingInterestCost={funding_interest_cost}
             />
 
             {/* ========================================================================= */}

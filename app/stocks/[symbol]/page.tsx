@@ -68,7 +68,7 @@ export default async function StockDetailPage(props: Props) {
       { '@context': 'https://schema.org', '@type': 'WebPage', name: `${detail.company.name} Share Price & Financials`, url: `${SITE_URL}${canonical}` },
       ...(detail.investor_faqs?.length ? [getFaqSchema(detail.investor_faqs)] : []),
     ]} />
-    <div className="mx-auto max-w-[1500px] px-3 py-3 sm:px-6 sm:py-5">
+    <div className="mx-auto max-w-[1740px] px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
       <nav aria-label="Breadcrumb" className="mb-3 text-sm text-muted">
         <Link href="/stocks" className="text-accent">Stocks</Link> / {detail.company.name}
       </nav>

@@ -48,7 +48,7 @@ export default function Navigation() {
     <header data-site-header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
       {/* 1. Real-Time Streaming Market Ticker Tape Carousel */}
       <div className="bg-slate-100/90 dark:bg-slate-900/90 border-b border-slate-200/70 dark:border-slate-800/70 text-[11px] py-1 overflow-hidden select-none">
-        <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="mx-auto max-w-[1740px] px-4 sm:px-6 lg:px-8 xl:px-12 flex items-center justify-between">
           <div className="flex items-center gap-1.5 shrink-0 pr-2.5 sm:pr-3 border-r border-slate-200 dark:border-slate-800">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -77,7 +77,7 @@ export default function Navigation() {
       </div>
 
       {/* 2. Main Navigation Bar - Unified Institutional Header */}
-      <div className="mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1740px] px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="flex items-center justify-between h-16 sm:h-[72px] gap-3">
           {/* Brand Logo */}
           <Link
