@@ -1,414 +1,167 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
-import {
-  TrendingUp,
-  ShieldCheck,
-  ChevronRight,
-  ChevronLeft,
-  RotateCcw,
-  Loader2,
-} from 'lucide-react';
-import {
-  StockItem,
-  ComplianceStatus,
-  StockCountry,
-  StockListItem,
-  StockListResponse,
-} from '@/features/stocks/types';
-import {
-  StockCountrySelector,
-  StockFilterBar,
-  StockTableView,
-  StockCardView,
-  StockDetailModal,
-} from '@/features/stocks/components';
-import { getAvailableCountries, getStocksList } from '@/features/stocks/api';
-import { mapBackendStockToStockItem } from '@/features/stocks/utils/mappers';
+import { useSearchParams } from 'next/navigation';
+import { Activity, Filter, LayoutGrid, List, Loader2, Search, TrendingDown, TrendingUp } from 'lucide-react';
+import { getAvailableCountries, getFiltersConfig, getMarketMovers, getStocksList, type StockListParams } from '../api';
+import type { MarketMoverItem, StockCountry, StockFiltersConfig, StockItem, StockListResponse } from '../types';
+import { formatSafePct, formatSafeVolume, mapBackendStockToStockItem } from '../utils/mappers';
+import StockGlance, { type ChartPeriod } from './StockGlance';
+import Select from '@/components/ui/Select';
+import styles from './StocksBrowser.module.css';
 
-
-function StocksPageContent({ initialData, initialCountry }: { initialData: StockListResponse; initialCountry: string }) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  // Country State
-  const [countries, setCountries] = useState<StockCountry[]>([]);
-  const countryFromUrl = searchParams.get('country');
-  const [selectedCountry, setSelectedCountry] = useState<string>(countryFromUrl || initialCountry);
-  const [loadingCountries, setLoadingCountries] = useState(false);
-
-  // Screener Filters & Pagination
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedSector, setSelectedSector] = useState('All');
-  const [selectedMarketTier, setSelectedMarketTier] = useState('All');
-  const [selectedHalalStatus, setSelectedHalalStatus] = useState<'ALL' | 'HALAL' | 'NON_HALAL' | 'DOUBTFUL'>('ALL');
-  const [activePreset, setActivePreset] = useState('all');
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
-  const [sortField, setSortField] = useState<string>('market_cap');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
-  const [page, setPage] = useState(1);
-  const [limit] = useState(20);
-
-  // Data States
-  const [stocks, setStocks] = useState<StockItem[]>(() => initialData.data.map((item) => mapBackendStockToStockItem(item, initialCountry)));
-  const [totalStocks, setTotalStocks] = useState(initialData.meta.total);
-  const [totalPages, setTotalPages] = useState(initialData.meta.totalPages);
-  const [loadingStocks, setLoadingStocks] = useState(false);
-  const [backendError, setBackendError] = useState<string | null>(null);
-
-  // Modal State
-  const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
-
-  // The server wrapper remounts the screener when the URL country changes.
-
-  // Debounce search query
+type MoverType = 'gainers' | 'losers' | 'active';
+const groups = [{ type: 'gainers' as const, label: 'Top gainers', icon: TrendingUp }, { type: 'losers' as const, label: 'Top losers', icon: TrendingDown }, { type: 'active' as const, label: 'Most active', icon: Activity }];
+function Movers({ country, onSelect }: { country: string; onSelect: (preset: string) => void }) {
+  const [data, setData] = useState<Partial<Record<MoverType, MarketMoverItem[]>>>({});
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<MoverType>('gainers');
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Load available countries on mount
-  useEffect(() => {
-    let isMounted = true;
-    async function loadCountries() {
-      setLoadingCountries(true);
-      try {
-        const list = await getAvailableCountries();
-        if (isMounted && list.length > 0) {
-          setCountries(list);
-          if (!countryFromUrl) {
-            const hasIndia = list.find((c) => c.code === 'IN' || c.country.toLowerCase() === 'india');
-            if (hasIndia) {
-              setSelectedCountry(hasIndia.country);
-            } else if (list.length > 0) {
-              setSelectedCountry(list[0].country);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load countries:', err);
-      } finally {
-        if (isMounted) setLoadingCountries(false);
-      }
-    }
-    loadCountries();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Fetch stocks when country, search, sector, tier, halalStatus, preset, sort or page changes
-  const fetchStocks = useCallback(async () => {
-    setLoadingStocks(true);
-    setBackendError(null);
-
-    try {
-      const response = await getStocksList({
-        country: selectedCountry,
-        search: debouncedSearch,
-        q: debouncedSearch,
-        sector: selectedSector !== 'All' ? selectedSector : undefined,
-        preset: activePreset !== 'all' ? activePreset : undefined,
-        halal_status: selectedHalalStatus !== 'ALL' ? selectedHalalStatus : undefined,
-        sort_by: sortField,
-        sort_order: sortOrder,
-        page,
-        limit,
-      });
-
-      if (response && response.data && Array.isArray(response.data)) {
-        let mapped = response.data.map((item) => mapBackendStockToStockItem(item, selectedCountry));
-
-        if (selectedMarketTier !== 'All') {
-          mapped = mapped.filter((s) => s.trader_indicators?.market_tier === selectedMarketTier);
-        }
-
-        setStocks(mapped);
-        setTotalStocks(response.meta?.total ?? mapped.length);
-        setTotalPages(response.meta?.totalPages ?? Math.max(1, Math.ceil((response.meta?.total ?? mapped.length) / limit)));
-      } else {
-        throw new Error('Invalid response structure');
-      }
-    } catch (err: unknown) {
-      console.error('Stocks request failed:', err);
-      setBackendError('Stock data is temporarily unavailable. Please try again shortly.');
-    } finally {
-      setLoadingStocks(false);
-    }
-  }, [
-    selectedCountry,
-    debouncedSearch,
-    selectedSector,
-    selectedMarketTier,
-    selectedHalalStatus,
-    activePreset,
-    sortField,
-    sortOrder,
-    page,
-    limit,
-  ]);
-
-  useEffect(() => {
-    const request = setTimeout(() => void fetchStocks(), 0);
-    return () => clearTimeout(request);
-  }, [fetchStocks]);
-
-  // Country Switch Handler
-  const handleSelectCountry = (country: string) => {
-    setSelectedCountry(country);
-    setPage(1);
-    setSelectedSector('All');
-    setSelectedMarketTier('All');
-    setSelectedHalalStatus('ALL');
-    setSearchQuery('');
-    setActivePreset('all');
-  };
-
-  // Preset Switch Handler
-  const handleSelectPreset = (preset: string) => {
-    setActivePreset(preset);
-    setPage(1);
-  };
-
-  // Reset all filters
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    setSelectedSector('All');
-    setSelectedMarketTier('All');
-    setSelectedHalalStatus('ALL');
-    setActivePreset('all');
-    setPage(1);
-  };
-
-  // Handle Sort Change
-  const handleSort = (field: string, order?: 'ASC' | 'DESC') => {
-    if (order) {
-      setSortOrder(order);
-      setSortField(field);
-    } else if (sortField === field) {
-      setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
-    } else {
-      setSortField(field);
-      setSortOrder('DESC');
-    }
-    setPage(1);
-  };
-
-  // Navigate to dedicated analysis page
-  const handleSelectStock = (stock: StockItem) => {
-    router.push(`/stocks/${encodeURIComponent(stock.symbol)}?country=${encodeURIComponent(selectedCountry)}`);
-  };
-
-  return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pt-1 sm:pt-2 pb-16 transition-colors">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        {backendError && <p role="status" className="mb-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">{backendError}</p>}
-        {/* Terminal Header with Market Switcher */}
-        <header className="mb-3">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-            <div>
-              {/* Breadcrumb */}
-              <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 mb-0.5">
-                <Link href="/" className="hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
-                  Home
-                </Link>
-                <ChevronRight className="w-3 h-3 text-slate-400 dark:text-slate-600" />
-                <span className="text-slate-800 dark:text-slate-200 font-medium">Equities Screener</span>
-              </nav>
-
-              {/* Title & Badge */}
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" />
-                  <span>{selectedCountry} Stock Screener</span>
-                </h1>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  <ShieldCheck className="w-3 h-3" />
-                  AAOIFI Standard 21
-                </span>
-              </div>
-            </div>
-
-            {/* Country / Market Switcher */}
-            <div className="shrink-0 self-start md:self-auto">
-              <StockCountrySelector
-                countries={countries}
-                selectedCountry={selectedCountry}
-                onSelectCountry={handleSelectCountry}
-                isLoading={loadingCountries}
-              />
-            </div>
-          </div>
-        </header>
-
-        {/* Master Screener Terminal Workspace (Presets + Filters + Table/Cards in ONE Clean Surface) */}
-        <div className="rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-slate-900 shadow-sm overflow-hidden mb-6">
-          {/* Integrated Screener Command Bar & Filters */}
-          <StockFilterBar
-            country={selectedCountry}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedSector={selectedSector}
-            onSectorChange={(sec) => {
-              setSelectedSector(sec);
-              setPage(1);
-            }}
-            selectedMarketTier={selectedMarketTier}
-            onMarketTierChange={(tier) => {
-              setSelectedMarketTier(tier);
-              setPage(1);
-            }}
-            selectedHalalStatus={selectedHalalStatus}
-            onHalalStatusChange={(status) => {
-              setSelectedHalalStatus(status);
-              setPage(1);
-            }}
-            sortField={sortField}
-            sortOrder={sortOrder}
-            onSortChange={handleSort}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            activePreset={activePreset}
-            onSelectPreset={handleSelectPreset}
-            onResetFilters={handleResetFilters}
-            totalFilteredCount={totalStocks}
-            isLoading={loadingStocks}
-          />
-
-          {/* Screener Listings (Terminal Table or Cards View) */}
-          {loadingStocks ? (
-            <div className="p-10 text-center">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 mb-3">
-                <Loader2 className="w-5 h-5 animate-spin" />
-              </div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Loading {selectedCountry} equities...
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                Screening real-time market data against AAOIFI balance-sheet debt and liquidity thresholds
-              </p>
-              {/* Shimmer Rows */}
-              <div className="mt-6 divide-y divide-slate-100 dark:divide-slate-800/80 space-y-2.5 max-w-2xl mx-auto">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between gap-4 py-2 animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-800 shrink-0" />
-                      <div className="space-y-1.5 text-left">
-                        <div className="w-24 h-3 bg-slate-200 dark:bg-slate-800 rounded" />
-                        <div className="w-36 h-2 bg-slate-100 dark:bg-slate-850 rounded" />
-                      </div>
-                    </div>
-                    <div className="w-16 h-3 bg-slate-200 dark:bg-slate-800 rounded" />
-                    <div className="w-16 h-3 bg-slate-200 dark:bg-slate-800 rounded" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : viewMode === 'table' ? (
-            <StockTableView
-              stocks={stocks}
-              sortField={sortField}
-              sortDirection={sortOrder}
-              onSort={(f) => handleSort(f)}
-              onSelectStock={handleSelectStock}
-            />
-          ) : (
-            <div className="p-4 sm:p-5 bg-slate-50/30 dark:bg-slate-950/30">
-              <StockCardView stocks={stocks} onSelectStock={handleSelectStock} />
-            </div>
-          )}
-
-          {/* Integrated Pagination Ribbon */}
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-slate-50/80 dark:bg-slate-950/70 border-t border-slate-200/80 dark:border-slate-800/80 transition-colors">
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                Page <strong className="text-slate-900 dark:text-slate-100 font-bold">{page}</strong> of{' '}
-                <strong className="text-slate-900 dark:text-slate-100 font-bold">{totalPages}</strong> (
-                {totalStocks.toLocaleString()} total {selectedCountry} equities)
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1 || loadingStocks}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>Prev</span>
-                </button>
-
-                <div className="hidden sm:flex items-center gap-1">
-                  {[...Array(Math.min(5, totalPages))].map((_, idx) => {
-                    let pageNum: number;
-                    if (totalPages <= 5) {
-                      pageNum = idx + 1;
-                    } else if (page <= 3) {
-                      pageNum = idx + 1;
-                    } else if (page >= totalPages - 2) {
-                      pageNum = totalPages - 4 + idx;
-                    } else {
-                      pageNum = page - 2 + idx;
-                    }
-
-                    return (
-                      <button
-                        key={pageNum}
-                        type="button"
-                        onClick={() => setPage(pageNum)}
-                        className={`w-8 h-8 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                          page === pageNum
-                            ? 'bg-sky-600 text-white shadow-xs'
-                            : 'border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages || loadingStocks}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Master Stock Detail Modal */}
-        <StockDetailModal
-          stock={selectedStock}
-          onClose={() => setSelectedStock(null)}
-          onSelectStock={setSelectedStock}
-        />
-      </div>
-    </main>
-  );
+    let current = true;
+    void Promise.all(groups.map(async group => [group.type, await getMarketMovers(country, group.type, 5)] as const)).then(results => {
+      if (current) { setData(Object.fromEntries(results)); setLoading(false); }
+    });
+    return () => { current = false; };
+  }, [country]);
+  return <section className={styles.movers} aria-label={`${country} market movers`}>
+    <div className={styles.sectionHeading}><h2>Market movers</h2><span>Latest available market data</span></div>
+    <div className={styles.moverTabs}>{groups.map(group => <button key={group.type} aria-pressed={tab === group.type} onClick={() => setTab(group.type)}>{group.label}</button>)}</div>
+    <div className={styles.moverGrid}>{groups.map(group => <article key={group.type} className={`${styles.mover} ${tab === group.type ? styles.activeMover : ''}`}>
+      <h3><group.icon size={14} />{group.label}</h3>
+      {loading ? <p className={styles.muted}>Loading…</p> : data[group.type]?.length ? <ol>{data[group.type]!.map(stock => <li key={stock.id}><Link href={`/stocks/${encodeURIComponent(stock.symbol)}?country=${encodeURIComponent(country)}`}><span>{stock.symbol}</span><b className={group.type === 'active' ? '' : Number(stock.change_percentage) >= 0 ? styles.positive : styles.negative}>{group.type === 'active' ? formatSafeVolume(stock.volume) : formatSafePct(stock.change_percentage)}</b></Link></li>)}</ol> : <p className={styles.muted}>No market data available.</p>}
+      <button className={styles.viewAll} onClick={() => onSelect(group.type === 'active' ? 'most_active' : group.type)}>View all →</button>
+    </article>)}</div>
+  </section>;
 }
 
-export default function StocksScreener({ initialData, initialCountry }: { initialData: StockListResponse; initialCountry: string }) {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-          <Loader2 className="w-8 h-8 animate-spin text-sky-600 dark:text-sky-400" />
-        </div>
-      }
-    >
-      <StocksPageContent initialData={initialData} initialCountry={initialCountry} />
-    </Suspense>
-  );
+function Browser({ initialData, initialCountry }: { initialData: StockListResponse; initialCountry: string }) {
+  const searchParams = useSearchParams();
+  const [country, setCountry] = useState(initialCountry);
+  const [countries, setCountries] = useState<StockCountry[]>([]);
+  const [config, setConfig] = useState<StockFiltersConfig | null>(null);
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [sector, setSector] = useState('All');
+  const [status, setStatus] = useState<StockListParams['halal_status']>('ALL');
+  const [preset, setPreset] = useState(searchParams.get('filter') === 'zero_debt' ? 'zero_debt' : 'all');
+  const [pe, setPe] = useState('all');
+  const [cap, setCap] = useState('all');
+  const [sort, setSort] = useState('market_cap:DESC');
+  const [view, setView] = useState<'rows' | 'cards'>('cards');
+  const [period, setPeriod] = useState<ChartPeriod>('session');
+  const [showFilters, setShowFilters] = useState(false);
+  const [stocks, setStocks] = useState<StockItem[]>(() => initialData.data.map(s => mapBackendStockToStockItem(s, initialCountry)));
+  const [total, setTotal] = useState(initialData.meta.total);
+  const [pages, setPages] = useState(initialData.meta.totalPages);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [moreError, setMoreError] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const browserRef = useRef<HTMLElement>(null);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const generation = useRef(0);
+  const busy = useRef(false);
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    const siteHeader = document.querySelector<HTMLElement>('[data-site-header]');
+    if (!siteHeader) return;
+    const alignHeader = () => browserRef.current?.style.setProperty('--dock-top', `${siteHeader.getBoundingClientRect().height}px`);
+    alignHeader();
+    const observer = new ResizeObserver(alignHeader);
+    observer.observe(siteHeader);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => { let alive = true; void getAvailableCountries().then(items => { if (alive) setCountries(items); }); return () => { alive = false; }; }, []);
+  useEffect(() => { let alive = true; void getFiltersConfig(country).then(value => { if (alive) setConfig(value); }); return () => { alive = false; }; }, [country]);
+  useEffect(() => { const timer = setTimeout(() => setDebouncedSearch(search), 300); return () => clearTimeout(timer); }, [search]);
+  const params = useMemo<StockListParams>(() => {
+    const [sort_by, sort_order] = sort.split(':');
+    return { country, search: debouncedSearch, sector: sector === 'All' ? undefined : sector, halal_status: status, preset: preset === 'all' ? undefined : preset,
+      sort_by, sort_order: sort_order as 'ASC' | 'DESC', limit: 20, pe_max: pe === 'all' ? undefined : Number(pe),
+      market_cap_min: cap === 'large' ? 200_000_000_000 : cap === 'mid' ? 50_000_000_000 : undefined,
+      market_cap_max: cap === 'small' ? 49_999_999_999 : cap === 'mid' ? 199_999_999_999 : undefined };
+  }, [country, debouncedSearch, sector, status, preset, sort, pe, cap]);
+  useEffect(() => {
+    const version = ++generation.current;
+    const controller = new AbortController();
+    busy.current = true;
+    const timer = setTimeout(() => {
+      setLoading(true); setLoadingMore(false); setError(null); setMoreError(false);
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      void getStocksList({ ...params, page: 1 }, controller.signal).then(result => {
+        if (generation.current !== version) return;
+        if (!Array.isArray(result.data)) throw new Error('Invalid stock response');
+        setStocks(result.data.map(stock => mapBackendStockToStockItem(stock, country)));
+        setTotal(result.meta.total); setPages(result.meta.totalPages); setPage(1);
+      }).catch(() => { if (!controller.signal.aborted && generation.current === version) setError('Stock data could not be loaded. Please retry.'); })
+        .finally(() => { if (generation.current === version) { busy.current = false; setLoading(false); } });
+    }, 0);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [params, country, retry]);
+  const loadMore = useCallback(async (isRetry = false) => {
+    if (busy.current || loading || page >= pages || (error && !isRetry)) return;
+    busy.current = true;
+    const version = generation.current;
+    setLoadingMore(true); setError(null); setMoreError(false);
+    try {
+      const result = await getStocksList({ ...params, page: page + 1 });
+      if (generation.current !== version) return;
+      if (!Array.isArray(result.data)) throw new Error('Invalid stock response');
+      const incoming = result.data.map(s => mapBackendStockToStockItem(s, country));
+      setStocks(previous => { const ids = new Set(previous.map(s => s.id)); return [...previous, ...incoming.filter(s => !ids.has(s.id))]; });
+      setPage(page + 1); setTotal(result.meta.total); setPages(result.meta.totalPages);
+    } catch { if (generation.current === version) { setError('More stocks could not be loaded. Retry to continue.'); setMoreError(true); } }
+    finally { if (generation.current === version) { busy.current = false; setLoadingMore(false); } }
+  }, [params, country, loading, page, pages, error]);
+  useEffect(() => {
+    const target = sentinel.current;
+    if (!target || loading || loadingMore || error || page >= pages) return;
+    const observer = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) void loadMore(); }, { root: scrollRef.current, rootMargin: '180px', threshold: 0 });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [loadMore, loading, loadingMore, error, page, pages, stocks.length]);
+  function reset() { setSearch(''); setSector('All'); setStatus('ALL'); setPreset('all'); setPe('all'); setCap('all'); setSort('market_cap:DESC'); }
+  function selectPreset(value: string) {
+    setPreset(value); setStatus('ALL');
+    setSort(value === 'gainers' ? 'change_pct:DESC' : value === 'losers' ? 'change_pct:ASC' : value === 'most_active' ? 'volume:DESC' : 'market_cap:DESC');
+  }
+  const choices = config?.sort_options?.length ? config.sort_options : [{ id: 'market_cap', label: 'Market capitalisation' }, { id: 'pe_ratio', label: 'P/E ratio' }, { id: 'volume', label: 'Volume' }];
+  return <section ref={browserRef} className={styles.browser} aria-label="Stock screener">
+    <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/">Home</Link><span>/</span><span>Stocks</span></nav>
+    <div className={styles.dock}>
+      <div className={styles.title}><h1>{country} Stock Screener</h1><span>{total.toLocaleString()} companies</span><Select className={styles.marketSelect} label="Select market" value={country} onChange={value => { setCountry(value); reset(); }} options={countries.length ? countries.map(item => ({ value: item.country, label: item.country, description: `${item.total_companies.toLocaleString()} stocks` })) : [{ value: country, label: country }]} /></div>
+      <div className={styles.toolbar}><label className={styles.search}><Search size={17} /><input aria-label="Search companies" placeholder="Search company or symbol…" value={search} onChange={e => setSearch(e.target.value)} /></label>
+        <Select className={styles.sortSelect} label="Sort stocks" value={sort} onChange={setSort} options={choices.flatMap(option => ['DESC', 'ASC'].map(order => ({ value: `${option.id}:${order}`, label: `${option.label} · ${order === 'DESC' ? 'High to low' : 'Low to high'}` })))} />
+        <button className={styles.filterButton} aria-expanded={showFilters} onClick={() => setShowFilters(v => !v)}><Filter size={14} />Filters</button>
+        <div className={styles.segment} aria-label="Chart period"><button aria-pressed={period === 'five'} onClick={() => setPeriod('five')}>5 sessions</button><button aria-pressed={period === 'session'} onClick={() => setPeriod('session')}>Latest session</button></div>
+        <div className={styles.segment} aria-label="Stock display"><button aria-pressed={view === 'rows'} onClick={() => setView('rows')}><List size={14} />Rows</button><button aria-pressed={view === 'cards'} onClick={() => setView('cards')}><LayoutGrid size={14} />Cards</button></div>
+      </div>
+      <div className={styles.presets}>{[['all', 'All stocks'], ['halal_only', '✓ Shariah compliant'], ['gainers', 'Gainers'], ['losers', 'Losers'], ['most_active', 'Most active']].map(([id, label]) => <button key={id} aria-pressed={preset === id} onClick={() => selectPreset(id)}>{label}</button>)}</div>
+    </div>
+    <div className={styles.workspace}>
+      <aside className={`${styles.sidebar} ${showFilters ? styles.filtersOpen : ''}`} aria-label="Stock filters"><h2>Refine your search</h2>
+        <div className={styles.filterField}><span>Sector</span><Select label="Sector" value={sector} onChange={setSector} options={[{ value: 'All', label: 'All sectors' }, ...(config?.sectors ?? []).map(value => ({ value, label: value }))]} /></div>
+        <div className={styles.filterField}><span>P/E ratio</span><Select label="P/E ratio" value={pe} onChange={setPe} options={[{ value: 'all', label: 'Any P/E' }, ...[5, 10, 20, 30, 50].map(value => ({ value: String(value), label: `Up to ${value}` }))]} /></div>
+        <div className={styles.filterField}><span>Market capitalisation</span><Select label="Market capitalisation" value={cap} onChange={setCap} options={[{ value: 'all', label: 'All companies' }, { value: 'large', label: 'Large cap' }, { value: 'mid', label: 'Mid cap' }, { value: 'small', label: 'Small cap' }]} /></div>
+        <div className={styles.filterField}><span>Shariah screening</span><Select label="Shariah screening" value={status || 'ALL'} onChange={value => { setStatus(value as StockListParams['halal_status']); setPreset('all'); }} options={[{ value: 'ALL', label: 'All statuses' }, { value: 'HALAL', label: 'Compliant' }, { value: 'NON_HALAL', label: 'Non-compliant' }, { value: 'DOUBTFUL', label: 'Review' }]} /></div>
+        <button className={styles.reset} onClick={reset}>Reset filters</button><p>AAOIFI Standard No. 21<br />Screening and price performance are shown separately.</p>
+      </aside>
+      <div ref={scrollRef} className={styles.scroll} data-stock-scroll role="region" aria-label="Market movers and stock results" tabIndex={0}>
+        <Movers key={country} country={country} onSelect={selectPreset} />
+        <div className={styles.sectionHeading}><h2>All stocks</h2><span aria-live="polite">{loading ? 'Updating…' : `${stocks.length} of ${total.toLocaleString()} shown`}</span></div>
+        {error && <div role="status" className={styles.error}>{error}<button onClick={() => moreError ? void loadMore(true) : setRetry(value => value + 1)}>Retry</button></div>}
+        {loading ? <div className={styles.loading}><Loader2 size={20} className={styles.spinner} />Loading stocks…</div> : error && !moreError ? null : stocks.length ? <div className={view === 'cards' ? styles.cards : styles.rows}>{stocks.map(stock => <StockGlance key={`${country}:${stock.id}`} stock={stock} period={period} />)}</div> : <p className={styles.empty}>No companies match these filters. Try broadening your search.</p>}
+        <div ref={sentinel} className={styles.loadMore} aria-live="polite">{loadingMore ? <><Loader2 size={15} className={styles.spinner} />Loading more stocks…</> : !loading && page < pages && !error ? <button onClick={() => void loadMore()}>Load more stocks ↓</button> : !loading && !error ? <span>All matching companies loaded.</span> : null}</div>
+      </div>
+    </div>
+  </section>;
+}
+
+export default function StocksScreener(props: { initialData: StockListResponse; initialCountry: string }) {
+  return <Suspense fallback={<p>Loading stock screener…</p>}><Browser {...props} /></Suspense>;
 }

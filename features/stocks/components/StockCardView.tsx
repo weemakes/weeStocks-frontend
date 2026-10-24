@@ -22,13 +22,7 @@ interface StockCardViewProps {
   onSelectStock: (stock: StockItem) => void;
 }
 
-function formatVolume(val: number | undefined): string {
-  if (!val) return '—';
-  if (val >= 1_000_000_000) return `${(val / 1_000_000_000).toFixed(1)}B`;
-  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-  if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-  return val.toLocaleString();
-}
+
 
 export default function StockCardView({ stocks, onSelectStock }: StockCardViewProps) {
   const getStatusBadge = (status: StockItem['complianceStatus']) => {

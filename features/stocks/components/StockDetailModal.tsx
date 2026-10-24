@@ -13,17 +13,17 @@ interface StockDetailModalProps {
   onSelectStock?: (stock: StockItem) => void;
 }
 
-export default function StockDetailModal({ stock, onClose, onSelectStock }: StockDetailModalProps) {
+export default function StockDetailModal({ stock, onClose }: StockDetailModalProps) {
   const [detail, setDetail] = useState<StockMasterDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prevStock, setPrevStock] = useState(stock);
   const [currentSymbol, setCurrentSymbol] = useState<string | null>(stock?.symbol || null);
 
-  useEffect(() => {
-    if (stock) {
-      setCurrentSymbol(stock.symbol);
-    }
-  }, [stock]);
+  if (stock !== prevStock) {
+    setPrevStock(stock);
+    setCurrentSymbol(stock?.symbol || null);
+  }
 
   useEffect(() => {
     if (!currentSymbol) return;
@@ -41,9 +41,9 @@ export default function StockDetailModal({ stock, onClose, onSelectStock }: Stoc
             setError('Could not load complete profile.');
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load stock master detail:', err);
-        if (isMounted) setError(err?.message || 'Error loading stock analysis.');
+        if (isMounted) setError(err instanceof Error ? err.message : 'Error loading stock analysis.');
       } finally {
         if (isMounted) setLoading(false);
       }

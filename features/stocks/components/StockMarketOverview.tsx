@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Layers, PieChart, Building2, BarChart2, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
-import { MarketOverviewData, MarketSectorOverview } from '../types';
+import { Layers, PieChart, Building2, BarChart2, Loader2 } from 'lucide-react';
+import { MarketOverviewData } from '../types';
 import { getMarketOverview } from '../api';
 
 interface StockMarketOverviewProps {

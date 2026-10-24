@@ -15,12 +15,14 @@ export const metadata: Metadata = {
       'Learn about WeeStox stock research, IPO updates and metal-price tools.',
     url: '/about',
     type: 'website',
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: 'About WeeStox' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'About WeeStox — Stock Research & Market Data',
     description:
       'Research tools for stock financials, IPOs, metal rates and Shariah screening.',
+    images: [`${SITE_URL}/og-image.png`],
   },
 };
 

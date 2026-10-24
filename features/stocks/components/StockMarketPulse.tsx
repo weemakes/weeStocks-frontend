@@ -2,11 +2,6 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  TrendingUp,
-  TrendingDown,
-  Activity,
-  Flame,
-  PieChart,
   Loader2,
   X,
 } from 'lucide-react';
@@ -46,21 +41,17 @@ export default function StockMarketPulse({
   const [overview, setOverview] = useState<MarketOverviewData | null>(null);
   const [movers, setMovers] = useState<MarketMoverItem[]>([]);
   const [loadingMovers, setLoadingMovers] = useState(false);
-  const [loadingOverview, setLoadingOverview] = useState(false);
 
   // Load Overview Data
   useEffect(() => {
     let isMounted = true;
     async function loadOverview() {
-      setLoadingOverview(true);
       try {
         const data = await getMarketOverview(country);
         if (isMounted) setOverview(data);
       } catch (err) {
         console.error('Failed to load market overview:', err);
         if (isMounted) setOverview(null);
-      } finally {
-        if (isMounted) setLoadingOverview(false);
       }
     }
     loadOverview();

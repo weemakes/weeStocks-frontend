@@ -7,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800/80 py-6 md:py-7 text-xs text-slate-600 dark:text-slate-400">
-      <div className="container mx-auto">
+      <div className="w-full max-w-[1740px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-8 mb-5">
           {/* Brand Col (2 cols wide on desktop) */}
           <div className="lg:col-span-2 space-y-3 pr-2 lg:pr-6">

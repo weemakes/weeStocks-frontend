@@ -23,15 +23,40 @@ async function readReport({ params, searchParams }: Props) {
   if (!detail) notFound();
   return detail;
 }
+
+export const revalidate = 300;
+
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const detail = await readReport(props);
   const { company } = detail;
   const title = `${company.name} (${company.symbol}) Share Price & Financials`;
   const description = `Research ${company.name} share price, financial statements, valuation ratios, price history, peer comparisons and Shariah screening on WeeStox.`;
   const canonical = stockPath(company.symbol, company.country);
-  return { title, description, alternates: { canonical },
-    openGraph: { title, description, url: canonical, type: 'website' },
-    twitter: { card: 'summary_large_image', title, description },
+  const ogImageUrl = company.logo_url || `${SITE_URL}/og-image.png`;
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${company.name} Share Price & Financials`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
+    },
   };
 }
 export default async function StockDetailPage(props: Props) {
@@ -43,7 +68,7 @@ export default async function StockDetailPage(props: Props) {
       { '@context': 'https://schema.org', '@type': 'WebPage', name: `${detail.company.name} Share Price & Financials`, url: `${SITE_URL}${canonical}` },
       ...(detail.investor_faqs?.length ? [getFaqSchema(detail.investor_faqs)] : []),
     ]} />
-    <div className="mx-auto max-w-[1500px] px-3 py-3 sm:px-6 sm:py-5">
+    <div className="mx-auto max-w-[1740px] px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-5">
       <nav aria-label="Breadcrumb" className="mb-3 text-sm text-muted">
         <Link href="/stocks" className="text-accent">Stocks</Link> / {detail.company.name}
       </nav>

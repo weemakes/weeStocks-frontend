@@ -3,12 +3,24 @@ import JsonLd from '@/components/seo/JsonLd';
 import PageFaq from '@/components/seo/PageFaq';
 import { ZAKAT_FAQS } from '@/lib/seo/faqs';
 import { getBreadcrumbSchema, getSoftwareAppSchema } from '@/components/seo/siteSchemas';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
 const description = 'Estimate 2.5% Zakat on qualifying cash, savings, gold, silver, shares and business assets. Learn about Nisab, valuation and calculator limitations.';
 export const metadata: Metadata = {
   title: 'Zakat Calculator for Cash, Gold, Silver & Shares', description,
   alternates: { canonical: '/zakat' },
-  openGraph: { title: 'Zakat Calculator for Cash, Gold, Silver & Shares | WeeStox', description, url: '/zakat', type: 'website' },
-  twitter: { card: 'summary_large_image', title: 'Zakat Calculator | WeeStox', description },
+  openGraph: {
+    title: 'Zakat Calculator for Cash, Gold, Silver & Shares | WeeStox',
+    description,
+    url: '/zakat',
+    type: 'website',
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: 'WeeStox Zakat Calculator' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Zakat Calculator | WeeStox',
+    description,
+    images: [`${SITE_URL}/og-image.png`],
+  },
 };
 export default function ZakatLayout({ children }: { children: React.ReactNode }) {
   return <>
