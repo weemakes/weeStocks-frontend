@@ -101,3 +101,43 @@ export async function getIPOGmpHistory(slug: string): Promise<IPOGmpHistoryRespo
   }
   return payload;
 }
+
+/**
+ * Trigger immediate sync of all live subscriptions
+ * POST /v2/ipos/sync-live-subscriptions
+ */
+export async function syncLiveSubscriptions(): Promise<{ status: number; message: string; count?: number }> {
+  const url = `${API_BASE_URL}/v2/ipos/sync-live-subscriptions`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'WeeStox/1.0',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to sync live subscriptions: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Deep enrich a single IPO (subscription tables, day-wise, applications, funding cost)
+ * POST /v2/ipos/:id/enrich-premium
+ */
+export async function enrichIPODetail(idOrSlug: string | number): Promise<{ status: number; message: string; count?: number }> {
+  const url = `${API_BASE_URL}/v2/ipos/${encodeURIComponent(idOrSlug)}/enrich-premium`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': 'WeeStox/1.0',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to deep enrich IPO ${idOrSlug}: ${response.status}`);
+  }
+  return response.json();
+}

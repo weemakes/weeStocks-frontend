@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Activity, Flame, ChevronRight, Loader2, BarChart2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Flame, Loader2 } from 'lucide-react';
 import { MarketMoverItem } from '../types';
 import { getMarketMovers } from '../api';
 import { getCurrencySymbol } from '../utils/mappers';

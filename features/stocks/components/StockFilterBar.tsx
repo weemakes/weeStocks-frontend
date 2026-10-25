@@ -7,18 +7,11 @@ import {
   Table,
   RotateCcw,
   Sparkles,
-  ShieldCheck,
-  TrendingUp,
-  Flame,
   ArrowUpDown,
-  Filter,
   Check,
   ChevronDown,
-  Layers,
-  BarChart2,
-  X,
 } from 'lucide-react';
-import { StockFiltersConfig, StockFilterPreset, StockSortOption, StockMarketTier } from '../types';
+import { StockFiltersConfig, StockFilterPreset } from '../types';
 import { getFiltersConfig } from '../api';
 
 interface StockFilterBarProps {
@@ -257,7 +250,7 @@ export default function StockFilterBar({
             <div className="relative">
               <select
                 value={selectedHalalStatus}
-                onChange={(e) => onHalalStatusChange(e.target.value as any)}
+                onChange={(e) => onHalalStatusChange(e.target.value as 'ALL' | 'HALAL' | 'NON_HALAL' | 'DOUBTFUL')}
                 aria-label="Filter by Shariah Status"
                 className="w-full sm:w-auto appearance-none rounded-lg border border-slate-200/80 bg-slate-50/80 px-2.5 py-1.5 pr-6 text-xs font-medium text-slate-700 transition-colors focus:border-sky-500 focus:outline-none dark:border-slate-800/80 dark:bg-slate-950/70 dark:text-slate-300 cursor-pointer"
               >

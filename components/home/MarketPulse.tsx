@@ -13,6 +13,7 @@ export interface MarketPulseData {
     status: string;
     country: string;
     logoUrl?: string | null;
+    aaoifiScore?: number | null;
   };
   stocksList?: Array<{
     symbol: string;
@@ -26,6 +27,7 @@ export interface MarketPulseData {
     purification?: string;
     country?: string;
     logoUrl?: string | null;
+    aaoifiScore?: number | null;
   }>;
   gold: {
     price10g: string;
@@ -50,6 +52,7 @@ export interface MarketPulseData {
     category: string;
     gmpDisplay: string;
     gmpPercentage: number | null;
+    subscriptionTimes?: number | null;
   };
   iposList?: Array<{
     name: string;
@@ -58,6 +61,7 @@ export interface MarketPulseData {
     category?: string;
     gmpDisplay: string;
     gmpPercentage: number | null;
+    subscriptionTimes?: number | null;
   }>;
   zakatNisab: {
     silverRatePerGram: string;

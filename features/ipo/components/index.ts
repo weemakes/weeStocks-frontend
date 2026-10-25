@@ -6,3 +6,4 @@ export * from './IpoCompanyLogo';
 export * from './GMPHistoryModal';
 export * from './GMPHistorySection';
 export * from './IPORealtimeUpdates';
+export * from './IPODetailStickyNav';
