@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, RotateCcw, ShieldCheck, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { IPOQueryParams, IPOV2Summary } from '@/features/ipo/types';
+import { IPOQueryParams, IPOV2Summary, IPOFilterCountsMatrix, IPOStatusCounts } from '@/features/ipo/types';
 
 interface IPOFiltersProps {
   currentParams: IPOQueryParams;
@@ -12,6 +12,7 @@ interface IPOFiltersProps {
   totalPages?: number;
   limit?: number;
   summary?: IPOV2Summary;
+  filterCounts?: IPOFilterCountsMatrix;
 }
 
 export default function IPOFilters({
@@ -21,6 +22,7 @@ export default function IPOFilters({
   totalPages = 1,
   limit = 20,
   summary,
+  filterCounts,
 }: IPOFiltersProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState(currentParams.search || '');
@@ -75,18 +77,41 @@ export default function IPOFilters({
   const startIdx = totalResults > 0 ? (page - 1) * limit + 1 : 0;
   const endIdx = Math.min(page * limit, totalResults);
 
+  // Status counts update dynamically based on active Category (All, Mainboard, or SME)
+  const categoryStatusCounts = filterCounts
+    ? (currentCategory === 'mainboard'
+        ? filterCounts.mainboard
+        : currentCategory === 'sme'
+        ? filterCounts.sme
+        : filterCounts.all)
+    : null;
+
   const statusTabs = [
-    { id: 'all', label: 'All', count: summary?.total ?? totalResults },
-    { id: 'open', label: 'Open', count: summary?.open },
-    { id: 'upcoming', label: 'Upcoming', count: summary?.upcoming },
-    { id: 'closed', label: 'Closed', count: summary?.closed },
-    { id: 'listed', label: 'Listed', count: summary?.listed },
+    { id: 'all', label: 'All', count: categoryStatusCounts?.total ?? (summary?.total ?? totalResults) },
+    { id: 'open', label: 'Open', count: categoryStatusCounts?.open ?? summary?.open },
+    { id: 'upcoming', label: 'Upcoming', count: categoryStatusCounts?.upcoming ?? summary?.upcoming },
+    { id: 'closed', label: 'Closed', count: categoryStatusCounts?.closed ?? summary?.closed },
+    { id: 'listed', label: 'Listed', count: categoryStatusCounts?.listed ?? summary?.listed },
   ];
 
+  // Category counts update dynamically based on active Status (Open, Upcoming, Closed, Listed)
+  const statusKey = (currentStatus === 'all' ? 'total' : currentStatus) as keyof IPOStatusCounts;
   const categoryTabs = [
-    { id: 'all', label: 'All', count: null },
-    { id: 'mainboard', label: 'Mainboard', count: summary?.mainboard },
-    { id: 'sme', label: 'SME', count: summary?.sme },
+    {
+      id: 'all',
+      label: 'All',
+      count: currentStatus !== 'all' && filterCounts ? filterCounts.all[statusKey] : null,
+    },
+    {
+      id: 'mainboard',
+      label: 'Mainboard',
+      count: filterCounts ? filterCounts.mainboard[statusKey] : summary?.mainboard,
+    },
+    {
+      id: 'sme',
+      label: 'SME',
+      count: filterCounts ? filterCounts.sme[statusKey] : summary?.sme,
+    },
   ];
 
   return (

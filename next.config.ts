@@ -17,13 +17,13 @@ const nextConfig: NextConfig = {
       {
         source: '/stocks/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, s-maxage=300, stale-while-revalidate=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=0, s-maxage=30, stale-while-revalidate=60' },
         ],
       },
       {
         source: '/ipo/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, s-maxage=300, stale-while-revalidate=86400' },
+          { key: 'Cache-Control', value: 'public, max-age=0, s-maxage=15, stale-while-revalidate=30' },
         ],
       },
     ];
@@ -35,15 +35,6 @@ const nextConfig: NextConfig = {
       destination: 'https://weestox.com/:path*',
       permanent: true,
     }];
-  },
-  async rewrites() {
-    const apiBaseUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
-    return [
-      {
-        source: "/api/ipo/live-stream",
-        destination: `${apiBaseUrl.replace(/\/$/, "")}/v2/ipos/stream`,
-      },
-    ];
   },
 };
 

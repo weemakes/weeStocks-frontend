@@ -2,14 +2,15 @@ import type { Metadata } from 'next';
 import JsonLd from '@/components/seo/JsonLd';
 import PageFaq from '@/components/seo/PageFaq';
 import { ZAKAT_FAQS } from '@/lib/seo/faqs';
-import { getBreadcrumbSchema, getSoftwareAppSchema } from '@/components/seo/siteSchemas';
+import { getBreadcrumbSchema, getSoftwareAppSchema, getFaqSchema } from '@/components/seo/siteSchemas';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
-const description = 'Estimate 2.5% Zakat on qualifying cash, savings, gold, silver, shares and business assets. Learn about Nisab, valuation and calculator limitations.';
+const description = 'Calculate your 2.5% Zakat online for cash, bank balances, gold, silver, shares and business assets. Check today’s live Nisab threshold and Islamic wealth guidelines.';
 export const metadata: Metadata = {
-  title: 'Zakat Calculator for Cash, Gold, Silver & Shares', description,
+  title: 'Zakat Calculator 2026: Calculate Zakat on Cash, Gold, Silver & Shares | WeeStox',
+  description,
   alternates: { canonical: '/zakat' },
   openGraph: {
-    title: 'Zakat Calculator for Cash, Gold, Silver & Shares | WeeStox',
+    title: 'Zakat Calculator 2026: Calculate Zakat on Cash, Gold, Silver & Shares | WeeStox',
     description,
     url: '/zakat',
     type: 'website',
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Zakat Calculator | WeeStox',
+    title: 'Zakat Calculator 2026 | WeeStox',
     description,
     images: [`${SITE_URL}/og-image.png`],
   },
@@ -27,6 +28,7 @@ export default function ZakatLayout({ children }: { children: React.ReactNode })
     <JsonLd data={[
       getSoftwareAppSchema({ name: 'WeeStox Zakat Calculator', description, applicationCategory: 'FinanceApplication', path: '/zakat' }),
       getBreadcrumbSchema([{ name: 'Home', path: '/' }, { name: 'Zakat Calculator', path: '/zakat' }]),
+      getFaqSchema(ZAKAT_FAQS),
     ]} />
     {children}
     <PageFaq title="Zakat calculation, Nisab, gold and shares FAQs" items={ZAKAT_FAQS} links={[{ label: 'Gold rates and valuation', href: '/gold' }, { label: 'Silver rates', href: '/silver' }, { label: 'Company research', href: '/stocks' }]} />

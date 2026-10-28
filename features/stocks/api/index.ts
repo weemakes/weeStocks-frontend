@@ -91,6 +91,13 @@ export function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
           ebitda_yoy_pct: toNumber(row.ebitda_yoy_pct) ?? undefined,
           ebitda_margin_pct: toNumber(row.ebitda_margin_pct) ?? undefined,
           pat_margin_pct: toNumber(row.pat_margin_pct) ?? undefined,
+          operating_cash_flow: toNumber(row.operating_cash_flow) ?? undefined,
+          capex: toNumber(row.capex) ?? undefined,
+          free_cash_flow: toNumber(row.free_cash_flow) ?? undefined,
+          total_assets: toNumber(row.total_assets) ?? undefined,
+          total_liabilities: toNumber(row.total_liabilities) ?? undefined,
+          total_debt: toNumber(row.total_debt) ?? undefined,
+          cash_and_equivalents: toNumber(row.cash_and_equivalents) ?? undefined,
         };
       });
 
@@ -388,10 +395,15 @@ export async function getStocksList(params: StockListParams = {}, signal?: Abort
  * 3. Fetch Single Stock Details & Profile (Master 14 Institutional Sections)
  * GET /stocks/:identifier
  */
-export async function getStockDetail(identifier: string, country?: string): Promise<StockMasterDetail | null> {
+export async function getStockDetail(
+  identifier: string,
+  country?: string,
+  refresh?: boolean
+): Promise<StockMasterDetail | null> {
   try {
     const p = new URLSearchParams();
     if (country) p.set('country', country);
+    if (refresh) p.set('refresh', 'true');
     const qs = p.toString();
     const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}${qs ? `?${qs}` : ''}`;
     const res = await fetch(url, { cache: 'no-store' });
@@ -404,7 +416,7 @@ export async function getStockDetail(identifier: string, country?: string): Prom
     // the missing datasets so a complete master response still costs one request.
     const [shareholding, corporateActions] = await Promise.all([
       detail.shareholding_pattern?.length ? Promise.resolve(null) : getStockShareholding(identifier, country),
-      detail.corporate_actions?.length ? Promise.resolve(null) : getStockCorporateActions(identifier, 20),
+      detail.corporate_actions?.length ? Promise.resolve(null) : getStockCorporateActions(identifier, 20, country),
     ]);
     if (shareholding?.length) detail.shareholding_pattern = shareholding;
     if (corporateActions?.length) detail.corporate_actions = corporateActions;
@@ -416,9 +428,14 @@ export async function getStockDetail(identifier: string, country?: string): Prom
 }
 
 /** GET /stocks/:identifier/corporate-actions */
-export async function getStockCorporateActions(identifier: string, limit: number = 20): Promise<StockCorporateAction[]> {
+export async function getStockCorporateActions(
+  identifier: string,
+  limit: number = 20,
+  country?: string
+): Promise<StockCorporateAction[]> {
   try {
     const p = new URLSearchParams({ limit: String(limit) });
+    if (country) p.set('country', country);
     const res = await fetch(`${getBaseUrl()}/${encodeURIComponent(identifier)}/corporate-actions?${p}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
@@ -499,12 +516,12 @@ export async function getFiltersConfig(country: string = 'India'): Promise<Stock
  */
 export async function getStockChart(
   identifier: string,
-  range: string = '1M',
+  range: string = '1y',
   interval: string = '1d',
   country?: string
 ): Promise<StockChartData | null> {
   try {
-    const p = new URLSearchParams({ range, interval });
+    const p = new URLSearchParams({ range: range.toLowerCase(), interval });
     if (country) p.set('country', country);
     const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/chart?${p.toString()}`;
     const res = await fetch(url, { cache: 'no-store' });
@@ -523,14 +540,17 @@ export async function getStockChart(
  */
 export async function getStockFinancials(
   identifier: string,
-  periodType: 'ANNUAL' | 'QUARTERLY' = 'ANNUAL',
+  periodType?: 'ANNUAL' | 'QUARTERLY',
   limit: number = 5,
   country?: string
 ): Promise<StockFinancialsData | null> {
   try {
-    const p = new URLSearchParams({ period_type: periodType, limit: String(limit) });
+    const p = new URLSearchParams();
+    if (periodType) p.set('period_type', periodType);
+    if (limit) p.set('limit', String(limit));
     if (country) p.set('country', country);
-    const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/financials?${p.toString()}`;
+    const qs = p.toString();
+    const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/financials${qs ? `?${qs}` : ''}`;
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
@@ -545,9 +565,12 @@ export async function getStockFinancials(
  * 6. Fetch AAOIFI Shariah Compliance Deep Audit
  * GET /stocks/:identifier/halal-screening
  */
-export async function getStockHalalAudit(identifier: string): Promise<StockHalalAuditData | null> {
+export async function getStockHalalAudit(identifier: string, country?: string): Promise<StockHalalAuditData | null> {
   try {
-    const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/halal-screening`;
+    const p = new URLSearchParams();
+    if (country) p.set('country', country);
+    const qs = p.toString();
+    const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/halal-screening${qs ? `?${qs}` : ''}`;
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
@@ -597,5 +620,56 @@ export async function getMarketOverview(country?: string): Promise<MarketOvervie
   } catch (error) {
     console.error(`Failed to fetch market overview:`, error);
     return null;
+  }
+}
+
+/**
+ * 9. International Batch Sync Endpoints
+ * POST /stocks/international/sync-metrics
+ * POST /stocks/international/sync-financials
+ * POST /stocks/international/sync-candles
+ */
+export async function syncInternationalMetrics(country: string): Promise<{ status: number; message: string; data?: unknown }> {
+  try {
+    const p = new URLSearchParams({ country });
+    const url = `${getBaseUrl()}/international/sync-metrics?${p.toString()}`;
+    const res = await fetch(url, { method: 'POST', cache: 'no-store' });
+    return await res.json();
+  } catch (error: unknown) {
+    console.error(`Failed to sync metrics for ${country}:`, error);
+    const message = error instanceof Error ? error.message : 'Sync metrics failed';
+    return { status: 0, message };
+  }
+}
+
+export async function syncInternationalFinancials(
+  country: string,
+  limit: number = 100
+): Promise<{ status: number; message: string; data?: unknown }> {
+  try {
+    const p = new URLSearchParams({ country, limit: String(limit) });
+    const url = `${getBaseUrl()}/international/sync-financials?${p.toString()}`;
+    const res = await fetch(url, { method: 'POST', cache: 'no-store' });
+    return await res.json();
+  } catch (error: unknown) {
+    console.error(`Failed to sync financials for ${country}:`, error);
+    const message = error instanceof Error ? error.message : 'Sync financials failed';
+    return { status: 0, message };
+  }
+}
+
+export async function syncInternationalCandles(
+  country: string,
+  years: number = 3
+): Promise<{ status: number; message: string; data?: unknown }> {
+  try {
+    const p = new URLSearchParams({ country, years: String(years) });
+    const url = `${getBaseUrl()}/international/sync-candles?${p.toString()}`;
+    const res = await fetch(url, { method: 'POST', cache: 'no-store' });
+    return await res.json();
+  } catch (error: unknown) {
+    console.error(`Failed to sync candles for ${country}:`, error);
+    const message = error instanceof Error ? error.message : 'Sync candles failed';
+    return { status: 0, message };
   }
 }

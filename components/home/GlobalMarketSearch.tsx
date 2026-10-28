@@ -69,7 +69,7 @@ export default function GlobalMarketSearch() {
     else if (query.trim()) router.push(`/stocks?search=${encodeURIComponent(query.trim())}`);
   };
 
-  return <div ref={wrapperRef} className="relative mt-3.5 max-w-xl sm:mt-4">
+  return <div ref={wrapperRef} className={`relative mt-3.5 max-w-xl sm:mt-4 ${open ? 'z-50' : 'z-20'}`}>
     <form onSubmit={submit} className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-lg shadow-sky-900/5 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 dark:border-slate-700 dark:bg-slate-900 dark:focus-within:ring-sky-950">
       <Search className="ml-3 h-4 w-4 shrink-0 text-slate-400" />
       <input value={query} onChange={(event) => { const value = event.target.value; setQuery(value); if (!value.trim()) { setResults([]); setOpen(false); setLoading(false); } }} onFocus={() => query.trim() && setOpen(true)} aria-label="Search markets" placeholder="Search stocks, IPOs or metals…" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-slate-400 sm:py-2.5" />
@@ -79,7 +79,7 @@ export default function GlobalMarketSearch() {
         <span className="hidden sm:inline">Search</span>
       </button>
     </form>
-    {open && query.trim() && <div role="listbox" className="absolute inset-x-0 top-full z-40 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+    {open && query.trim() && <div role="listbox" className="absolute inset-x-0 top-full z-50 mt-2 max-h-[380px] overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
       {results.map((result) => <Link key={result.id} href={result.href} role="option" onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-sky-50 dark:hover:bg-sky-950/30"><ResultIcon result={result} /><span className="min-w-0 flex-1"><strong className="block truncate text-xs text-slate-900 dark:text-white">{result.title}</strong><span className="block truncate text-[10px] text-slate-500">{result.subtitle}</span></span><span className="rounded bg-slate-100 px-2 py-1 text-[8px] font-bold uppercase text-slate-500 dark:bg-slate-800">{result.type}</span></Link>)}
       {!loading && results.length === 0 && <p className="px-4 py-5 text-center text-xs text-slate-500">No matching stocks, IPOs or metals found.</p>}
     </div>}

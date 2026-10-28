@@ -11,7 +11,7 @@ import {
   ChevronLeft,
   ExternalLink,
 } from 'lucide-react';
-import { getIPOList } from '@/features/ipo/api';
+import { getIPOList, getIPOCountsMatrix } from '@/features/ipo/api';
 import { IPOQueryParams, IPOV2ListItem } from '@/features/ipo/types';
 import { GMPDisclaimer, IpoCompanyLogo } from '@/features/ipo/components';
 import IPOFilters from './components/IPOFilters';
@@ -24,7 +24,7 @@ interface IPOPageProps {
   searchParams: Promise<IPOQueryParams>;
 }
 
-export const revalidate = 300;
+export const revalidate = 15;
 
 export async function generateMetadata({ searchParams }: IPOPageProps): Promise<Metadata> {
   const params = await searchParams;
@@ -35,10 +35,14 @@ export async function generateMetadata({ searchParams }: IPOPageProps): Promise<
   if (status) canonicalParams.set('status', status);
   if (category) canonicalParams.set('category', category);
   if (page) canonicalParams.set('page', String(page));
+  const qualifier = status
+    ? `${status.charAt(0).toUpperCase() + status.slice(1)}`
+    : category
+      ? `${category.toUpperCase()}`
+      : null;
   const canonical = `/ipo${canonicalParams.size ? `?${canonicalParams}` : ''}`;
-  const qualifier = [status, category, page ? `Page ${page}` : null].filter(Boolean).join(' · ');
-  const title = `${qualifier ? `${qualifier} IPOs — ` : ''}IPO GMP, Subscription & Allotment Updates`;
-  const description = 'Track Indian IPO GMP, subscription demand, allotment updates, dates and lot sizes. Explore company financials and historical GMP.';
+  const title = `${qualifier ? `${qualifier} IPOs — ` : ''}Live IPO GMP Today, Subscription Status & Allotment Updates | WeeStox`;
+  const description = 'Track live Indian IPO Grey Market Premium (GMP) today, expected listing prices, QIB/NII/Retail subscription demand, allotment dates and AAOIFI Shariah compliance screening.';
   const hasNonCanonicalFilter = Boolean(params.search || params.sort || params.halal || params.snapshot_date || params.type);
   const ogImageUrl = `${SITE_URL}/og-image.png`;
 
@@ -131,17 +135,20 @@ function getGmpDisplay(gmp: IPOV2ListItem['gmp']) {
 export default async function IPOPage({ searchParams }: IPOPageProps) {
   const params = await searchParams;
 
-  const ipoListData = await getIPOList({
-    status: params.status || 'all',
-    type: params.type,
-    category: params.category,
-    search: params.search,
-    sort: params.sort || 'newest',
-    snapshot_date: params.snapshot_date,
-    halal: params.halal,
-    page: params.page ? parseInt(String(params.page)) : 1,
-    limit: params.limit ? parseInt(String(params.limit)) : 20,
-  });
+  const [ipoListData, filterCounts] = await Promise.all([
+    getIPOList({
+      status: params.status || 'all',
+      type: params.type,
+      category: params.category,
+      search: params.search,
+      sort: params.sort || 'newest',
+      snapshot_date: params.snapshot_date,
+      halal: params.halal,
+      page: params.page ? parseInt(String(params.page)) : 1,
+      limit: params.limit ? parseInt(String(params.limit)) : 20,
+    }),
+    getIPOCountsMatrix(undefined, { halal: params.halal }),
+  ]);
 
   const { ipos, summary, total, page, total_pages, snapshot_date } = ipoListData.data;
   const listJsonLd = {
@@ -155,6 +162,19 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
       position: (page - 1) * 20 + index + 1,
       name: `${ipo.company_name} IPO`,
       url: `${SITE_URL}/ipo/${encodeURIComponent(ipo.slug)}`,
+    })),
+  };
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: IPO_FAQS.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
     })),
   };
 
@@ -173,7 +193,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
     <div className="bg-canvas min-h-screen py-6 md:py-4 pb-8 text-body">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(listJsonLd).replace(/</g, '\\u003c') }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([listJsonLd, faqJsonLd]).replace(/</g, '\\u003c') }}
       />
       <div className="mx-auto max-w-[1740px] px-4 sm:px-6 lg:px-8 xl:px-12">
         {/* Breadcrumb & Header */}
@@ -221,6 +241,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
           totalPages={total_pages}
           limit={20}
           summary={summary}
+          filterCounts={filterCounts}
         />
 
         {/* 3. High-Density Pro Table (StockeZee-style) */}
@@ -301,11 +322,10 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                                       {displayValue(ipo.status)}
                                     </span>
                                     <span
-                                      className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
-                                        isSme
+                                      className={`px-2 py-0.5 rounded text-[11px] font-semibold ${isSme
                                           ? 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/15 dark:text-purple-400 dark:border-purple-500/30'
                                           : 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30'
-                                      }`}
+                                        }`}
                                     >
                                       {displayValue(ipo.type)}
                                     </span>
@@ -428,50 +448,50 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
                 </div>
               </div>
 
-            {/* Pagination Bar */}
-            {total_pages > 1 && (
-              <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <div>
-                  Page <strong className="text-slate-800 dark:text-slate-200">{page}</strong> of{' '}
-                  <strong className="text-slate-800 dark:text-slate-200">{total_pages}</strong>
+              {/* Pagination Bar */}
+              {total_pages > 1 && (
+                <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <div>
+                    Page <strong className="text-slate-800 dark:text-slate-200">{page}</strong> of{' '}
+                    <strong className="text-slate-800 dark:text-slate-200">{total_pages}</strong>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {page > 1 && (
+                      <Link
+                        href={`/ipo?page=${page - 1}${params.status ? `&status=${params.status}` : ''}${params.category ? `&category=${params.category}` : ''}`}
+                        className="px-2.5 py-1 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 rounded border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1 shadow-xs"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                      </Link>
+                    )}
+                    {page < total_pages && (
+                      <Link
+                        href={`/ipo?page=${page + 1}${params.status ? `&status=${params.status}` : ''}${params.category ? `&category=${params.category}` : ''}`}
+                        className="px-2.5 py-1 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 rounded border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1 shadow-xs"
+                      >
+                        Next <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {page > 1 && (
-                    <Link
-                      href={`/ipo?page=${page - 1}${params.status ? `&status=${params.status}` : ''}${params.category ? `&category=${params.category}` : ''}`}
-                      className="px-2.5 py-1 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 rounded border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1 shadow-xs"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5" /> Previous
-                    </Link>
-                  )}
-                  {page < total_pages && (
-                    <Link
-                      href={`/ipo?page=${page + 1}${params.status ? `&status=${params.status}` : ''}${params.category ? `&category=${params.category}` : ''}`}
-                      className="px-2.5 py-1 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 rounded border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1 shadow-xs"
-                    >
-                      Next <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center shadow-sm">
-            <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-3 opacity-80" />
-            <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-1">No IPOs found for selected filters</h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
-              Try clearing your search keyword or switching between Mainboard and SME tabs.
-            </p>
-            <Link
-              href="/ipo"
-              className="btn btn-primary text-xs"
-            >
-              Reset All Filters
-            </Link>
-          </div>
-        );
-      })()}
+              )}
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center shadow-sm">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-3 opacity-80" />
+              <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-1">No IPOs found for selected filters</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
+                Try clearing your search keyword or switching between Mainboard and SME tabs.
+              </p>
+              <Link
+                href="/ipo"
+                className="btn btn-primary text-xs"
+              >
+                Reset All Filters
+              </Link>
+            </div>
+          );
+        })()}
 
         {/* Educational Information Footer */}
         <div className="mt-8 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
@@ -501,7 +521,7 @@ export default async function IPOPage({ searchParams }: IPOPageProps) {
           </div>
         </div>
       </div>
-      <PageFaq title="IPO GMP, subscription and allotment FAQs" items={IPO_FAQS} links={[{ label: 'Stock screener', href: '/stocks' }]} />
+      <PageFaq title="IPO GMP, subscription and allotment FAQs" items={IPO_FAQS} schema={false} links={[{ label: 'Stock screener', href: '/stocks' }]} />
     </div>
   );
 }

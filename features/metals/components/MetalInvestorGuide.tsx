@@ -71,6 +71,7 @@ export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps)
   faqs.push({ q: `How do I calculate the cost of ${metalName} for a different weight?`, a: 'Select the purity where available and enter the weight in the purchase calculator. Review the rate per gram, making-charge setting and tax option. The result is an estimate based on those inputs, not a binding dealer quote.' });
   return (
     <div className="space-y-8">
+      <JsonLd data={getFaqSchema(faqs.map((f) => ({ question: f.q, answer: f.a })))} />
       {/* 1. Investor Guidance & Market Drivers (3-Column Grid directly on page canvas) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
         {/* Card 1: Purity & Hallmarking */}
