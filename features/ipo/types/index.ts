@@ -56,6 +56,20 @@ export interface IPOV2Summary {
   sme: number;
 }
 
+export interface IPOStatusCounts {
+  total: number;
+  open: number;
+  upcoming: number;
+  closed: number;
+  listed: number;
+}
+
+export interface IPOFilterCountsMatrix {
+  all: IPOStatusCounts;
+  mainboard: IPOStatusCounts;
+  sme: IPOStatusCounts;
+}
+
 export interface IPOV2ListResponse {
   status: number;
   message: string;

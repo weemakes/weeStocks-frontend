@@ -49,17 +49,51 @@ const cashFlowColumns: Column[] = [
   { key: 'free_cash_flow', label: 'Free cash flow', kind: 'money' },
 ];
 
+const statementColumnsMap: Record<Statement, Column[]> = {
+  performance: performanceColumns,
+  income: incomeColumns,
+  balance: balanceColumns,
+  cashflow: cashFlowColumns,
+};
+
+const hasDataFor = (dataset: Row[], cols: Column[]) =>
+  dataset && dataset.length > 0 && dataset.some((row) => cols.some((col) => row[col.key as keyof Row] != null));
+
 export default function FinancialStatements({ annual, quarterly, country, currency }: { annual: AnnualRow[]; quarterly: QuarterlyRow[]; country: string; currency: string }) {
   const [period, setPeriod] = useState<Period>('annual');
   const [statement, setStatement] = useState<Statement>('performance');
   const [view, setView] = useState<ViewMode>('chart');
-  const rows: Row[] = period === 'annual' ? annual : quarterly;
-  const availableStatements: Statement[] = period === 'annual' ? ['performance', 'income', 'balance', 'cashflow'] : ['performance', 'income'];
-  const selected = availableStatements.includes(statement) ? statement : 'performance';
-  const columns = selected === 'income' ? incomeColumns : selected === 'balance' ? balanceColumns : selected === 'cashflow' ? cashFlowColumns : performanceColumns;
+
+  // Check which statements have data for the currently selected period
+  const currentDataset = period === 'annual' ? annual : quarterly;
+  const availableStatements: Statement[] = (['performance', 'income', 'balance', 'cashflow'] as Statement[]).filter(
+    (stmt) => hasDataFor(currentDataset, statementColumnsMap[stmt])
+  );
+
+  // Fallback if current statement is not available in the active period
+  const selectedStatement: Statement = availableStatements.includes(statement)
+    ? statement
+    : availableStatements[0] || 'performance';
+
+  // Check which periods (annual / quarterly) have data for the SELECTED statement
+  const targetCols = statementColumnsMap[selectedStatement];
+  const hasAnnualForStmt = hasDataFor(annual, targetCols);
+  const hasQuarterlyForStmt = hasDataFor(quarterly, targetCols);
+
+  const availablePeriods: Period[] = [];
+  if (hasAnnualForStmt) availablePeriods.push('annual');
+  if (hasQuarterlyForStmt) availablePeriods.push('quarterly');
+
+  // Fallback if current period is not available for this statement
+  const selectedPeriod: Period = availablePeriods.includes(period)
+    ? period
+    : availablePeriods[0] || 'annual';
+
+  const rows: Row[] = selectedPeriod === 'annual' ? annual : quarterly;
+  const columns = statementColumnsMap[selectedStatement];
   const visibleColumns = columns.filter((column) => rows.some((row) => row[column.key as keyof Row] != null));
   const minWidth = visibleColumns.length >= 8 ? 'min-w-[1080px]' : visibleColumns.length >= 5 ? 'min-w-[820px]' : 'min-w-[620px]';
-  const chartSeries = getChartSeries(selected, visibleColumns);
+  const chartSeries = getChartSeries(selectedStatement, visibleColumns);
   const chartData = [...rows].reverse().map((row) => ({
     ...row,
     period: 'fiscal_quarter' in row ? `Q${row.fiscal_quarter} FY${row.fiscal_year}` : `FY${row.fiscal_year}`,
@@ -67,19 +101,52 @@ export default function FinancialStatements({ annual, quarterly, country, curren
 
   return <section id="financials" className="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
     <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-      <div><div className="flex items-center gap-2 text-sm font-black"><FileText className="h-4 w-4 text-sky-600" />Financial statements</div><p className="mt-1 text-[10px] text-slate-500">Complete reported financial history · Values use the company&apos;s reporting currency</p></div>
-      <div className="flex flex-wrap gap-2">
-        <Toggle values={availableStatements} selected={selected} onSelect={(value) => setStatement(value as Statement)} labels={{ performance: 'Performance', income: 'Income statement', balance: 'Balance sheet', cashflow: 'Cash flow' }} />
-        <Toggle values={['annual', 'quarterly']} selected={period} onSelect={(value) => setPeriod(value as Period)} accent />
-        <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-950"><button type="button" onClick={() => setView('chart')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[9px] font-bold ${view === 'chart' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500 hover:text-sky-600'}`}><ChartColumn className="h-3.5 w-3.5" />Chart</button><button type="button" onClick={() => setView('table')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[9px] font-bold ${view === 'table' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500 hover:text-sky-600'}`}><Table2 className="h-3.5 w-3.5" />Table</button></div>
+      <div>
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+          <FileText className="h-4 w-4 text-sky-600" />
+          Financial Statements
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">Complete reported financial history · Values use the company&apos;s reporting currency</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {availableStatements.length > 1 && (
+          <Toggle
+            values={availableStatements}
+            selected={selectedStatement}
+            onSelect={(value) => setStatement(value as Statement)}
+            labels={{ performance: 'Performance', income: 'Income Statement', balance: 'Balance Sheet', cashflow: 'Cash Flow' }}
+          />
+        )}
+        {availablePeriods.length > 1 ? (
+          <Toggle
+            values={availablePeriods}
+            selected={selectedPeriod}
+            onSelect={(value) => setPeriod(value as Period)}
+            accent
+          />
+        ) : availablePeriods.length === 1 ? (
+          <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 capitalize">
+            {availablePeriods[0]} Only
+          </span>
+        ) : null}
+        <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-950">
+          <button type="button" onClick={() => setView('chart')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[10px] font-semibold ${view === 'chart' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500 hover:text-sky-600'}`}><ChartColumn className="h-3.5 w-3.5" />Chart</button>
+          <button type="button" onClick={() => setView('table')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[10px] font-semibold ${view === 'table' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500 hover:text-sky-600'}`}><Table2 className="h-3.5 w-3.5" />Table</button>
+        </div>
       </div>
     </div>
-    {view === 'chart' ? <FinancialChart data={chartData} series={chartSeries} country={country} /> : <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-      <table className={`w-full ${minWidth} text-[10px]`}>
-        <thead className="bg-slate-50 text-[9px] uppercase tracking-wide text-slate-400 dark:bg-slate-950"><tr><th className="sticky left-0 z-10 bg-inherit px-4 py-3 text-left">Period</th>{visibleColumns.map((column) => <th key={String(column.key)} className="whitespace-nowrap px-3 py-3 text-right">{column.label}</th>)}</tr></thead>
-        <tbody>{rows.map((row, index) => <tr key={`${row.fiscal_year}-${'fiscal_quarter' in row ? row.fiscal_quarter : 'annual'}-${index}`} className="border-t border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40"><td className="sticky left-0 bg-white px-4 py-3 font-black dark:bg-slate-900">{'fiscal_quarter' in row ? `Q${row.fiscal_quarter} FY${row.fiscal_year}` : `FY${row.fiscal_year}`}</td>{visibleColumns.map((column) => <FinancialCell key={String(column.key)} value={row[column.key as keyof Row] as number | undefined} column={column} country={country} currency={currency} />)}</tr>)}</tbody>
-      </table>
-    </div>}
+    {visibleColumns.length === 0 ? (
+      <div className="py-12 text-center text-xs text-slate-400">No reported data available for this statement period.</div>
+    ) : view === 'chart' ? (
+      <FinancialChart data={chartData} series={chartSeries} country={country} />
+    ) : (
+      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+        <table className={`w-full ${minWidth} text-[10px]`}>
+          <thead className="bg-slate-50 text-[9px] uppercase tracking-wide text-slate-400 dark:bg-slate-950"><tr><th className="sticky left-0 z-10 bg-inherit px-4 py-3 text-left">Period</th>{visibleColumns.map((column) => <th key={String(column.key)} className="whitespace-nowrap px-3 py-3 text-right">{column.label}</th>)}</tr></thead>
+          <tbody>{rows.map((row, index) => <tr key={`${row.fiscal_year}-${'fiscal_quarter' in row ? row.fiscal_quarter : 'annual'}-${index}`} className="border-t border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40"><td className="sticky left-0 bg-white px-4 py-3 font-black dark:bg-slate-900">{'fiscal_quarter' in row ? `Q${row.fiscal_quarter} FY${row.fiscal_year}` : `FY${row.fiscal_year}`}</td>{visibleColumns.map((column) => <FinancialCell key={String(column.key)} value={row[column.key as keyof Row] as number | undefined} column={column} country={country} currency={currency} />)}</tr>)}</tbody>
+        </table>
+      </div>
+    )}
     <p className="mt-2 text-[9px] text-slate-400">{view === 'table' ? 'Unavailable values are shown as —. Horizontal scrolling is enabled only when the table exceeds the available screen width.' : 'Hover over the chart for exact reported values. Percentage lines use the right-hand axis.'}</p>
   </section>;
 }

@@ -4,8 +4,21 @@ import { collectBatches, fetchInventory, getMetalCities, SITE_URL, validDate, ty
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const entries: MetadataRoute.Sitemap = ['', '/stocks', '/ipo', '/zakat', '/about']
-    .map((path) => ({ url: `${SITE_URL}${path}` }));
+  const entries: MetadataRoute.Sitemap = [
+    '',
+    '/stocks',
+    '/stocks?country=Japan',
+    '/stocks?country=Saudi+Arabia',
+    '/stocks?country=United+Arab+Emirates',
+    '/ipo',
+    '/ipo?status=open',
+    '/ipo?status=upcoming',
+    '/ipo?status=closed',
+    '/ipo?category=sme',
+    '/ipo?category=mainboard',
+    '/zakat',
+    '/about',
+  ].map((path) => ({ url: `${SITE_URL}${path}` }));
   // Reject incomplete inventories so a failed regeneration cannot replace cached XML.
   const sections = await Promise.all([
     (async () => {

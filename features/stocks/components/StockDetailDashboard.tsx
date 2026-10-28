@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CheckCircle2, FileText, Globe, PieChart, ShieldCheck, Sparkles, Target, TrendingUp, WalletCards, XCircle } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CheckCircle2, FileText, Globe, PieChart, RefreshCw, ShieldCheck, Sparkles, Target, TrendingUp, WalletCards, XCircle } from 'lucide-react';
 import type { StockCandle, StockMasterDetail } from '../types';
-import { getStockChart } from '../api';
+import { getStockChart, getStockDetail } from '../api';
 import { formatMarketCap, formatSafeNumber, formatSafePct, formatSafePrice, formatSafeVolume, getCurrencySymbol } from '../utils/mappers';
 import dynamic from 'next/dynamic';
 import CompanyLogo from './CompanyLogo';
@@ -31,7 +31,16 @@ const DeliveryParticipation = dynamic(() => import('./DeliveryParticipation'), {
 });
 
 interface Props { detail: StockMasterDetail; onSelectPeer?: (symbol: string) => void; isStandalonePage?: boolean }
-const chartRanges = [{ label: '1D', range: '1D', interval: '5m' }, { label: '1W', range: '1W', interval: '1h' }, { label: '1M', range: '1M', interval: '1d' }, { label: '3M', range: '3M', interval: '1d' }, { label: '6M', range: '6M', interval: '1d' }, { label: '1Y', range: '1Y', interval: '1wk' }, { label: '5Y', range: '5Y', interval: '1mo' }] as const;
+const chartRanges = [
+  { label: '1D', range: '1d', interval: '5m' },
+  { label: '5D', range: '5d', interval: '15m' },
+  { label: '1M', range: '1m', interval: '1d' },
+  { label: '3M', range: '3m', interval: '1d' },
+  { label: '6M', range: '6m', interval: '1d' },
+  { label: '1Y', range: '1y', interval: '1d' },
+  { label: '5Y', range: '5y', interval: '1wk' },
+  { label: 'ALL', range: 'all', interval: '1mo' },
+] as const;
 type ChartRange = typeof chartRanges[number]['label'];
 const panel = 'rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
 
@@ -47,17 +56,48 @@ function RangeLine({ low, high, current, currency }: { low?: number; high?: numb
 }
 
 export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
-  const { company, quote, metrics, scores, header, today_at_a_glance: glance, price_performance: performance, shariah_audit: audit, valuation_and_sector_context: valuation, growth_and_profitability: growth, financial_health_and_cash_flow: health, technical_analysis: technical, quarterly_financials, annual_financials, shareholding_pattern, delivery_conviction, peers, investor_faqs, flags, thesis, trader_insights, chart } = detail;
+  const [liveDetail, setLiveDetail] = useState<StockMasterDetail | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const currentDetail = liveDetail && liveDetail.company.symbol === detail.company.symbol ? liveDetail : detail;
+
+  const { company, quote, metrics, scores, header, today_at_a_glance: glance, price_performance: performance, shariah_audit: audit, valuation_and_sector_context: valuation, growth_and_profitability: growth, financial_health_and_cash_flow: health, technical_analysis: technical, quarterly_financials, annual_financials, shareholding_pattern, delivery_conviction, peers, investor_faqs, flags, thesis, trader_insights, chart } = currentDetail;
   const currency = getCurrencySymbol(company.country || company.currency);
   const positive = Number(quote.change_percentage || 0) >= 0;
-  const compliant = audit?.overall_result === 'PASS' || header?.is_shariah_compliant || detail.shariah_compliance.status === 'HALAL';
+  const compliant = audit?.overall_result === 'PASS' || header?.is_shariah_compliant || currentDetail.shariah_compliance.status === 'HALAL';
   const [range, setRange] = useState<ChartRange>('1Y');
   const [activeSection, setActiveSection] = useState('overview');
   const [candles, setCandles] = useState<StockCandle[]>(chart || []);
   const [chartLoading, setChartLoading] = useState(false);
   const first = useRef(true);
-  const fetchChart = useCallback(async (selected: ChartRange) => { const config = chartRanges.find((item) => item.label === selected); if (!config) return; setChartLoading(true); const result = await getStockChart(company.symbol, config.range, config.interval, company.country); setCandles(result?.candles || chart || []); setChartLoading(false); }, [chart, company.country, company.symbol]);
+  const fetchChart = useCallback(async (selected: ChartRange) => {
+    const config = chartRanges.find((item) => item.label === selected);
+    if (!config) return;
+    setChartLoading(true);
+    const result = await getStockChart(company.symbol, config.range, config.interval, company.country);
+    setCandles(result?.candles || chart || []);
+    setChartLoading(false);
+  }, [chart, company.country, company.symbol]);
   useEffect(() => { if (first.current) { first.current = false; return; } void fetchChart(range); }, [fetchChart, range]);
+
+  const handleLiveRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const refreshed = await getStockDetail(company.symbol, company.country, true);
+      if (refreshed) {
+        setLiveDetail(refreshed);
+        if (refreshed.chart?.length) {
+          setCandles(refreshed.chart);
+        } else {
+          void fetchChart(range);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to live-refresh stock detail:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const recent = detail.what_changed_recently || [];
   const actions = detail.corporate_actions || [];
@@ -151,8 +191,8 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
                     onClick={() => navigateToSection('shariah')}
                     title="Click to view AAOIFI Shariah audit breakdown"
                     className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-bold border transition-all hover:opacity-90 active:scale-95 cursor-pointer ${compliant
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200/90 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80 shadow-2xs'
-                        : 'bg-rose-50 text-rose-700 border-rose-200/90 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/80 shadow-2xs'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200/90 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/80 shadow-2xs'
+                      : 'bg-rose-50 text-rose-700 border-rose-200/90 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/80 shadow-2xs'
                       }`}
                   >
                     {compliant ? (
@@ -188,9 +228,21 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
                   {formatSafePrice(quote.change, currency)} ({formatSafePct(quote.change_percentage)})
                 </span>
               </div>
-              <p className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">
-                {header?.market_status_label || `${company.exchange} market closed`}
-              </p>
+              <div className="mt-1 flex items-center gap-2 lg:justify-end">
+                <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                  {header?.market_status_label || `${company.exchange} market closed`}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleLiveRefresh}
+                  disabled={refreshing}
+                  title="Force live on-demand refresh from market data providers"
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-2 py-0.5 text-[9px] font-bold text-slate-600 hover:text-sky-600 dark:text-slate-300 dark:hover:text-sky-400 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-2.5 w-2.5 ${refreshing ? 'animate-spin text-sky-500' : ''}`} />
+                  <span>{refreshing ? 'Refreshing...' : 'Live refresh'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -221,8 +273,8 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
               aria-current={selected ? 'location' : undefined}
               onClick={() => navigateToSection(String(id))}
               className={`shrink-0 border-b-2 px-3 py-2 text-[11px] font-bold transition-colors ${selected
-                  ? 'border-sky-600 bg-sky-50/80 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300'
-                  : 'border-transparent text-slate-500 hover:border-sky-300 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-300'
+                ? 'border-sky-600 bg-sky-50/80 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300'
+                : 'border-transparent text-slate-500 hover:border-sky-300 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-300'
                 }`}
             >
               {label}

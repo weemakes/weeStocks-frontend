@@ -181,6 +181,7 @@ export interface StockPeer {
   logo_url?: string | null;
   currency?: string;
   exchange?: string;
+  country?: string;
   is_current?: boolean;
   market_cap: number;
   market_cap_cr?: number | null;
@@ -447,6 +448,13 @@ export interface StockMasterDetail {
     ebitda_yoy_pct?: number;
     ebitda_margin_pct?: number;
     pat_margin_pct?: number;
+    operating_cash_flow?: number;
+    capex?: number;
+    free_cash_flow?: number;
+    total_assets?: number;
+    total_liabilities?: number;
+    total_debt?: number;
+    cash_and_equivalents?: number;
   }>;
   annual_financials?: Array<{
     fiscal_year: number;
@@ -598,14 +606,38 @@ export interface StockChartData {
 }
 
 export interface FinancialSnapshot {
-  id: string;
+  id?: string;
   fiscal_year: number;
+  fiscal_quarter?: number | null;
   period_type: 'ANNUAL' | 'QUARTERLY';
+  revenue?: number | string;
+  gross_profit?: number | string;
+  operating_income?: number | string;
+  ebitda?: number | string;
+  net_income?: number | string;
+  diluted_eps?: number | string;
+  pbt?: number | string;
+  tax_expense?: number | string;
+  interest_income?: number | string;
+  interest_expense?: number | string;
+  total_assets?: number | string;
+  total_liabilities?: number | string;
+  total_debt?: number | string;
+  cash_and_equivalents?: number | string;
+  equity_share_capital?: number | string;
+  reserves_surplus?: number | string;
+  operating_cash_flow?: number | string;
+  capex?: number | string;
+  free_cash_flow?: number | string;
   income_statement?: {
     revenue?: number | string;
     gross_profit?: number | string;
     operating_income?: number | string;
+    ebitda?: number | string;
     net_income?: number | string;
+    diluted_eps?: number | string;
+    pbt?: number | string;
+    tax_expense?: number | string;
     interest_income?: number | string;
     interest_expense?: number | string;
   };
@@ -614,9 +646,12 @@ export interface FinancialSnapshot {
     total_liabilities?: number | string;
     total_debt?: number | string;
     cash_and_equivalents?: number | string;
+    equity_share_capital?: number | string;
+    reserves_surplus?: number | string;
   };
   cash_flow?: {
     operating_cash_flow?: number | string;
+    capex?: number | string;
     free_cash_flow?: number | string;
   };
 }
@@ -625,6 +660,8 @@ export interface StockFinancialsData {
   symbol: string;
   company_name: string;
   currency: string;
+  annual?: FinancialSnapshot[];
+  quarterly?: FinancialSnapshot[];
   snapshots: FinancialSnapshot[];
 }
 
