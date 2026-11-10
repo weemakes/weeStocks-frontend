@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Calculator, Coins, Rocket, ShieldCheck, TrendingUp } from 'lucide-react';
@@ -120,15 +119,33 @@ export default function ResearchHero({ data }: { data: MarketPulseData }) {
   const href = `/stocks/${encodeURIComponent(stock.symbol)}?country=${encodeURIComponent(stock.country || 'India')}`;
   return <section ref={hero} style={{ minHeight: `calc(100svh - ${headerHeight}px)` }} className={styles.hero} aria-label="Market research introduction">
     <div className={styles.bgGraphic} aria-hidden="true">
-      <Image
-        src="/hero-bg.webp"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        quality={80}
-        className={styles.bgImage}
-      />
+      <div className={styles.bgGlow} />
+      <div className={styles.bgGrid} />
+      <svg className={styles.bgWaves} viewBox="0 0 1440 450" fill="none" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="heroWave1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="var(--primary-accent)" stopOpacity="0.15" />
+            <stop offset="35%" stopColor="var(--primary-accent)" stopOpacity="0.85" />
+            <stop offset="70%" stopColor="var(--primary-light)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="var(--primary-accent)" stopOpacity="0.2" />
+          </linearGradient>
+          <linearGradient id="heroWave2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="var(--primary-light)" stopOpacity="0.1" />
+            <stop offset="40%" stopColor="var(--primary-light)" stopOpacity="0.75" />
+            <stop offset="75%" stopColor="var(--primary-accent)" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="var(--primary-light)" stopOpacity="0.15" />
+          </linearGradient>
+          <linearGradient id="heroWaveFill" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="var(--primary-accent)" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="var(--primary-accent)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d="M0,320 C260,370 420,190 700,270 C960,340 1180,180 1440,240 L1440,450 L0,450 Z" fill="url(#heroWaveFill)" />
+        <path d="M0,320 C260,370 420,190 700,270 C960,340 1180,180 1440,240" stroke="url(#heroWave1)" strokeWidth="2.5" />
+        <path d="M0,370 C240,280 480,410 780,320 C1040,240 1240,360 1440,300" stroke="url(#heroWave2)" strokeWidth="1.8" strokeDasharray="5 5" />
+        <path d="M0,270 C300,340 500,160 820,240 C1100,310 1260,170 1440,210" stroke="url(#heroWave1)" strokeWidth="1.5" strokeOpacity="0.5" />
+        <path d="M0,410 C340,460 580,350 900,410 C1160,450 1300,350 1440,380" stroke="url(#heroWave2)" strokeWidth="1.2" strokeOpacity="0.4" />
+      </svg>
       <div className={styles.bgOverlay} />
     </div>
     <div className={styles.main}>
