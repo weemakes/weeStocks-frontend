@@ -234,6 +234,8 @@ export function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
       } : undefined,
     },
     delivery_conviction: delivery,
+    statement_scope: (source.statement_scope as any) || (financialStatements.statement_scope as any) || 'CONSOLIDATED',
+    available_scopes: (source.available_scopes as any) || (financialStatements.available_scopes as any) || ['CONSOLIDATED'],
     quarterly_financials: quarterly,
     annual_financials: Array.from(annualByYear.values()).sort((a, b) => b.fiscal_year - a.fiscal_year),
     shareholding_pattern: shareholding,
@@ -398,12 +400,14 @@ export async function getStocksList(params: StockListParams = {}, signal?: Abort
 export async function getStockDetail(
   identifier: string,
   country?: string,
-  refresh?: boolean
+  refresh?: boolean,
+  scope?: string
 ): Promise<StockMasterDetail | null> {
   try {
     const p = new URLSearchParams();
     if (country) p.set('country', country);
     if (refresh) p.set('refresh', 'true');
+    if (scope) p.set('scope', scope);
     const qs = p.toString();
     const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}${qs ? `?${qs}` : ''}`;
     const res = await fetch(url, { cache: 'no-store' });
@@ -542,13 +546,15 @@ export async function getStockFinancials(
   identifier: string,
   periodType?: 'ANNUAL' | 'QUARTERLY',
   limit: number = 5,
-  country?: string
+  country?: string,
+  scope?: string
 ): Promise<StockFinancialsData | null> {
   try {
     const p = new URLSearchParams();
     if (periodType) p.set('period_type', periodType);
     if (limit) p.set('limit', String(limit));
     if (country) p.set('country', country);
+    if (scope) p.set('scope', scope);
     const qs = p.toString();
     const url = `${getBaseUrl()}/${encodeURIComponent(identifier)}/financials${qs ? `?${qs}` : ''}`;
     const res = await fetch(url, { cache: 'no-store' });

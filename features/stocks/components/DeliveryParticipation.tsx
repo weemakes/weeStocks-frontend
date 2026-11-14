@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { BarChart3, ChartColumn, Table2, TrendingDown, TrendingUp } from 'lucide-react';
+import { BarChart3, TrendingDown, TrendingUp } from 'lucide-react';
 import type { StockMasterDetail } from '../types';
 import { formatSafePct, formatSafeVolume } from '../utils/mappers';
+import ViewModeToggle from './ViewModeToggle';
 
 type DeliveryRow = NonNullable<StockMasterDetail['delivery_conviction']>[number];
 
@@ -51,10 +52,7 @@ export default function DeliveryParticipation({ rows }: Props) {
           </div>
           <p className="mt-1 text-[10px] text-slate-500">Traded volume and delivery percentage across the latest {sessions.length} sessions</p>
         </div>
-        <div className="inline-flex w-fit rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-950">
-          <button type="button" onClick={() => setView('chart')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-bold ${view === 'chart' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500'}`}><ChartColumn className="h-3.5 w-3.5" />Chart</button>
-          <button type="button" onClick={() => setView('table')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-bold ${view === 'table' ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-500'}`}><Table2 className="h-3.5 w-3.5" />Table</button>
-        </div>
+        <ViewModeToggle view={view} onChange={setView} />
       </div>
 
       <div className="mb-4 grid overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60 sm:grid-cols-2 lg:grid-cols-4 dark:border-slate-800 dark:bg-slate-950/30">

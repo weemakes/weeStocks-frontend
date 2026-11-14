@@ -63,7 +63,17 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
   const { company, quote, metrics, scores, header, today_at_a_glance: glance, price_performance: performance, shariah_audit: audit, valuation_and_sector_context: valuation, growth_and_profitability: growth, financial_health_and_cash_flow: health, technical_analysis: technical, quarterly_financials, annual_financials, shareholding_pattern, delivery_conviction, peers, investor_faqs, flags, thesis, trader_insights, chart } = currentDetail;
   const currency = getCurrencySymbol(company.country || company.currency);
   const positive = Number(quote.change_percentage || 0) >= 0;
-  const compliant = audit?.overall_result === 'PASS' || header?.is_shariah_compliant || currentDetail.shariah_compliance.status === 'HALAL';
+  const compliant = audit?.overall_result === 'PASS' || header?.is_shariah_compliant || currentDetail.shariah_compliance?.status === 'HALAL';
+  const [selectedScope, setSelectedScope] = useState<'CONSOLIDATED' | 'STANDALONE' | null>(null);
+  const [prevSymbol, setPrevSymbol] = useState(detail.company.symbol);
+
+  if (detail.company.symbol !== prevSymbol) {
+    setPrevSymbol(detail.company.symbol);
+    setSelectedScope(null);
+  }
+
+  const statementScope: 'CONSOLIDATED' | 'STANDALONE' =
+    selectedScope ?? (currentDetail.statement_scope as 'CONSOLIDATED' | 'STANDALONE') ?? 'CONSOLIDATED';
   const [range, setRange] = useState<ChartRange>('1Y');
   const [activeSection, setActiveSection] = useState('overview');
   const [candles, setCandles] = useState<StockCandle[]>(chart || []);
@@ -83,7 +93,7 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
     if (refreshing) return;
     setRefreshing(true);
     try {
-      const refreshed = await getStockDetail(company.symbol, company.country, true);
+      const refreshed = await getStockDetail(company.symbol, company.country, true, statementScope);
       if (refreshed) {
         setLiveDetail(refreshed);
         if (refreshed.chart?.length) {
@@ -99,8 +109,21 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
     }
   };
 
-  const recent = detail.what_changed_recently || [];
-  const actions = detail.corporate_actions || [];
+  const handleScopeChange = async (scope: 'CONSOLIDATED' | 'STANDALONE') => {
+    if (scope === statementScope) return;
+    setSelectedScope(scope);
+    try {
+      const refreshed = await getStockDetail(company.symbol, company.country, false, scope);
+      if (refreshed) {
+        setLiveDetail(refreshed);
+      }
+    } catch (e) {
+      console.error('Failed to update financial statement scope:', e);
+    }
+  };
+
+  const recent = currentDetail.what_changed_recently || [];
+  const actions = currentDetail.corporate_actions || [];
   const annualRows = annual_financials || [];
   const quarterlyRows = quarterly_financials || [];
   const holdingRows = (shareholding_pattern || []).filter((row) => row.promoter != null || row.fii != null || row.dii != null || row.public != null);
@@ -336,7 +359,17 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
 
       {health && <section className={`${panel} p-4`}><Title icon={<WalletCards className="h-4 w-4" />}>Financial health & cash flow</Title><div className="grid grid-cols-2 gap-2 sm:grid-cols-4"><Stat label="Net debt" value={formatMarketCap(health.net_debt, company.country)} note={health.health_status} /><Stat label="Interest coverage" value={`${formatSafeNumber(health.interest_coverage, 2)}x`} note="EBIT / interest" /><Stat label="CFO / PAT" value={`${formatSafeNumber(health.cfo_to_pat_3y, 2)}x`} note="3Y average" /><Stat label="Net debt / EBITDA" value={health.net_debt_to_ebitda == null ? '—' : `${formatSafeNumber(health.net_debt_to_ebitda, 2)}x`} note="Leverage" /></div><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3"><Stat label="Operating cash flow" value={formatMarketCap(health.cash_flow?.operating_cash_flow, company.country)} /><Stat label="Capital expenditure" value={formatMarketCap(health.cash_flow?.capex, company.country)} /><Stat label="Free cash flow" value={formatMarketCap(health.cash_flow?.free_cash_flow, company.country)} /></div></section>}
 
-      {(annualRows.length > 0 || quarterlyRows.length > 0) && <FinancialStatements annual={annualRows} quarterly={quarterlyRows} country={company.country} currency={currency} />}
+      {(annualRows.length > 0 || quarterlyRows.length > 0) && (
+        <FinancialStatements
+          annual={annualRows}
+          quarterly={quarterlyRows}
+          country={company.country}
+          currency={currency}
+          statementScope={statementScope}
+          availableScopes={currentDetail.available_scopes || detail.available_scopes || ['CONSOLIDATED']}
+          onScopeChange={handleScopeChange}
+        />
+      )}
 
       {scoreRows.length > 0 && <section className={`${panel} p-4`} aria-label="Fundamental scores"><Title icon={<Target className="h-4 w-4" />}>Fundamental scorecard</Title><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{scoreRows.map(([label, value]) => <QuantScore key={label} label={label} value={value} />)}</div><p className="mt-2 text-[9px] leading-4 text-slate-400">A 0–100 quantitative summary of reported fundamentals. Use the underlying financials and risks for context; the score is not a buy or sell recommendation.</p></section>}
 

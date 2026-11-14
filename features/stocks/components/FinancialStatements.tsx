@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ChartColumn, FileText, Table2 } from 'lucide-react';
+import { Check, ChevronDown, FileText } from 'lucide-react';
 import type { StockMasterDetail } from '../types';
 import { formatMarketCap, formatSafePct, formatSafePrice } from '../utils/mappers';
+import ViewModeToggle from './ViewModeToggle';
 
 type Period = 'annual' | 'quarterly';
 type Statement = 'performance' | 'income' | 'balance' | 'cashflow';
@@ -56,18 +57,51 @@ const statementColumnsMap: Record<Statement, Column[]> = {
   cashflow: cashFlowColumns,
 };
 
-const hasDataFor = (dataset: Row[], cols: Column[]) =>
-  dataset && dataset.length > 0 && dataset.some((row) => cols.some((col) => row[col.key as keyof Row] != null));
+const hasDataFor = (dataset: Row[], cols: Column[], isQuarterly = false) => {
+  if (!dataset || dataset.length === 0) return false;
 
-export default function FinancialStatements({ annual, quarterly, country, currency }: { annual: AnnualRow[]; quarterly: QuarterlyRow[]; country: string; currency: string }) {
+  const rowsWithData = dataset.filter((row) =>
+    cols.some((col) => {
+      const val = row[col.key as keyof Row];
+      return val != null && val !== 0 && !Number.isNaN(Number(val));
+    })
+  ).length;
+
+  // Quarterly balance sheet / cash flow requires consistent quarterly reporting (at least 50% quarters, min 4)
+  if (isQuarterly) {
+    return rowsWithData >= Math.min(4, Math.ceil(dataset.length * 0.5));
+  }
+
+  return rowsWithData > 0;
+};
+
+export default function FinancialStatements({
+  annual,
+  quarterly,
+  country,
+  currency,
+  statementScope,
+  availableScopes,
+  onScopeChange,
+}: {
+  annual: AnnualRow[];
+  quarterly: QuarterlyRow[];
+  country: string;
+  currency: string;
+  statementScope?: 'CONSOLIDATED' | 'STANDALONE';
+  availableScopes?: ('CONSOLIDATED' | 'STANDALONE')[];
+  onScopeChange?: (scope: 'CONSOLIDATED' | 'STANDALONE') => void;
+}) {
   const [period, setPeriod] = useState<Period>('annual');
   const [statement, setStatement] = useState<Statement>('performance');
   const [view, setView] = useState<ViewMode>('chart');
 
-  // Check which statements have data for the currently selected period
-  const currentDataset = period === 'annual' ? annual : quarterly;
+  const isQuarterly = period === 'quarterly';
+  const currentDataset = isQuarterly ? quarterly : annual;
+
+  // Check which statements have meaningful data for the currently selected period
   const availableStatements: Statement[] = (['performance', 'income', 'balance', 'cashflow'] as Statement[]).filter(
-    (stmt) => hasDataFor(currentDataset, statementColumnsMap[stmt])
+    (stmt) => hasDataFor(currentDataset, statementColumnsMap[stmt], isQuarterly)
   );
 
   // Fallback if current statement is not available in the active period
@@ -77,8 +111,8 @@ export default function FinancialStatements({ annual, quarterly, country, curren
 
   // Check which periods (annual / quarterly) have data for the SELECTED statement
   const targetCols = statementColumnsMap[selectedStatement];
-  const hasAnnualForStmt = hasDataFor(annual, targetCols);
-  const hasQuarterlyForStmt = hasDataFor(quarterly, targetCols);
+  const hasAnnualForStmt = hasDataFor(annual, targetCols, false);
+  const hasQuarterlyForStmt = hasDataFor(quarterly, targetCols, true);
 
   const availablePeriods: Period[] = [];
   if (hasAnnualForStmt) availablePeriods.push('annual');
@@ -99,41 +133,81 @@ export default function FinancialStatements({ annual, quarterly, country, curren
     period: 'fiscal_quarter' in row ? `Q${row.fiscal_quarter} FY${row.fiscal_year}` : `FY${row.fiscal_year}`,
   }));
 
+  const handleSelectStatement = (value: string) => {
+    const nextStmt = value as Statement;
+    setStatement(nextStmt);
+    const targetCols = statementColumnsMap[nextStmt];
+    const hasQuarterly = hasDataFor(quarterly, targetCols, true);
+    if (!hasQuarterly && period === 'quarterly') {
+      setPeriod('annual');
+    }
+  };
+
+  const handleSelectPeriod = (value: string) => {
+    const nextPeriod = value as Period;
+    setPeriod(nextPeriod);
+    if (nextPeriod === 'quarterly') {
+      const isAvailableInQuarterly = hasDataFor(quarterly, statementColumnsMap[selectedStatement], true);
+      if (!isAvailableInQuarterly) {
+        setStatement('performance');
+      }
+    }
+  };
+
   return <section id="financials" className="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
-    <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-      <div>
-        <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-          <FileText className="h-4 w-4 text-sky-600" />
-          Financial Statements
+    <div className="mb-4 flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+            <FileText className="h-4 w-4 text-sky-600" />
+            Financial Statements
+          </div>
+          <p className="mt-0.5 text-[11px] text-slate-500">Complete reported financial history · Values use the company&apos;s reporting currency</p>
         </div>
-        <p className="mt-1 text-[11px] text-slate-500">Complete reported financial history · Values use the company&apos;s reporting currency</p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        {availableStatements.length > 1 && (
-          <Toggle
-            values={availableStatements}
-            selected={selectedStatement}
-            onSelect={(value) => setStatement(value as Statement)}
-            labels={{ performance: 'Performance', income: 'Income Statement', balance: 'Balance Sheet', cashflow: 'Cash Flow' }}
+        <div className="flex flex-wrap items-center gap-2">
+          <ViewModeToggle view={view} onChange={setView} />
+          <ScopeDropdown
+            scopes={availableScopes || ['CONSOLIDATED']}
+            selected={statementScope || 'CONSOLIDATED'}
+            onChange={(val) => onScopeChange?.(val)}
           />
-        )}
-        {availablePeriods.length > 1 ? (
-          <Toggle
-            values={availablePeriods}
-            selected={selectedPeriod}
-            onSelect={(value) => setPeriod(value as Period)}
-            accent
-          />
-        ) : availablePeriods.length === 1 ? (
-          <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 capitalize">
-            {availablePeriods[0]} Only
-          </span>
-        ) : null}
-        <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-950">
-          <button type="button" onClick={() => setView('chart')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[10px] font-semibold ${view === 'chart' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500 hover:text-sky-600'}`}><ChartColumn className="h-3.5 w-3.5" />Chart</button>
-          <button type="button" onClick={() => setView('table')} className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[10px] font-semibold ${view === 'table' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500 hover:text-sky-600'}`}><Table2 className="h-3.5 w-3.5" />Table</button>
+          {availablePeriods.length > 1 ? (
+            <div className="inline-flex items-center rounded-lg border border-slate-200/90 bg-slate-100/90 p-0.5 dark:border-slate-800 dark:bg-slate-900">
+              {availablePeriods.map((p) => {
+                const isSelected = selectedPeriod === p;
+                const label = p === 'annual' ? 'Annual' : 'Quarter';
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => handleSelectPeriod(p)}
+                    className={`rounded-md px-3 py-1 text-xs font-medium transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-white text-slate-800 shadow-xs dark:bg-slate-800 dark:text-white'
+                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : availablePeriods.length === 1 ? (
+            <span className="inline-flex items-center rounded-lg border border-slate-200/90 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+              {availablePeriods[0] === 'annual' ? 'Annual' : 'Quarter'}
+            </span>
+          ) : null}
         </div>
       </div>
+
+      {availableStatements.length > 1 && (
+        <Toggle
+          values={availableStatements}
+          selected={selectedStatement}
+          onSelect={handleSelectStatement}
+          labels={{ performance: 'Performance', income: 'Income Statement', balance: 'Balance Sheet', cashflow: 'Cash Flow' }}
+        />
+      )}
     </div>
     {visibleColumns.length === 0 ? (
       <div className="py-12 text-center text-xs text-slate-400">No reported data available for this statement period.</div>
@@ -177,5 +251,82 @@ function FinancialCell({ value, column, country, currency }: { value?: number; c
 }
 
 function Toggle({ values, selected, onSelect, labels, accent = false }: { values: string[]; selected: string; onSelect: (value: string) => void; labels?: Record<string, string>; accent?: boolean }) {
-  return <div className="flex max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-950">{values.map((value) => <button type="button" key={value} onClick={() => onSelect(value)} className={`shrink-0 rounded-md px-3 py-1.5 text-[9px] font-bold ${selected === value ? accent ? 'bg-sky-600 text-white' : 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 hover:text-sky-600'}`}>{labels?.[value] || value.charAt(0).toUpperCase() + value.slice(1)}</button>)}</div>;
+  return <div className="flex max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-700 dark:bg-slate-950 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">{values.map((value) => <button type="button" key={value} onClick={() => onSelect(value)} className={`shrink-0 rounded-md px-3 py-1.5 text-[9px] font-bold cursor-pointer transition-all ${selected === value ? accent ? 'bg-sky-600 text-white' : 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white' : 'text-slate-500 hover:text-sky-600'}`}>{labels?.[value] || value.charAt(0).toUpperCase() + value.slice(1)}</button>)}</div>;
+}
+
+function ScopeDropdown({
+  scopes,
+  selected,
+  onChange,
+}: {
+  scopes: ('CONSOLIDATED' | 'STANDALONE')[];
+  selected: 'CONSOLIDATED' | 'STANDALONE';
+  onChange?: (scope: 'CONSOLIDATED' | 'STANDALONE') => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [open]);
+
+  const label = selected === 'CONSOLIDATED' ? 'Consolidated' : 'Standalone';
+
+  if (!scopes || scopes.length <= 1) {
+    return (
+      <span className="inline-flex items-center rounded-lg border border-slate-200/90 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
+        {label}
+      </span>
+    );
+  }
+
+  return (
+    <div className="relative inline-block text-left" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-xs transition-colors hover:bg-slate-50 cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span>{label}</span>
+        <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-30 min-w-36 rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-800 dark:bg-slate-900 animate-in fade-in zoom-in-95 duration-100">
+          {scopes.map((scope) => {
+            const isSelected = selected === scope;
+            const scopeLabel = scope === 'CONSOLIDATED' ? 'Consolidated' : 'Standalone';
+            return (
+              <button
+                key={scope}
+                type="button"
+                onClick={() => {
+                  onChange?.(scope);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-left transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 font-semibold'
+                    : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span>{scopeLabel}</span>
+                {isSelected && <Check className="h-3 w-3 text-sky-600 dark:text-sky-400" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
