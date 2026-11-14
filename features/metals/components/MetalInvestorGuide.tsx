@@ -12,6 +12,7 @@ interface MetalInvestorGuideProps {
 export function MetalInvestorGuide({ metal, cityName }: MetalInvestorGuideProps) {
   const isGold = metal === "gold";
   const isSilver = metal === "silver";
+  
 
   const faqs = isGold
     ? [
