@@ -431,7 +431,10 @@ export interface StockMasterDetail {
     delivery_ratio?: number | null;
     relative_strength?: string;
   }>;
+  statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
+  available_scopes?: ('CONSOLIDATED' | 'STANDALONE')[];
   quarterly_financials?: Array<{
+    statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
     fiscal_year: number;
     fiscal_quarter: number;
     revenue: number;
@@ -457,6 +460,7 @@ export interface StockMasterDetail {
     cash_and_equivalents?: number;
   }>;
   annual_financials?: Array<{
+    statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
     fiscal_year: number;
     revenue: number;
     gross_profit?: number;
@@ -610,6 +614,7 @@ export interface FinancialSnapshot {
   fiscal_year: number;
   fiscal_quarter?: number | null;
   period_type: 'ANNUAL' | 'QUARTERLY';
+  statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
   revenue?: number | string;
   gross_profit?: number | string;
   operating_income?: number | string;
@@ -660,6 +665,8 @@ export interface StockFinancialsData {
   symbol: string;
   company_name: string;
   currency: string;
+  statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
+  available_scopes?: ('CONSOLIDATED' | 'STANDALONE')[];
   annual?: FinancialSnapshot[];
   quarterly?: FinancialSnapshot[];
   snapshots: FinancialSnapshot[];
