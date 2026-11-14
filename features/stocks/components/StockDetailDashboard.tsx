@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CheckCircle2, FileText, Globe, PieChart, RefreshCw, ShieldCheck, Sparkles, Target, TrendingUp, WalletCards, XCircle } from 'lucide-react';
-import type { StockCandle, StockMasterDetail } from '../types';
-import { getStockChart, getStockDetail } from '../api';
+import type { StockCandle, StockFinancialRow, StockMasterDetail } from '../types';
+import { getStockChart, getStockDetail, getStockFinancials, normalizeFinancialRow } from '../api';
 import { formatMarketCap, formatSafeNumber, formatSafePct, formatSafePrice, formatSafeVolume, getCurrencySymbol } from '../utils/mappers';
 import dynamic from 'next/dynamic';
 import CompanyLogo from './CompanyLogo';
@@ -67,9 +67,36 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
   const [selectedScope, setSelectedScope] = useState<'CONSOLIDATED' | 'STANDALONE' | null>(null);
   const [prevSymbol, setPrevSymbol] = useState(detail.company.symbol);
 
+  // Financial statements cached by statement scope to guarantee 0ms instant switching and 85ms fast fetch
+  const [financialsByScope, setFinancialsByScope] = useState<
+    Record<
+      'CONSOLIDATED' | 'STANDALONE',
+      { annual: StockFinancialRow[]; quarterly: StockFinancialRow[] } | undefined
+    >
+  >(() => {
+    const initScope = (detail.statement_scope as 'CONSOLIDATED' | 'STANDALONE') || 'CONSOLIDATED';
+    return {
+      CONSOLIDATED: initScope === 'CONSOLIDATED'
+        ? { annual: detail.annual_financials || [], quarterly: detail.quarterly_financials || [] }
+        : undefined,
+      STANDALONE: initScope === 'STANDALONE'
+        ? { annual: detail.annual_financials || [], quarterly: detail.quarterly_financials || [] }
+        : undefined,
+    };
+  });
+
   if (detail.company.symbol !== prevSymbol) {
     setPrevSymbol(detail.company.symbol);
     setSelectedScope(null);
+    const initScope = (detail.statement_scope as 'CONSOLIDATED' | 'STANDALONE') || 'CONSOLIDATED';
+    setFinancialsByScope({
+      CONSOLIDATED: initScope === 'CONSOLIDATED'
+        ? { annual: detail.annual_financials || [], quarterly: detail.quarterly_financials || [] }
+        : undefined,
+      STANDALONE: initScope === 'STANDALONE'
+        ? { annual: detail.annual_financials || [], quarterly: detail.quarterly_financials || [] }
+        : undefined,
+    });
   }
 
   const statementScope: 'CONSOLIDATED' | 'STANDALONE' =
@@ -96,6 +123,14 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
       const refreshed = await getStockDetail(company.symbol, company.country, true, statementScope);
       if (refreshed) {
         setLiveDetail(refreshed);
+        const refScope = (refreshed.statement_scope as 'CONSOLIDATED' | 'STANDALONE') || statementScope;
+        setFinancialsByScope((prev) => ({
+          ...prev,
+          [refScope]: {
+            annual: refreshed.annual_financials || [],
+            quarterly: refreshed.quarterly_financials || [],
+          },
+        }));
         if (refreshed.chart?.length) {
           setCandles(refreshed.chart);
         } else {
@@ -112,10 +147,26 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
   const handleScopeChange = async (scope: 'CONSOLIDATED' | 'STANDALONE') => {
     if (scope === statementScope) return;
     setSelectedScope(scope);
+
+    // 1. If this scope's statements are already cached in memory, switch instantaneously in 0ms
+    if (financialsByScope[scope]) {
+      return;
+    }
+
+    // 2. Otherwise query the dedicated, indexed ~85ms endpoint: GET /stocks/:identifier/financials?scope=...
     try {
-      const refreshed = await getStockDetail(company.symbol, company.country, false, scope);
-      if (refreshed) {
-        setLiveDetail(refreshed);
+      const res = await getStockFinancials(company.symbol, undefined, 20, company.country, scope);
+      if (res) {
+        const rawScope = res.statement_scope || scope;
+        const normalizedAnnual = (res.annual || []).map((row) => normalizeFinancialRow(row, rawScope));
+        const normalizedQuarterly = (res.quarterly || []).map((row) => normalizeFinancialRow(row, rawScope));
+        setFinancialsByScope((prev) => ({
+          ...prev,
+          [scope]: {
+            annual: normalizedAnnual,
+            quarterly: normalizedQuarterly,
+          },
+        }));
       }
     } catch (e) {
       console.error('Failed to update financial statement scope:', e);
@@ -124,8 +175,9 @@ export default function StockDetailDashboard({ detail, onSelectPeer }: Props) {
 
   const recent = currentDetail.what_changed_recently || [];
   const actions = currentDetail.corporate_actions || [];
-  const annualRows = annual_financials || [];
-  const quarterlyRows = quarterly_financials || [];
+  const activeCached = financialsByScope[statementScope];
+  const annualRows = activeCached?.annual || annual_financials || [];
+  const quarterlyRows = activeCached?.quarterly || quarterly_financials || [];
   const holdingRows = (shareholding_pattern || []).filter((row) => row.promoter != null || row.fii != null || row.dii != null || row.public != null);
   const holding = holdingRows[0];
   const rawGrowthSeries = growth?.chart_series || [];

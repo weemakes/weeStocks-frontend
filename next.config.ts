@@ -21,9 +21,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/ipo',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+        ],
+      },
+      {
         source: '/ipo/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=0, s-maxage=15, stale-while-revalidate=30' },
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
         ],
       },
     ];

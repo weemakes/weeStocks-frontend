@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import PageFaq from '@/components/seo/PageFaq';
-import { IPO_FAQS, ipoCompanyFaqs } from '@/lib/seo/faqs';
+import { ipoCompanyFaqs } from '@/lib/seo/faqs';
 import { notFound } from 'next/navigation';
 import { IPOApiError } from '@/features/ipo/api';
 import {
@@ -47,7 +47,7 @@ interface IPODetailPageProps {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://weestox.com';
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: IPODetailPageProps): Promise<Metadata> {
   const { companyName } = await params;

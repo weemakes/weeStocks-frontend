@@ -219,6 +219,56 @@ export interface StockCorporateAction {
   logo_url?: string | null;
 }
 
+export interface StockFinancialRow {
+  statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
+  fiscal_year: number;
+  fiscal_quarter?: number;
+  // Income Statement (ScanX View 1)
+  revenue: number;
+  expenses?: number;
+  ebitda?: number;
+  opm_pct?: number;
+  depreciation?: number;
+  interest_income?: number;
+  interest_expense?: number;
+  pbt?: number;
+  tax_expense?: number;
+  net_income: number;
+  diluted_eps?: number;
+  gross_profit?: number;
+  operating_income?: number;
+  // Balance Sheet (ScanX View 2)
+  total_assets?: number;
+  fixed_assets?: number;
+  cwip?: number;
+  investments?: number;
+  other_assets?: number;
+  total_equity_and_liabilities?: number;
+  current_liabilities?: number;
+  non_current_liabilities?: number;
+  total_equity?: number;
+  reserves_surplus?: number;
+  equity_share_capital?: number;
+  total_liabilities?: number;
+  total_debt?: number;
+  cash_and_equivalents?: number;
+  // Cash Flow (ScanX View 3)
+  operating_activities?: number;
+  operating_cash_flow?: number;
+  investing_activities?: number;
+  financing_activities?: number;
+  net_cash_flow?: number;
+  capex?: number;
+  free_cash_flow?: number;
+  // Percentages / Growth
+  revenue_yoy_pct?: number;
+  pat_yoy_pct?: number;
+  ebitda_yoy_pct?: number;
+  ebitda_margin_pct?: number;
+  pat_margin_pct?: number;
+  [key: string]: unknown;
+}
+
 export interface StockMasterDetail {
   what_changed_recently?: Array<{
     title: string;
@@ -433,60 +483,8 @@ export interface StockMasterDetail {
   }>;
   statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
   available_scopes?: ('CONSOLIDATED' | 'STANDALONE')[];
-  quarterly_financials?: Array<{
-    statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
-    fiscal_year: number;
-    fiscal_quarter: number;
-    revenue: number;
-    gross_profit?: number;
-    operating_income?: number;
-    ebitda?: number;
-    net_income: number;
-    diluted_eps?: number;
-    pbt?: number;
-    tax_expense?: number;
-    interest_expense?: number;
-    revenue_yoy_pct?: number;
-    pat_yoy_pct?: number;
-    ebitda_yoy_pct?: number;
-    ebitda_margin_pct?: number;
-    pat_margin_pct?: number;
-    operating_cash_flow?: number;
-    capex?: number;
-    free_cash_flow?: number;
-    total_assets?: number;
-    total_liabilities?: number;
-    total_debt?: number;
-    cash_and_equivalents?: number;
-  }>;
-  annual_financials?: Array<{
-    statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
-    fiscal_year: number;
-    revenue: number;
-    gross_profit?: number;
-    operating_income?: number;
-    ebitda?: number;
-    net_income: number;
-    diluted_eps?: number;
-    total_assets?: number;
-    total_liabilities?: number;
-    total_debt?: number;
-    cash_and_equivalents?: number;
-    operating_cash_flow?: number;
-    capex?: number;
-    free_cash_flow?: number;
-    equity_share_capital?: number;
-    reserves_surplus?: number;
-    interest_income?: number;
-    interest_expense?: number;
-    pbt?: number;
-    tax_expense?: number;
-    revenue_yoy_pct?: number;
-    pat_yoy_pct?: number;
-    ebitda_yoy_pct?: number;
-    ebitda_margin_pct?: number;
-    pat_margin_pct?: number;
-  }>;
+  quarterly_financials?: StockFinancialRow[];
+  annual_financials?: StockFinancialRow[];
   shareholding_pattern?: Array<{
     quarter: string;
     promoter: number | null;
@@ -616,9 +614,12 @@ export interface FinancialSnapshot {
   period_type: 'ANNUAL' | 'QUARTERLY';
   statement_scope?: 'CONSOLIDATED' | 'STANDALONE';
   revenue?: number | string;
+  expenses?: number | string;
   gross_profit?: number | string;
   operating_income?: number | string;
   ebitda?: number | string;
+  opm_pct?: number | string;
+  depreciation?: number | string;
   net_income?: number | string;
   diluted_eps?: number | string;
   pbt?: number | string;
@@ -626,19 +627,34 @@ export interface FinancialSnapshot {
   interest_income?: number | string;
   interest_expense?: number | string;
   total_assets?: number | string;
+  fixed_assets?: number | string;
+  cwip?: number | string;
+  investments?: number | string;
+  other_assets?: number | string;
+  total_equity_and_liabilities?: number | string;
+  current_liabilities?: number | string;
+  non_current_liabilities?: number | string;
+  total_equity?: number | string;
   total_liabilities?: number | string;
   total_debt?: number | string;
   cash_and_equivalents?: number | string;
   equity_share_capital?: number | string;
   reserves_surplus?: number | string;
+  operating_activities?: number | string;
   operating_cash_flow?: number | string;
+  investing_activities?: number | string;
+  financing_activities?: number | string;
+  net_cash_flow?: number | string;
   capex?: number | string;
   free_cash_flow?: number | string;
   income_statement?: {
     revenue?: number | string;
+    expenses?: number | string;
     gross_profit?: number | string;
     operating_income?: number | string;
     ebitda?: number | string;
+    opm_pct?: number | string;
+    depreciation?: number | string;
     net_income?: number | string;
     diluted_eps?: number | string;
     pbt?: number | string;
@@ -648,6 +664,14 @@ export interface FinancialSnapshot {
   };
   balance_sheet?: {
     total_assets?: number | string;
+    fixed_assets?: number | string;
+    cwip?: number | string;
+    investments?: number | string;
+    other_assets?: number | string;
+    total_equity_and_liabilities?: number | string;
+    current_liabilities?: number | string;
+    non_current_liabilities?: number | string;
+    total_equity?: number | string;
     total_liabilities?: number | string;
     total_debt?: number | string;
     cash_and_equivalents?: number | string;
@@ -655,7 +679,11 @@ export interface FinancialSnapshot {
     reserves_surplus?: number | string;
   };
   cash_flow?: {
+    operating_activities?: number | string;
     operating_cash_flow?: number | string;
+    investing_activities?: number | string;
+    financing_activities?: number | string;
+    net_cash_flow?: number | string;
     capex?: number | string;
     free_cash_flow?: number | string;
   };

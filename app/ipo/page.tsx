@@ -24,7 +24,7 @@ interface IPOPageProps {
   searchParams: Promise<IPOQueryParams>;
 }
 
-export const revalidate = 15;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ searchParams }: IPOPageProps): Promise<Metadata> {
   const params = await searchParams;

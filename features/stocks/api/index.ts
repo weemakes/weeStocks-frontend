@@ -4,6 +4,7 @@ import type {
   StockMasterDetail,
   StockChartData,
   StockFinancialsData,
+  StockFinancialRow,
   StockHalalAuditData,
   MarketMoverItem,
   MarketOverviewData,
@@ -29,6 +30,126 @@ function toNumber(value: unknown): number | null {
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
+
+export function normalizeFinancialRow(
+  item: unknown,
+  defaultScope?: 'CONSOLIDATED' | 'STANDALONE'
+): StockFinancialRow {
+  const row = asRecord(item);
+  const inc = asRecord(row.income_statement);
+  const bal = asRecord(row.balance_sheet);
+  const cf = asRecord(row.cash_flow);
+
+  const rawScope = row.statement_scope || defaultScope;
+  const scope: 'CONSOLIDATED' | 'STANDALONE' | undefined =
+    rawScope === 'STANDALONE' || rawScope === 'CONSOLIDATED' ? rawScope : undefined;
+
+  const fiscalQuarter = toNumber(row.fiscal_quarter);
+
+  // Income Statement (ScanX View 1)
+  const revenue = toNumber(inc.revenue) ?? toNumber(row.revenue) ?? 0;
+  const expenses = toNumber(inc.expenses) ?? toNumber(row.expenses) ?? undefined;
+  const ebitda = toNumber(inc.ebitda) ?? toNumber(row.ebitda) ?? undefined;
+  const opmPct = toNumber(inc.opm_pct) ?? toNumber(row.opm_pct) ?? toNumber(row.ebitda_margin_pct) ?? undefined;
+  const depreciation = toNumber(inc.depreciation) ?? toNumber(row.depreciation) ?? undefined;
+  const interestExpense = toNumber(inc.interest_expense) ?? toNumber(row.interest_expense) ?? undefined;
+  const interestIncome = toNumber(inc.interest_income) ?? toNumber(row.interest_income) ?? undefined;
+  const pbt = toNumber(inc.pbt) ?? toNumber(row.pbt) ?? undefined;
+  const taxExpense = toNumber(inc.tax_expense) ?? toNumber(row.tax_expense) ?? undefined;
+  const netIncome = toNumber(inc.net_income) ?? toNumber(row.net_income) ?? 0;
+  const dilutedEps = toNumber(inc.diluted_eps) ?? toNumber(row.diluted_eps) ?? undefined;
+  const grossProfit = toNumber(inc.gross_profit) ?? toNumber(row.gross_profit) ?? undefined;
+  const operatingIncome = toNumber(inc.operating_income) ?? toNumber(row.operating_income) ?? undefined;
+
+  // Balance Sheet (ScanX View 2)
+  const totalAssets = toNumber(bal.total_assets) ?? toNumber(row.total_assets) ?? undefined;
+  const fixedAssets = toNumber(bal.fixed_assets) ?? toNumber(row.fixed_assets) ?? undefined;
+  const cwip = toNumber(bal.cwip) ?? toNumber(row.cwip) ?? undefined;
+  const investments = toNumber(bal.investments) ?? toNumber(row.investments) ?? undefined;
+  const otherAssets = toNumber(bal.other_assets) ?? toNumber(row.other_assets) ?? undefined;
+  const totalEquityLiab =
+    toNumber(bal.total_equity_and_liabilities) ??
+    toNumber(row.total_equity_and_liabilities) ??
+    totalAssets ??
+    undefined;
+  const currentLiabilities = toNumber(bal.current_liabilities) ?? toNumber(row.current_liabilities) ?? undefined;
+  const nonCurrentLiabilities =
+    toNumber(bal.non_current_liabilities) ?? toNumber(row.non_current_liabilities) ?? undefined;
+  const totalEquity = toNumber(bal.total_equity) ?? toNumber(row.total_equity) ?? undefined;
+  const reservesSurplus = toNumber(bal.reserves_surplus) ?? toNumber(row.reserves_surplus) ?? undefined;
+  const equityShareCapital = toNumber(bal.equity_share_capital) ?? toNumber(row.equity_share_capital) ?? undefined;
+  const totalLiabilities = toNumber(bal.total_liabilities) ?? toNumber(row.total_liabilities) ?? undefined;
+  const totalDebt = toNumber(bal.total_debt) ?? toNumber(row.total_debt) ?? undefined;
+  const cashAndEquivalents = toNumber(bal.cash_and_equivalents) ?? toNumber(row.cash_and_equivalents) ?? undefined;
+
+  // Cash Flow (ScanX View 3)
+  const operatingActivities =
+    toNumber(cf.operating_activities) ??
+    toNumber(cf.operating_cash_flow) ??
+    toNumber(row.operating_activities) ??
+    toNumber(row.operating_cash_flow) ??
+    undefined;
+  const investingActivities =
+    toNumber(cf.investing_activities) ??
+    toNumber(cf.investing_cash_flow) ??
+    toNumber(row.investing_activities) ??
+    toNumber(row.investing_cash_flow) ??
+    undefined;
+  const financingActivities =
+    toNumber(cf.financing_activities) ??
+    toNumber(cf.financing_cash_flow) ??
+    toNumber(row.financing_activities) ??
+    toNumber(row.financing_cash_flow) ??
+    undefined;
+  const netCashFlow = toNumber(cf.net_cash_flow) ?? toNumber(row.net_cash_flow) ?? undefined;
+  const capex = toNumber(cf.capex) ?? toNumber(row.capex) ?? undefined;
+  const freeCashFlow = toNumber(cf.free_cash_flow) ?? toNumber(row.free_cash_flow) ?? undefined;
+
+  return {
+    statement_scope: scope,
+    fiscal_year: toNumber(row.fiscal_year) ?? 0,
+    ...(fiscalQuarter != null ? { fiscal_quarter: fiscalQuarter } : {}),
+    revenue,
+    expenses,
+    ebitda,
+    opm_pct: opmPct,
+    depreciation,
+    interest_income: interestIncome,
+    interest_expense: interestExpense,
+    pbt,
+    tax_expense: taxExpense,
+    net_income: netIncome,
+    diluted_eps: dilutedEps,
+    gross_profit: grossProfit,
+    operating_income: operatingIncome,
+    total_assets: totalAssets,
+    fixed_assets: fixedAssets,
+    cwip,
+    investments,
+    other_assets: otherAssets,
+    total_equity_and_liabilities: totalEquityLiab,
+    current_liabilities: currentLiabilities,
+    non_current_liabilities: nonCurrentLiabilities,
+    total_equity: totalEquity,
+    reserves_surplus: reservesSurplus,
+    equity_share_capital: equityShareCapital,
+    total_liabilities: totalLiabilities,
+    total_debt: totalDebt,
+    cash_and_equivalents: cashAndEquivalents,
+    operating_activities: operatingActivities,
+    operating_cash_flow: operatingActivities,
+    investing_activities: investingActivities,
+    financing_activities: financingActivities,
+    net_cash_flow: netCashFlow,
+    capex,
+    free_cash_flow: freeCashFlow,
+    revenue_yoy_pct: toNumber(row.revenue_yoy_pct) ?? undefined,
+    pat_yoy_pct: toNumber(row.pat_yoy_pct) ?? undefined,
+    ebitda_yoy_pct: toNumber(row.ebitda_yoy_pct) ?? undefined,
+    ebitda_margin_pct: toNumber(row.ebitda_margin_pct) ?? opmPct ?? undefined,
+    pat_margin_pct: toNumber(row.pat_margin_pct) ?? undefined,
+  };
 }
 
 export function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
@@ -72,69 +193,17 @@ export function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
     ? source.quarterly_financials
     : Array.isArray(financialStatements.quarterly) ? financialStatements.quarterly : [];
 
-  const quarterly = quarterlySource.map((item) => {
-        const row = asRecord(item);
-        return {
-          fiscal_year: toNumber(row.fiscal_year) ?? 0,
-          fiscal_quarter: toNumber(row.fiscal_quarter) ?? 0,
-          revenue: toNumber(row.revenue) ?? 0,
-          gross_profit: toNumber(row.gross_profit) ?? undefined,
-          operating_income: toNumber(row.operating_income) ?? undefined,
-          ebitda: toNumber(row.ebitda) ?? undefined,
-          net_income: toNumber(row.net_income) ?? 0,
-          diluted_eps: toNumber(row.diluted_eps) ?? undefined,
-          pbt: toNumber(row.pbt) ?? undefined,
-          tax_expense: toNumber(row.tax_expense) ?? undefined,
-          interest_expense: toNumber(row.interest_expense) ?? undefined,
-          revenue_yoy_pct: toNumber(row.revenue_yoy_pct) ?? undefined,
-          pat_yoy_pct: toNumber(row.pat_yoy_pct) ?? undefined,
-          ebitda_yoy_pct: toNumber(row.ebitda_yoy_pct) ?? undefined,
-          ebitda_margin_pct: toNumber(row.ebitda_margin_pct) ?? undefined,
-          pat_margin_pct: toNumber(row.pat_margin_pct) ?? undefined,
-          operating_cash_flow: toNumber(row.operating_cash_flow) ?? undefined,
-          capex: toNumber(row.capex) ?? undefined,
-          free_cash_flow: toNumber(row.free_cash_flow) ?? undefined,
-          total_assets: toNumber(row.total_assets) ?? undefined,
-          total_liabilities: toNumber(row.total_liabilities) ?? undefined,
-          total_debt: toNumber(row.total_debt) ?? undefined,
-          cash_and_equivalents: toNumber(row.cash_and_equivalents) ?? undefined,
-        };
-      });
+  const rawScope = source.statement_scope || financialStatements.statement_scope;
+  const currentScope: 'CONSOLIDATED' | 'STANDALONE' | undefined =
+    rawScope === 'STANDALONE' || rawScope === 'CONSOLIDATED' ? rawScope : undefined;
+
+  const quarterly = quarterlySource.map((item) => normalizeFinancialRow(item, currentScope));
 
   const annualSource = Array.isArray(source.annual_financials)
     ? source.annual_financials
     : Array.isArray(financialStatements.annual) ? financialStatements.annual : [];
 
-  const annualRows = annualSource.map((item) => {
-        const row = asRecord(item);
-        return {
-          fiscal_year: toNumber(row.fiscal_year) ?? 0,
-          revenue: toNumber(row.revenue) ?? 0,
-          gross_profit: toNumber(row.gross_profit) ?? undefined,
-          operating_income: toNumber(row.operating_income) ?? undefined,
-          ebitda: toNumber(row.ebitda) ?? undefined,
-          net_income: toNumber(row.net_income) ?? 0,
-          diluted_eps: toNumber(row.diluted_eps) ?? undefined,
-          total_assets: toNumber(row.total_assets) ?? undefined,
-          total_liabilities: toNumber(row.total_liabilities) ?? undefined,
-          total_debt: toNumber(row.total_debt) ?? undefined,
-          cash_and_equivalents: toNumber(row.cash_and_equivalents) ?? undefined,
-          operating_cash_flow: toNumber(row.operating_cash_flow) ?? undefined,
-          capex: toNumber(row.capex) ?? undefined,
-          free_cash_flow: toNumber(row.free_cash_flow) ?? undefined,
-          equity_share_capital: toNumber(row.equity_share_capital) ?? undefined,
-          reserves_surplus: toNumber(row.reserves_surplus) ?? undefined,
-          interest_income: toNumber(row.interest_income) ?? undefined,
-          interest_expense: toNumber(row.interest_expense) ?? undefined,
-          pbt: toNumber(row.pbt) ?? undefined,
-          tax_expense: toNumber(row.tax_expense) ?? undefined,
-          revenue_yoy_pct: toNumber(row.revenue_yoy_pct) ?? undefined,
-          pat_yoy_pct: toNumber(row.pat_yoy_pct) ?? undefined,
-          ebitda_yoy_pct: toNumber(row.ebitda_yoy_pct) ?? undefined,
-          ebitda_margin_pct: toNumber(row.ebitda_margin_pct) ?? undefined,
-          pat_margin_pct: toNumber(row.pat_margin_pct) ?? undefined,
-        };
-      });
+  const annualRows = annualSource.map((item) => normalizeFinancialRow(item, currentScope));
   const annualByYear = new Map<number, (typeof annualRows)[number]>();
   for (const row of annualRows) {
     const current = annualByYear.get(row.fiscal_year);
@@ -234,8 +303,14 @@ export function normalizeStockDetail(raw: unknown): StockMasterDetail | null {
       } : undefined,
     },
     delivery_conviction: delivery,
-    statement_scope: (source.statement_scope as any) || (financialStatements.statement_scope as any) || 'CONSOLIDATED',
-    available_scopes: (source.available_scopes as any) || (financialStatements.available_scopes as any) || ['CONSOLIDATED'],
+    statement_scope:
+      (source.statement_scope as 'CONSOLIDATED' | 'STANDALONE' | undefined) ||
+      (financialStatements.statement_scope as 'CONSOLIDATED' | 'STANDALONE' | undefined) ||
+      'CONSOLIDATED',
+    available_scopes:
+      (source.available_scopes as ('CONSOLIDATED' | 'STANDALONE')[] | undefined) ||
+      (financialStatements.available_scopes as ('CONSOLIDATED' | 'STANDALONE')[] | undefined) ||
+      ['CONSOLIDATED'],
     quarterly_financials: quarterly,
     annual_financials: Array.from(annualByYear.values()).sort((a, b) => b.fiscal_year - a.fiscal_year),
     shareholding_pattern: shareholding,
@@ -545,7 +620,7 @@ export async function getStockChart(
 export async function getStockFinancials(
   identifier: string,
   periodType?: 'ANNUAL' | 'QUARTERLY',
-  limit: number = 5,
+  limit: number = 20,
   country?: string,
   scope?: string
 ): Promise<StockFinancialsData | null> {

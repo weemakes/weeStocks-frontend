@@ -5,7 +5,6 @@ import type {
   IPOQueryParams,
   IPOV2Summary,
   IPOFilterCountsMatrix,
-  IPOStatusCounts,
 } from '../types';
 
 export class IPOApiError extends Error {
@@ -35,7 +34,7 @@ export async function getIPOList(params: IPOQueryParams = {}): Promise<IPOV2List
   const url = `${API_BASE_URL}/v2/ipos${queryString ? `?${queryString}` : ''}`;
   
   const response = await fetch(url, {
-    next: { revalidate: 15 },
+    cache: 'no-store',
     headers: {
       'User-Agent': 'WeeStox/1.0',
       'Accept': 'application/json',
@@ -58,7 +57,7 @@ export async function getIPODetail(slug: string): Promise<IPODetailV2Response> {
   const url = `${API_BASE_URL}/v2/ipos/${encodedSlug}`;
   
   const response = await fetch(url, {
-    next: { revalidate: 15 },
+    cache: 'no-store',
     headers: {
       'User-Agent': 'WeeStox/1.0',
       'Accept': 'application/json',
@@ -92,7 +91,7 @@ export async function getIPOGmpHistory(slug: string): Promise<IPOGmpHistoryRespo
   const encodedSlug = encodeURIComponent(slug.trim());
   const url = `${API_BASE_URL}/v2/ipos/${encodedSlug}/gmp-history`;
   const response = await fetch(url, {
-    next: { revalidate: 900 },
+    cache: 'no-store',
     headers: {
       'User-Agent': 'WeeStox/1.0',
       Accept: 'application/json',
@@ -154,7 +153,7 @@ export async function enrichIPODetail(idOrSlug: string | number): Promise<{ stat
  * In-memory short-term cache for IPO filter counts matrix to prevent redundant backend calls
  */
 const countsMatrixCache = new Map<string, { matrix: IPOFilterCountsMatrix; timestamp: number }>();
-const CACHE_TTL_MS = 60 * 1000;
+const CACHE_TTL_MS = 10 * 1000;
 
 /**
  * Fetch and construct the cross-filter counts matrix.
@@ -188,16 +187,16 @@ export async function getIPOCountsMatrix(
         mbClosedRes,
         mbListedRes,
       ] = await Promise.all([
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=open&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=upcoming&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=closed&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=listed&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=open&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=upcoming&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=closed&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=listed&limit=1`, { next: { revalidate: 60 } }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=open&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=upcoming&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=closed&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&status=listed&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=open&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=upcoming&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=closed&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE_URL}/v2/ipos?halal=true&category=mainboard&status=listed&limit=1`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null),
       ]);
 
       const allTotal = allTotalRes?.data?.total ?? 0;
@@ -243,7 +242,7 @@ export async function getIPOCountsMatrix(
     // Default (non-halal):
     let sum = baseSummary;
     if (!sum) {
-      const summaryRes = await fetch(`${API_BASE_URL}/v2/ipos?limit=1`, { next: { revalidate: 60 } })
+      const summaryRes = await fetch(`${API_BASE_URL}/v2/ipos?limit=1`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => null);
       sum = summaryRes?.data?.summary;
@@ -259,16 +258,16 @@ export async function getIPOCountsMatrix(
 
     // Concurrently fetch the 4 Mainboard status counts
     const [mbOpenRes, mbUpcomingRes, mbClosedRes, mbListedRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=open&limit=1`, { next: { revalidate: 60 } })
+      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=open&limit=1`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => null),
-      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=upcoming&limit=1`, { next: { revalidate: 60 } })
+      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=upcoming&limit=1`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => null),
-      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=closed&limit=1`, { next: { revalidate: 60 } })
+      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=closed&limit=1`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => null),
-      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=listed&limit=1`, { next: { revalidate: 60 } })
+      fetch(`${API_BASE_URL}/v2/ipos?category=mainboard&status=listed&limit=1`, { cache: 'no-store' })
         .then((r) => r.json())
         .catch(() => null),
     ]);
