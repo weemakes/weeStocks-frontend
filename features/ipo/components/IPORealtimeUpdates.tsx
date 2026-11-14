@@ -26,6 +26,7 @@ export function IPORealtimeUpdates({ streamUrl }: { streamUrl: string }) {
   const router = useRouter();
   const [announcement, setAnnouncement] = useState<IPOEvent | null>(null);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastActiveRef = useRef<number>(Date.now());
 
   useEffect(() => {
     let source: EventSource | null = null;
@@ -43,6 +44,9 @@ export function IPORealtimeUpdates({ streamUrl }: { streamUrl: string }) {
     };
 
     const connect = () => {
+      if (source) {
+        try { source.close(); } catch {}
+      }
       source = new EventSource(streamUrl);
       source.onmessage = handlePayload;
       ["ALLOTMENT_DECLARED", "GMP_UPDATE", "STATUS_CHANGE", "NEW_IPO_SAVED", "SUBSCRIPTION_UPDATE"].forEach((name) => {
@@ -51,9 +55,40 @@ export function IPORealtimeUpdates({ streamUrl }: { streamUrl: string }) {
     };
     const connectionTimer = window.setTimeout(connect, 750);
 
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        // If tab was inactive or backgrounded for more than 45 seconds, refresh server data
+        if (now - lastActiveRef.current > 45_000) {
+          router.refresh();
+        }
+        lastActiveRef.current = now;
+        if (!source || source.readyState === EventSource.CLOSED) {
+          connect();
+        }
+      } else {
+        lastActiveRef.current = Date.now();
+      }
+    };
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      // Revalidate if restored from bfcache
+      if (e.persisted) {
+        router.refresh();
+        if (!source || source.readyState === EventSource.CLOSED) {
+          connect();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pageshow', handlePageShow);
+
     return () => {
       if (refreshTimer.current) clearTimeout(refreshTimer.current);
       window.clearTimeout(connectionTimer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pageshow', handlePageShow);
       source?.close();
     };
   }, [router, streamUrl]);

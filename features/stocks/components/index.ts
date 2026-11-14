@@ -13,3 +13,4 @@ export { default as StockCandleChart } from './StockCandleChart';
 export { default as CompanyLogo } from './CompanyLogo';
 export { default as CorporateActionsSection } from './CorporateActionsSection';
 export { default as FinancialStatements } from './FinancialStatements';
+export { default as ViewModeToggle } from './ViewModeToggle';

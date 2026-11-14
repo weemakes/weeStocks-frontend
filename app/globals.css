@@ -1954,6 +1954,7 @@ select:focus-visible {
     opacity: 0.25;
     transform: translateY(4px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -1969,6 +1970,7 @@ select:focus-visible {
     opacity: 0;
     transform: translateY(4px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1981,9 +1983,12 @@ select:focus-visible {
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45);
   }
+
   50% {
     box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
   }
@@ -1994,9 +1999,12 @@ select:focus-visible {
 }
 
 @keyframes floatSoft {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-5px);
   }
@@ -2007,9 +2015,12 @@ select:focus-visible {
 }
 
 @keyframes floatDelayed {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px) rotate(0deg);
   }
+
   50% {
     transform: translateY(-6px) rotate(1deg);
   }
@@ -2023,6 +2034,7 @@ select:focus-visible {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
@@ -2033,10 +2045,13 @@ select:focus-visible {
 }
 
 @keyframes glowAura {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.4;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.75;
     transform: scale(1.04);
@@ -2057,6 +2072,3 @@ select:focus-visible {
   stroke-dasharray: 6 6;
   animation: dashPulse 2.5s linear infinite;
 }
-
-
-

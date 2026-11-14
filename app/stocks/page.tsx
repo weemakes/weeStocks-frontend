@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import JsonLd from '@/components/seo/JsonLd';
 import PageFaq from '@/components/seo/PageFaq';
 import { STOCK_FAQS } from '@/lib/seo/faqs';
+import { getBreadcrumbSchema, getFaqSchema } from '@/components/seo/siteSchemas';
 import { getStocksList } from '@/features/stocks/api';
 import StocksScreener from '@/features/stocks/components/StocksScreener';
 
@@ -14,8 +16,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const query = await searchParams;
   const country = typeof query.country === 'string' ? query.country : 'India';
   const canonical = country === 'India' ? '/stocks' : '/stocks?' + new URLSearchParams({ country });
-  const title = `${country} Stock Screener, Share Prices & Financial Ratios`;
-  const description = `Screen ${country} stocks, analyse financial statements, valuation metrics, price charts, and AAOIFI Shariah compliance on WeeStox.`;
+  const title = `${country} Halal Stock Screener, Shariah Compliant List & Share Prices | WeeStox`;
+  const description = `Screen ${country} stocks for AAOIFI Shariah compliance, debt-to-market-cap ratios, dividend purification, valuation metrics and price charts on WeeStox.`;
   const ogImageUrl = `${SITE_URL}/og-image.png`;
   return {
     title,
@@ -48,6 +50,14 @@ export default async function StocksPage({ searchParams }: Props) {
   const query = await searchParams;
   const country = typeof query.country === 'string' && query.country.trim() ? query.country.trim() : 'India';
   const search = typeof query.search === 'string' ? query.search : undefined;
+  const canonical = country === 'India' ? '/stocks' : '/stocks?' + new URLSearchParams({ country });
   const initialData = await getStocksList({ country, search, limit: 20, page: 1, sort_by: 'market_cap', sort_order: 'DESC' });
-  return <><StocksScreener key={country} initialData={initialData} initialCountry={country} /><PageFaq title="Stock research and screener FAQs" items={STOCK_FAQS} links={[{ label: 'IPO research', href: '/ipo' }, { label: 'About our data', href: '/about' }]} /></>;
+  return <>
+    <JsonLd data={[
+      getBreadcrumbSchema([{ name: 'Home', path: '/' }, { name: `${country} Stocks`, path: canonical }]),
+      getFaqSchema(STOCK_FAQS),
+    ]} />
+    <StocksScreener key={country} initialData={initialData} initialCountry={country} />
+    <PageFaq title={`${country} Stock Screener & Shariah Compliance FAQs`} items={STOCK_FAQS} schema={false} links={[{ label: 'IPO research', href: '/ipo' }, { label: 'About our data', href: '/about' }]} />
+  </>;
 }

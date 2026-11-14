@@ -249,9 +249,9 @@ export default function StockCandleChart({
           </span>
         </div>
 
-        {/* 7-Timeframe iOS-Style Segmented Control */}
+        {/* Timeframe Segmented Control in a single row */}
         {chartRanges && onRangeChange && (
-          <div className="grid grid-cols-7 gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl select-none w-full sm:w-auto">
+          <div className="flex items-center gap-0.5 sm:gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl select-none w-full sm:w-auto overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {chartRanges.map((item) => {
               const active = range === item.label;
               return (
@@ -259,7 +259,7 @@ export default function StockCandleChart({
                   key={item.label}
                   type="button"
                   onClick={() => onRangeChange(item.label)}
-                  className={`py-1 sm:px-2.5 text-center text-xs font-bold rounded-lg transition-all ${
+                  className={`flex-1 sm:flex-initial py-1 px-2 sm:px-2.5 text-center text-xs font-bold rounded-lg transition-all shrink-0 whitespace-nowrap cursor-pointer ${
                     active
                       ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 shadow-xs font-black'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'

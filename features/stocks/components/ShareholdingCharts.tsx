@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { formatSafePct } from '../utils/mappers';
+import ViewModeToggle from './ViewModeToggle';
 
 type HoldingKey = 'promoter' | 'fii' | 'dii' | 'public';
 type Filter = 'all' | HoldingKey;
@@ -53,7 +54,7 @@ export default function ShareholdingCharts({ rows }: { rows: HoldingRow[] }) {
   const topInstitutions = latest.top_institutions || [];
 
   return <div className="space-y-4">
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-2 dark:border-slate-800 dark:bg-slate-950/40"><div className="px-2"><strong className="block text-xs">{frequency === 'annual' ? 'Annual ownership snapshots' : 'Quarterly ownership history'}</strong><span className="text-[9px] text-slate-400">Latest valid period · {periodLabel(latest.quarter, true)}</span></div><div className="flex flex-wrap gap-2"><Toggle values={['annual', 'quarterly']} selected={frequency} onSelect={(item) => { setFrequency(item as Frequency); setHoveredIndex(null); }} /><Toggle values={['chart', 'table']} selected={view} dark onSelect={(item) => setView(item as ViewMode)} /></div></div>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-2 dark:border-slate-800 dark:bg-slate-950/40"><div className="px-2"><strong className="block text-xs">{frequency === 'annual' ? 'Annual ownership snapshots' : 'Quarterly ownership history'}</strong><span className="text-[9px] text-slate-400">Latest valid period · {periodLabel(latest.quarter, true)}</span></div><div className="flex flex-wrap items-center gap-2"><Toggle values={['annual', 'quarterly']} selected={frequency} onSelect={(item) => { setFrequency(item as Frequency); setHoveredIndex(null); }} /><ViewModeToggle view={view} onChange={setView} /></div></div>
 
     <div className="grid grid-cols-2 gap-1 rounded-xl border border-slate-200 p-2 sm:grid-cols-4 dark:border-slate-800">{categories.map((category) => { const value = latest[category.key]; const change = changeBetween(value, previous?.[category.key]); return <button type="button" key={category.key} onClick={() => { setFilter(filter === category.key ? 'all' : category.key); setView('chart'); }} className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition ${filter === category.key ? 'bg-sky-50 ring-1 ring-sky-200 dark:bg-sky-950/30 dark:ring-sky-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'}`}><i className={`h-2.5 w-2.5 shrink-0 rounded-full ${category.className}`} /><span className="whitespace-nowrap text-[10px] font-bold text-slate-500">{category.shortLabel}</span><b className="whitespace-nowrap text-[10px] text-slate-900 dark:text-white">{formatSafePct(value, false)}</b><span className="text-[10px]"><Trend value={change} /></span></button>; })}</div>
 
